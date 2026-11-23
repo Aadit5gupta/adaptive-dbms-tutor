@@ -68,3 +68,7 @@ The workspace frontend and backend were started on loopback. The frontend, proxi
 | Retrieval smoke | All six expected lessons ranked first in the six draft-labeled queries. Hit@4 and MRR were both 1.0 on this small smoke set. |
 
 The earlier sections record the engineering baseline before publication. Human-only content coverage and publisher section clearance remain open. [Educational evidence](educational-review.md) · [Rights review](section-rights-review.md)
+
+## Final product acceptance
+
+The final audit reran the existing tests and used installed Chrome against the normal local runtime. Product revision `3b56e5c` passed 138 backend tests, two Vitest tests, six Chrome regression cases, both learner gates and real Ollama. The [acceptance report](FINAL_ACCEPTANCE_REPORT.md) records the browser evidence, fixes, human-only gate failures and separate local, public and human-study decisions.
