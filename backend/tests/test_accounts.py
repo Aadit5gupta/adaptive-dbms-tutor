@@ -154,3 +154,71 @@ def test_login_throttle_bounds_attempts() -> None:
     with pytest.raises(AssessmentError) as error:
         throttle.check()
     assert error.value.status == 429
+
+
+def test_signed_in_assessment_and_progress_are_private(
+    local_app: tuple[FastAPI, Settings], s1: Path
+) -> None:
+    from app.db.models import Attempt
+    from app.services.curriculum import publish_from_disk
+
+    _, settings = local_app
+    app = create_app(settings, content_root=s1)
+    engine = open_engine(settings.app_db)
+    with Session(engine) as db, db.begin():
+        publish_from_disk(db, s1)
+
+    async def run() -> None:
+        async with (
+            app.router.lifespan_context(app),
+            AsyncClient(transport=ASGITransport(app), base_url=BASE_URL, headers=ORIGIN) as a,
+            AsyncClient(transport=ASGITransport(app), base_url=BASE_URL, headers=ORIGIN) as b,
+        ):
+            assert (await a.get("/api/v1/curriculum")).status_code == 401
+            assert (await a.post("/api/v1/auth/register", json=FIRST)).status_code == 201
+            assert (await b.post("/api/v1/auth/register", json=SECOND)).status_code == 201
+            curriculum = (await a.get("/api/v1/curriculum")).json()
+            assert len(curriculum) == 7
+            diag = await a.post("/api/v1/assessments/start", json={"topic": "relational.keys"})
+            session = diag.json()
+            assert diag.status_code == 200 and len(session["items"]) == 1
+            sid, item = session["session_id"], session["items"][0]
+            assert (await b.get(f"/api/v1/practice/sessions/{sid}")).status_code == 404
+            assert "explanation" not in item and "is_correct" not in item
+            body = {"item_id": item["item_id"], "option_index": 1}
+            headers = {**ORIGIN, "Idempotency-Key": item["item_id"]}
+            submitted = await a.post(
+                f"/api/v1/assessments/{sid}/submit", json=body, headers=headers
+            )
+            assert submitted.status_code == 200 and not submitted.json()["correct"]
+            assert (
+                await a.post(f"/api/v1/assessments/{sid}/submit", json=body, headers=headers)
+            ).json() == submitted.json()
+
+            practice = await a.post("/api/v1/practice/sessions", json={"topic": "relational.keys"})
+            allocation = practice.json()
+            kind = allocation["items"][0]
+            result = await a.post(
+                f"/api/v1/practice/sessions/{allocation['session_id']}/answer",
+                json={"item_id": kind["item_id"], "option_index": 1},
+                headers={**ORIGIN, "Idempotency-Key": kind["item_id"]},
+            )
+            assert result.json()["next_action"]["action_type"] == "MISCONCEPTION_REMEDIATION"
+            assert (await a.get("/api/v1/lessons/keys@1")).json()["title"] == "keys"
+            checks = await a.post("/api/v1/practice/checkpoints")
+            assert checks.json()["total"] == 2
+            assert (await a.get("/api/v1/misconceptions")).json()[0]["state"] == "active"
+            assert (await b.get("/api/v1/misconceptions")).json() == []
+            assert len((await a.get("/api/v1/progress")).json()["recent"]) == 2
+            assert (await b.get("/api/v1/progress")).json()["recent"] == []
+            assert len((await a.get("/api/v1/me/export")).json()["attempts"]) == 2
+            assert (await b.get("/api/v1/me/export")).json()["attempts"] == []
+            assert (await a.delete("/api/v1/me")).status_code == 200
+            with Session(engine) as db:
+                assert list(db.scalars(select(Attempt))) == []
+            assert (await b.get("/api/v1/me")).status_code == 200
+
+    try:
+        asyncio.run(run())
+    finally:
+        engine.dispose()

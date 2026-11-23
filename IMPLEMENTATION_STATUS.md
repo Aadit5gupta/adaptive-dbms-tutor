@@ -78,8 +78,8 @@
 
 | Task | Status | Tests and push | Date/commit |
 |---|---|---|---|
-| S4.1 Local accounts and privacy | done_tested | Added account model/migration, Argon2, hashed sessions, origin and body-error protection, profiles, export and delete. Pytest 99 passed, including origin, redaction, expiry and isolation checks. Ruff, mypy, strict validation and Alembic check passed. Push pending workflow scope. | 2026-11-23 / `S4.1` |
-| S4.2 Signed-in learning and SQL API | todo | | |
+| S4.1 Local accounts and privacy | done_tested | Added account model/migration, Argon2, hashed sessions, origin and body-error protection, profiles, export and delete. Pytest 99 passed, including origin, redaction, expiry and isolation checks. Ruff, mypy, strict validation and Alembic check passed. Push pending workflow scope. | 2026-11-23 / `f284d1f` |
+| S4.2 Signed-in learning and SQL API | done_tested | Added guarded curriculum, lessons, diagnostic, practice, checkpoints, progress, hypothesis, SQL and tutor endpoints. Pytest 100 passed, including cross-account isolation and complete learning-data deletion. Ruff/mypy/strict validation, frontend checks and three Chrome E2E tests passed. Push pending workflow scope. | 2026-11-23 / `S4.2` |
 | S4.3 Dashboard, learning and settings UI | todo | | |
 | S4.4 Lean content drafts and boundary | todo | | |
 

@@ -13,14 +13,14 @@ interface TutorReply {
   status: 'ok' | 'ai_unavailable' | 'no_evidence'
 }
 
-export function TutorPanel({ topic }: { topic?: string }) {
+export function TutorPanel({ topic, demo = false }: { topic?: string; demo?: boolean }) {
   const [question, setQuestion] = useState('')
   const [mode, setMode] = useState<Mode>('ask')
   const [level, setLevel] = useState(1)
   const tutor = useMutation({
     mutationFn: () => {
       const endpoint = mode === 'hint' ? '/hint' : mode === 'ask' ? '/ask' : '/explain'
-      return request<TutorReply>(`/tutor${endpoint}`, {
+      return request<TutorReply>(`${demo ? "/demo" : ""}/tutor${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: question.trim(), topic_id: topic, mode, hint_level: level }),

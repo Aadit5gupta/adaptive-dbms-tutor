@@ -15,8 +15,9 @@ from starlette.responses import Response
 from app.api.accounts import account_router
 from app.api.demo import demo_router
 from app.api.health import health_router
+from app.api.learning import learning_router
 from app.api.library import library_router
-from app.api.tutor import local_tutor_router
+from app.api.tutor import local_tutor_router, tutor_router
 from app.core.auth import Accounts
 from app.core.config import PROJECT_ROOT, Settings
 from app.core.db import open_engine
@@ -29,7 +30,7 @@ from app.services.tutor import TutorService
 ALEMBIC_INI = Path(__file__).resolve().parents[1] / "alembic.ini"
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(settings: Settings | None = None, *, content_root: Path = PROJECT_ROOT) -> FastAPI:
     config = settings or Settings()
     engine = open_engine(config.app_db)
     demo_engine = open_engine(demo_path(config)) if config.demo_enabled else None
@@ -81,14 +82,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
 
     if demo_engine is not None:
-        app.include_router(demo_router(demo_engine, PROJECT_ROOT), prefix="/api/v1")
+        app.include_router(demo_router(demo_engine, content_root), prefix="/api/v1")
         app.include_router(
-            local_tutor_router(TutorService(Retriever(demo_engine))), prefix="/api/v1"
+            local_tutor_router(TutorService(Retriever(demo_engine, content_root))), prefix="/api/v1"
         )
+    accounts = Accounts(engine, secure_cookie=config.secure_cookies)
+    app.include_router(account_router(accounts), prefix="/api/v1")
+    app.include_router(learning_router(accounts, content_root), prefix="/api/v1")
     app.include_router(
-        account_router(Accounts(engine, secure_cookie=config.secure_cookies)), prefix="/api/v1"
+        tutor_router(TutorService(Retriever(engine, content_root)), accounts.require_user),
+        prefix="/api/v1",
     )
-    app.include_router(library_router(engine, PROJECT_ROOT), prefix="/api/v1")
+    app.include_router(library_router(engine, content_root), prefix="/api/v1")
     app.include_router(health_router(engine, heads), prefix="/api/v1")
     return app
 

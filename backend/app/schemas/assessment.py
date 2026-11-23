@@ -18,6 +18,8 @@ class ItemView(BaseModel):
 class SessionView(BaseModel):
     session_id: str
     items: list[ItemView]
+    total: int = 0
+    remaining: int = 0
 
 
 class AnswerInput(BaseModel):

@@ -37,3 +37,11 @@ The local demo exposes `POST /tutor/ask`, `/tutor/explain` and `/tutor/hint`. Se
 Register and sign in at `POST /auth/register` and `POST /auth/login` with `email` and `password`. Successful responses set an opaque HttpOnly, SameSite=Lax session cookie. The session expires after one day and `POST /auth/logout` revokes it. Cookie security is configurable for HTTPS.
 
 `GET /me` returns the signed-in account. `PATCH /me` updates the learning goal, experience level and daily minutes. `GET /me/export` downloads the account's learning data. `DELETE /me` deletes the account and its related records. Mutation requests need an exact allowlisted Origin or same-origin Referer.
+
+## Signed-in learning
+
+The curriculum, versioned lessons, assessments, practice, revision, SQL Lab and progress endpoints require a signed-in session. `POST /practice/sessions` accepts a topic, optional difficulty and a mode of `practice` or `review`. `POST /assessments/start` starts a screening when the topic is omitted or a targeted probe when supplied.
+
+Session responses carry a current item, total and remaining counts. Send a choice with an idempotency key to `/practice/sessions/{id}/answer` or `/assessments/{id}/submit`. `POST /practice/checkpoints` uses the current learner's recommended and still-eligible remediation. Progress, hypotheses and recommendations can be fetched from `/progress`, `/misconceptions` and `/recommendations/next`.
+
+For a reviewed SQL exercise, start a session with `POST /sql/exercises/{id}/sessions`. Run or submit a query to the matching endpoint with the returned session and item IDs. Session ownership, immutable versions and secret-free feedback apply to both routes.

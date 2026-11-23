@@ -60,8 +60,14 @@ def open_item_views(db: Session, session: AssessmentSession) -> SessionView:
         .where(SessionItem.session_id == session.id, SessionItem.status == "open")
         .order_by(SessionItem.position)
     )
+    open_items = list(items)
+    total = db.scalar(
+        select(func.count()).select_from(SessionItem).where(SessionItem.session_id == session.id)
+    )
     return SessionView(
         session_id=session.id,
+        total=total or 0,
+        remaining=len(open_items),
         items=[
             ItemView(
                 item_id=item.id,
@@ -70,7 +76,7 @@ def open_item_views(db: Session, session: AssessmentSession) -> SessionView:
                 stem=version.stem,
                 options=[option.body for option in options_for(db, version.id)],
             )
-            for item, version, question in items
+            for item, version, question in open_items
         ],
     )
 

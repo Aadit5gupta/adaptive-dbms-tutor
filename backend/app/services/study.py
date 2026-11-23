@@ -65,3 +65,44 @@ def start_study(
         prefer_difficulty=difficulty,
         context=mode,
     )
+
+
+def start_checkpoints(db: Session, user_id: str) -> SessionView:
+    from app.db.models import Misconception, UserMisconception
+    from app.services.progress import latest_recommendation
+    from content.schemas.models import Misconception as Definition
+
+    action = latest_recommendation(db, user_id)
+    code = action.misconception_code if action else None
+    rule = db.get(Misconception, code) if code else None
+    state = db.get(UserMisconception, (user_id, code)) if code else None
+    if (
+        rule is None
+        or not rule.enabled
+        or state is None
+        or state.state not in ("active", "improving")
+    ):
+        raise AssessmentError("No checkpoint is currently recommended.", "no_checkpoint", 404)
+    existing = db.scalar(
+        select(AssessmentSession)
+        .join(SessionItem, SessionItem.session_id == AssessmentSession.id)
+        .where(
+            AssessmentSession.user_id == user_id,
+            AssessmentSession.status == "open",
+            AssessmentSession.kind == "checkpoint",
+            SessionItem.remediation_code == rule.code,
+        )
+        .limit(1)
+    )
+    if existing:
+        return open_item_views(db, existing)
+    definition = Definition.model_validate_json(rule.definition_json)
+    return allocate_mcqs(
+        db,
+        user_id,
+        "checkpoint",
+        limit=2,
+        subtopic=rule.subtopic_id,
+        reserved_refs=definition.checkpoint_question_refs,
+        misconception_code=rule.code,
+    )
