@@ -314,3 +314,34 @@ def test_diagnostic_allocates_only_fresh_reviewed_domains(assessment_db: Engine)
         pytest.raises(AssessmentError, match="no eligible questions"),
     ):
         start_study(db, "learner", "diagnostic", topic="relational.keys")
+
+
+def test_progress_coverage_review_and_persisted_recommendation(assessment_db: Engine) -> None:
+    from app.services.progress import read_progress
+
+    with Session(assessment_db) as db, db.begin():
+        view = allocate_mcqs(db, "learner", "practice", subtopic="relational.keys")
+    answer = submit_mcq(
+        assessment_db,
+        "learner",
+        view.session_id,
+        "progress",
+        AnswerInput(item_id=view.items[0].item_id, option_index=0),
+    )
+    with Session(assessment_db) as db:
+        owner = read_progress(db, "learner", now=100_000_000_000)
+        other = read_progress(db, "other", now=100_000_000_000)
+    assert len(owner.domains) == 7 and owner.recommendation == answer.next_action
+    keys = next(row for row in owner.topics if row.topic == "relational.keys")
+    assert keys.score == 0.6 and keys.recent_accuracy == 1.0 and keys.review_due
+    relational = next(row for row in owner.domains if row.domain == "relational")
+    assert relational.assessed_topics == 1 and relational.listed_topics > 1
+    assert all(row.score is None for row in other.topics)
+    assert other.recent == []
+    assert set(owner.recent[0].model_dump()) == {
+        "topic",
+        "context",
+        "correct",
+        "created_at",
+        "mastery_after",
+    }

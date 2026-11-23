@@ -2,7 +2,7 @@
 
 **Authority:** `MASTER_PLAN.md` v1.2. This is a factual report; initial statuses below are NOT claims of tested code.
 
-- **Current stage:** S2 engineering (S1 human content gate blocked)
+- **Current stage:** S3 engineering (reviewed demo gates blocked)
 - **Passing commits:** use `git log --oneline --grep='^S[0-6]\.'` (a commit cannot embed its own hash)
 - **Last updated by implementation agent:** 2026-11-23
 - **Environment/OS/tested versions:** see bootstrap CLI checks in `DECISIONS.md`
@@ -52,7 +52,7 @@
 
 | Stage | Status | Required outcome | Evidence |
 |---|---|---|---|
-| S2 adaptation/practice | in_progress | stable sessions, smarter selection and review | |
+| S2 adaptation/practice | blocked | stable sessions, smarter selection and review | Engineering tested using synthetic fixtures. Reviewed demo replay still requires content approval. |
 | S3 rights-cleared retrieval/tutor | todo | approved-lesson and cleared-section BM25 retrieval, actual indexed count and cited fallback | |
 | S4 usable auth/product/privacy | todo | multi-user, SQL Lab, diagnostic, export/delete, ≥lean content | |
 | S5 mandatory Ollama / hardening / evaluation | todo | Qwen3 grounded tutoring, mock-provider tests, real-model check, security tests and honest evaluation | |
@@ -63,7 +63,7 @@
 | Task | Status | Tests and push | Date/commit |
 |---|---|---|---|
 | S2.1 Resumable practice and diagnostic allocation | done_tested | Added study service, exposure ordering, domain balancing and tests. Pytest 86 passed, including synthetic replay. Ruff, mypy and strict validation passed. Push pending workflow scope. | 2026-11-23 / `9b82a82` |
-| S2.2 Recommendation and review | done_tested | Policy v2 recommends actual available difficulty, due topics with fresh questions and explicit repeated practice. Pure policy tests and full backend suite 88 passed; Ruff, mypy and strict validation passed. Push pending workflow scope. | 2026-11-23 / `S2.2` |
-| S2.3 Progress data and boundary tests | todo | | |
+| S2.2 Recommendation and review | done_tested | Policy v2 recommends actual available difficulty, due topics with fresh questions and explicit repeated practice. Pure policy tests and full backend suite 88 passed; Ruff, mypy and strict validation passed. Push pending workflow scope. | 2026-11-23 / `e6e2ecf` |
+| S2.3 Progress data and boundary tests | done_tested | Added progress/coverage and recent-accuracy read models, with a privacy and learner-isolation test. Backend 89, Vitest 2 and Chrome E2E 2 passed; lint, types, build and strict validation passed. Actual demo replay exits 1 pending review. Push pending workflow scope. | 2026-11-23 / `S2.3` |
 
 **Allowed task statuses:** `todo | in_progress | done_tested | blocked`. Mark `done_tested` only with executed commands, observed results and date. A passing stage is never inferred from completed scaffolding. If human review/licensing blocks a gate, label it **blocked**, continue eligible engineering work and disclose limitations honestly.

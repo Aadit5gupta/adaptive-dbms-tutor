@@ -23,3 +23,7 @@ S1 introduces the learner A/B demo. S5 requires a separately invoked real Ollama
 - Frontend lint, typecheck, build and two Vitest tests passed. Headless Chrome Playwright passed two tests with synthetic fixture content, including the A/B learner flow, refresh, checkpoint resolution, real SQL preview/submission and cross-origin mutation rejection.
 - Reset and seed ran against the dedicated local demo database. The real-content replay and S1 stage gate exited 1 because the authored materials await human review. The synthetic replay passed in the backend test suite.
 - GitHub Actions remains pending the CLI workflow scope. Apple Silicon macOS is the tested SQL worker platform.
+
+## S2 engineering boundary
+
+89 backend tests, two Vitest tests and two Chrome Playwright tests passed. Backend and frontend lint, type checks, build and strict content validation passed. The test-only A/B replay passed again. The actual demo verification exited 1 at the unchanged human review gate.

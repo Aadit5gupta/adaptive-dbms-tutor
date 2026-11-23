@@ -12,7 +12,6 @@ from app.db.models import (
     LessonVersion,
     Mastery,
     Misconception,
-    PolicyDecision,
     Question,
     QuestionVersion,
     SessionItem,
@@ -23,6 +22,7 @@ from app.db.models import (
 from app.schemas.assessment import SessionView
 from app.services.adaptive import NextAction
 from app.services.assessment import AssessmentError, allocate_mcqs, allocate_sql, open_item_views
+from app.services.progress import latest_recommendation
 from app.services.sql_grading import worker_supported
 from content.schemas.models import Misconception as Definition
 
@@ -124,13 +124,7 @@ def demo_state(db: Session, learner: Learner) -> DemoState:
     sql_ready = worker_supported() and first_sql_exercise(db) is not None
     if sql_ready:
         activities.append("sql")
-    raw_action = db.scalar(
-        select(PolicyDecision.selected_action)
-        .where(PolicyDecision.user_id == user_id)
-        .order_by(PolicyDecision.id.desc())
-        .limit(1)
-    )
-    recommendation = NextAction.model_validate_json(raw_action) if raw_action is not None else None
+    recommendation = latest_recommendation(db, user_id)
     if recommendation and recommendation.misconception_code:
         activities.append("checkpoint")
     active = recent_session(db, user_id)
