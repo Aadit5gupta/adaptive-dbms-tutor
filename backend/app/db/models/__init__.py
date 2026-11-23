@@ -296,3 +296,22 @@ class Passage(Base):
     license_url: Mapped[str | None]
     attribution: Mapped[str]
     source_hash: Mapped[str]
+
+
+class AuthSession(Base):
+    __tablename__ = "sessions"
+
+    id: Mapped[str] = mapped_column(primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    token_hash: Mapped[str] = mapped_column(unique=True)
+    expires_at: Mapped[int]
+    revoked_at: Mapped[int | None]
+
+
+class Profile(Base):
+    __tablename__ = "profiles"
+
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    goal: Mapped[str | None]
+    level: Mapped[str | None]
+    daily_minutes: Mapped[int | None]

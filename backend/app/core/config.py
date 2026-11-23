@@ -18,6 +18,11 @@ class Settings(BaseSettings):
     app_db: Path = Path("data/app.sqlite")
     demo_db: Path = Path("data/demo.sqlite")
     demo_enabled: bool = False
+    secure_cookies: bool = False
+    allowed_origins: frozenset[str] = frozenset({
+        "http://127.0.0.1:5173", "http://localhost:5173",
+        "http://127.0.0.1:8000", "http://localhost:8000",
+    })
 
     @model_validator(mode="after")
     def separate_database_paths(self) -> "Settings":

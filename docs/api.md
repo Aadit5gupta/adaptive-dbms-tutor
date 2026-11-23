@@ -31,3 +31,9 @@ Mutations require an allowed loopback origin. Hidden fixtures and reference quer
 ## Curated tutor
 
 The local demo exposes `POST /tutor/ask`, `/tutor/explain` and `/tutor/hint`. Send a short `query`, an optional curriculum `topic_id`, `mode`, and `hint_level` from 1 to 3. Replies include status and citations selected from retrieved or same-topic reviewed material. If no approved evidence is available, the tutor reports that state.
+
+## Accounts and privacy
+
+Register and sign in at `POST /auth/register` and `POST /auth/login` with `email` and `password`. Successful responses set an opaque HttpOnly, SameSite=Lax session cookie. The session expires after one day and `POST /auth/logout` revokes it. Cookie security is configurable for HTTPS.
+
+`GET /me` returns the signed-in account. `PATCH /me` updates the learning goal, experience level and daily minutes. `GET /me/export` downloads the account's learning data. `DELETE /me` deletes the account and its related records. Mutation requests need an exact allowlisted Origin or same-origin Referer.
