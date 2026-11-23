@@ -62,8 +62,8 @@
 
 | Task | Status | Tests and push | Date/commit |
 |---|---|---|---|
-| S2.1 Resumable practice and diagnostic allocation | done_tested | Added study service, exposure ordering, domain balancing and tests. Pytest 86 passed, including synthetic replay. Ruff, mypy and strict validation passed. Push pending workflow scope. | 2026-11-23 / `S2.1` |
-| S2.2 Recommendation and review | todo | | |
+| S2.1 Resumable practice and diagnostic allocation | done_tested | Added study service, exposure ordering, domain balancing and tests. Pytest 86 passed, including synthetic replay. Ruff, mypy and strict validation passed. Push pending workflow scope. | 2026-11-23 / `9b82a82` |
+| S2.2 Recommendation and review | done_tested | Policy v2 recommends actual available difficulty, due topics with fresh questions and explicit repeated practice. Pure policy tests and full backend suite 88 passed; Ruff, mypy and strict validation passed. Push pending workflow scope. | 2026-11-23 / `S2.2` |
 | S2.3 Progress data and boundary tests | todo | | |
 
 **Allowed task statuses:** `todo | in_progress | done_tested | blocked`. Mark `done_tested` only with executed commands, observed results and date. A passing stage is never inferred from completed scaffolding. If human review/licensing blocks a gate, label it **blocked**, continue eligible engineering work and disclose limitations honestly.

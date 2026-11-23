@@ -187,40 +187,75 @@ def recommend(
         if parent_mastery is not None and parent_mastery.score <= 0.4 and lesson:
             prerequisite = (parent, lesson)
             break
-    pools = set(
-        db.execute(
-            select(Question.type, QuestionVersion.pool)
-            .join(QuestionVersion, QuestionVersion.question_id == Question.id)
-            .where(Question.subtopic_id == topic)
-            .distinct()
-        )
-    )
-    seen_probes = (
+    exposed = (
         select(QuestionVersion.question_id)
         .join(SessionItem, SessionItem.question_version_id == QuestionVersion.id)
         .join(AssessmentSession, AssessmentSession.id == SessionItem.session_id)
         .where(AssessmentSession.user_id == attempt.user_id)
     )
-    unused_probe = db.scalar(
-        select(QuestionVersion.id)
-        .join(Question, Question.id == QuestionVersion.question_id)
-        .where(
-            Question.subtopic_id == topic,
-            Question.type == "mcq",
-            QuestionVersion.pool == "diagnostic",
-            Question.id.not_in(seen_probes),
+    inventory = list(
+        db.execute(
+            select(
+                Question.id,
+                Question.subtopic_id,
+                Question.type,
+                QuestionVersion.pool,
+                QuestionVersion.difficulty,
+                Question.id.in_(exposed),
+            )
+            .join(QuestionVersion, QuestionVersion.question_id == Question.id)
+            .where(QuestionVersion.pool.in_(("practice", "diagnostic")))
+            .order_by(Question.id, QuestionVersion.version.desc())
         )
-        .limit(1)
     )
+    used_ids: set[str] = set()
+    practice: set[str] = set()
+    fresh: dict[str, set[str]] = {}
+    probe = False
+    sql = False
+    for logical_id, candidate_topic, kind, pool, difficulty, seen in inventory:
+        if logical_id in used_ids:
+            continue
+        used_ids.add(logical_id)
+        if kind == "mcq" and pool == "practice":
+            if not seen:
+                fresh.setdefault(candidate_topic, set()).add(difficulty)
+            if candidate_topic == topic:
+                practice.add(difficulty)
+        if candidate_topic == topic:
+            probe |= kind == "mcq" and pool == "diagnostic" and not seen
+            sql |= kind == "sql" and pool == "practice"
+
+    due_rows = list(
+        db.execute(
+            select(Mastery.subtopic_id, Mastery.review_due_at).where(
+                Mastery.user_id == attempt.user_id,
+                Mastery.model_name == MODEL_NAME,
+                Mastery.subtopic_id != topic,
+                Mastery.review_due_at <= attempt.created_at,
+            )
+        )
+    )
+    due = [(due_at, other) for other, due_at in due_rows if due_at is not None and other in fresh]
+    if (
+        mastery.review_due_at is not None
+        and mastery.review_due_at <= attempt.created_at
+        and topic in fresh
+    ):
+        due.append((mastery.review_due_at, topic))
+
+    fresh_difficulties = fresh.get(topic, set())
     inputs = PolicyInput(
         topic=topic,
         mastery=mastery,
         remediation=remediation,
         missing_prerequisite=prerequisite,
         lesson_ref=latest_lesson(db, topic),
-        has_probe=unused_probe is not None,
-        has_practice=("mcq", "practice") in pools,
-        has_sql=worker_supported() and ("sql", "practice") in pools,
+        has_probe=probe,
+        practice_difficulties=tuple(sorted(fresh_difficulties or practice)),
+        fresh_practice=bool(fresh_difficulties),
+        review_topic=min(due)[1] if due else None,
+        has_sql=worker_supported() and sql,
     )
     action = choose_next(inputs)
     decision = PolicyDecision(
