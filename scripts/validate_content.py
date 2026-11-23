@@ -234,13 +234,17 @@ def check_rule(
     return checkpoints
 
 
-def load_content(root: Path = ROOT) -> Content:
-    content = root / "content"
-    manifest = content / "manifests/books.yaml"
+def load_catalog(root: Path = ROOT) -> Catalog:
+    manifest = root / "content/manifests/books.yaml"
     try:
-        catalog = Catalog.model_validate(read_yaml(manifest))
+        return Catalog.model_validate(read_yaml(manifest))
     except ValidationError as error:
         raise ContentError(f"{manifest}: {error}") from error
+
+
+def load_content(root: Path = ROOT) -> Content:
+    content = root / "content"
+    catalog = load_catalog(root)
     clearances = catalog.approved_clearances
     domains = read_records(content / "curriculum/topics.yaml", DOMAINS)
     prerequisites = read_records(content / "curriculum/prerequisites.yaml", PREREQUISITES)

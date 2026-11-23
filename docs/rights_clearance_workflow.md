@@ -69,3 +69,14 @@ Evidence links and access dates are in `content/manifests/books.yaml`. This is a
 - Reviewer identity and dates must be real; Codex must never fill in fake human approvals.
 
 If two fully indexed books cannot be legally cleared by the evaluation deadline, ship a truthful catalog and genuinely original author-reviewed lessons. Explain the limitation rather than faking indexed content. With zero indexed books, do not claim the retrieval system supplies book-grounded passages.
+
+## Local import commands
+
+Migrate the application database before importing. The importer accepts exact UTF-8 text files prepared and reviewed offline for the section. Store pending files under the ignored `content/raw/` directory.
+
+```sh
+python scripts/import_books.py lessons
+python scripts/import_books.py section --book BOOK_ID --clearance CLEARANCE_ID --topic TOPIC_ID --text PATH
+```
+
+Use the top-level `--demo` flag before the subcommand to target the marked demo database. Reviewed original lessons receive their own attribution. They do not contribute to the indexed book count.

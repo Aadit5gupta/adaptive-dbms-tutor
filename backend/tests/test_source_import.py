@@ -1,0 +1,99 @@
+from pathlib import Path
+
+import pytest
+from alembic import command
+from alembic.config import Config
+from app.core.db import open_engine
+from app.db.models import Passage
+from app.main import ALEMBIC_INI
+from app.services.curriculum import publish_content
+from app.services.source_import import import_book_section, index_reviewed_lessons
+from sqlalchemy import select, text
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session
+
+from content.schemas.rights import Catalog
+from scripts.validate_content import Content, load_content
+
+from .test_rights import TEXT, clearance
+
+BOOK_ID = "bccampus_db_design_2e"
+SECTION_URL = "https://opentextbc.ca/dbdesign01/chapter/test/#foreign-keys"
+
+
+@pytest.fixture
+def indexed_db(tmp_path: Path, s1: Path) -> tuple[Engine, Content, Catalog]:
+    engine = open_engine(tmp_path / "library.sqlite", create=True)
+    cfg = Config(str(ALEMBIC_INI))
+    with engine.begin() as connection:
+        cfg.attributes["connection"] = connection
+        command.upgrade(cfg, "head")
+    content = load_content(s1)
+    with Session(engine) as db, db.begin():
+        publish_content(db, content, s1)
+    raw = content.catalog.model_dump(mode="json")
+    raw["books"][0]["section_clearances"] = [clearance(SECTION_URL)]
+    return engine, content, Catalog.model_validate(raw)
+
+
+def hits(db: Session, query: str) -> list[int]:
+    return list(
+        db.scalars(
+            text("SELECT rowid FROM source_passages_fts WHERE source_passages_fts MATCH :query"),
+            {"query": query},
+        )
+    )
+
+
+def test_index_reviewed_lessons_idempotently(indexed_db: tuple[Engine, Content, Catalog]) -> None:
+    engine, content, _ = indexed_db
+    with Session(engine) as db, db.begin():
+        assert index_reviewed_lessons(db, content) == 2
+        assert index_reviewed_lessons(db, content) == 2
+        assert len(hits(db, "synthetic")) == 2
+        assert {value for value in db.scalars(select(Passage.kind))} == {"lesson"}
+
+
+def test_approved_import_is_searchable_and_preserves_real_metadata(
+    indexed_db: tuple[Engine, Content, Catalog],
+) -> None:
+    engine, _, catalog = indexed_db
+    with Session(engine) as db, db.begin():
+        assert hits(db, "clearance") == []
+        assert (
+            import_book_section(db, catalog, BOOK_ID, "synthetic_clearance", "sql.joins", TEXT) == 1
+        )
+        first = hits(db, "clearance")
+        assert len(first) == 1
+        assert (
+            import_book_section(db, catalog, BOOK_ID, "synthetic_clearance", "sql.joins", TEXT) == 1
+        )
+        assert hits(db, "clearance") == first
+        passage = db.get(Passage, first[0])
+        assert passage is not None
+        assert (
+            passage.source_url == SECTION_URL
+            and passage.attribution == "Synthetic test attribution"
+        )
+
+
+def test_import_errors_and_rollback_leave_no_searchable_rows(
+    indexed_db: tuple[Engine, Content, Catalog],
+) -> None:
+    engine, content, catalog = indexed_db
+    with Session(engine) as db, db.begin():
+        with pytest.raises(ValueError, match="hash mismatch"):
+            import_book_section(
+                db, catalog, BOOK_ID, "synthetic_clearance", "sql.joins", TEXT + b"!"
+            )
+        with pytest.raises(ValueError, match="no approval"):
+            import_book_section(
+                db, content.catalog, BOOK_ID, "synthetic_clearance", "sql.joins", TEXT
+            )
+        assert hits(db, "clearance") == []
+    with pytest.raises(RuntimeError), Session(engine) as db, db.begin():
+        import_book_section(db, catalog, BOOK_ID, "synthetic_clearance", "sql.joins", TEXT)
+        raise RuntimeError("Synthetic failure during import")
+    with Session(engine) as db:
+        assert hits(db, "clearance") == []
+        assert db.scalars(select(Passage)).all() == []

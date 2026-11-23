@@ -271,3 +271,28 @@ class Recommendation(Base):
     created_at: Mapped[int]
     followed_at: Mapped[int | None]
     skipped_at: Mapped[int | None]
+
+
+class Passage(Base):
+    __tablename__ = "source_passages"
+    __table_args__ = (
+        CheckConstraint("kind IN ('book', 'lesson')"),
+        CheckConstraint(
+            "(kind = 'lesson' AND lesson_ref IS NOT NULL AND book_id IS NULL AND clearance_id IS NULL)"
+            " OR (kind = 'book' AND lesson_ref IS NULL AND book_id IS NOT NULL AND clearance_id IS NOT NULL)"
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    passage_key: Mapped[str] = mapped_column(unique=True)
+    kind: Mapped[str]
+    lesson_ref: Mapped[str | None] = mapped_column(ForeignKey("lesson_versions.id"), index=True)
+    book_id: Mapped[str | None] = mapped_column(index=True)
+    clearance_id: Mapped[str | None] = mapped_column(index=True)
+    topic_id: Mapped[str] = mapped_column(ForeignKey("topics.id"), index=True)
+    title: Mapped[str]
+    body: Mapped[str]
+    source_url: Mapped[str]
+    license_url: Mapped[str | None]
+    attribution: Mapped[str]
+    source_hash: Mapped[str]
