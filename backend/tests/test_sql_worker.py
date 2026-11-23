@@ -193,3 +193,26 @@ def test_schema_explorer_contains_only_visible_fixture(join_exercise: SQLExercis
     assert customers.data.columns == ["id", "name"]
     assert (2, "Mina") in customers.data.rows
     assert all("Alex" not in row for row in customers.data.rows)
+
+
+@TESTED_PLATFORM
+def test_lean_sql_bank_references_pass_restricted_worker() -> None:
+    questions = [
+        question
+        for question in load_content().questions.values()
+        if isinstance(question, SQLQuestion)
+    ]
+    assert len(questions) >= 6
+    for question in questions:
+        fixture, expected = sql_snapshot(ROOT, question)
+        exercise = SQLExerciseVersion(
+            question_version_id=question.ref,
+            dialect=question.dialect,
+            fixture_spec=fixture,
+            expected_result_spec=expected,
+            reference_query=question.reference_query,
+            comparison_spec=question.compare.model_dump_json(),
+        )
+        result = grade_sql(ROOT, exercise, question.reference_query)
+        assert result.correct, (question.ref, result.feedback_code)
+        assert result.checked_fixtures == len(question.fixtures)

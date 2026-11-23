@@ -1,0 +1,96 @@
+- id: lesson_candidate_keys
+  version: 1
+  subtopic_id: relational.keys
+  review_status: draft
+  ai_assisted: true
+  title: Find the smallest key that identifies a row
+  source:
+    kind: authored
+    factual_reference_url: https://opentextbc.ca/dbdesign01/chapter/chapter-7-the-relational-data-model/
+  body_markdown: |
+    A candidate key is a minimal set of columns that identifies every row.
+    In a course registration system, assume each student can enroll in a
+    course only once. Neither `student_id` nor `course_code` is sufficient
+    on its own. Together they identify a registration.
+
+    | student_id | course_code | enrolled_on |
+    | --- | --- | --- |
+    | 6 | DB101 | 12 Aug |
+    | 6 | OS101 | 13 Aug |
+    | 9 | DB101 | 13 Aug |
+
+    Adding `enrolled_on` gives a superkey that still distinguishes the rows.
+    It is no longer a candidate key because the first two columns suffice.
+    Practice by removing one column from a proposed key and looking for an
+    allowed pair of registrations that would become indistinguishable.
+- id: lesson_select_filter
+  version: 1
+  subtopic_id: sql.select
+  review_status: draft
+  ai_assisted: true
+  title: Select columns and filter rows
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_select.html
+  body_markdown: |
+    The SELECT list specifies the returned columns. The WHERE condition
+    chooses the rows to keep.
+
+    | name | available |
+    | --- | --- |
+    | Pliers | 7 |
+    | Wrench | 0 |
+    | Drill | NULL |
+
+    `SELECT name FROM stock WHERE available > 0` returns one name, Pliers.
+    The result contains only the name column. The comparison against a
+    missing value yields unknown, so Drill is excluded. Use `IS NULL` to find
+    rows with missing quantities. Predict the rows and columns separately
+    before running practice queries.
+- id: lesson_group_counts
+  version: 1
+  subtopic_id: sql.aggregation
+  review_status: draft
+  ai_assisted: true
+  title: Count rows by group
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_aggfunc.html
+  body_markdown: |
+    GROUP BY collects rows with the same grouping values. An aggregate
+    summarizes each group. COUNT(*) counts rows, and COUNT(column)
+    counts non-null values in that column.
+
+    | shift | completed_at |
+    | --- | --- |
+    | morning | 09:00 |
+    | morning | NULL |
+    | evening | 18:00 |
+
+    For morning, COUNT(*) is 2 and COUNT(completed_at) is 1. To keep only
+    groups with at least two logs, use HAVING COUNT(*) >= 2. WHERE
+    filters input rows before grouping. Practice by predicting where a
+    filter belongs and counting the result by hand.
+- id: lesson_dependency_chain
+  version: 1
+  subtopic_id: normalization.normal_forms
+  review_status: draft
+  ai_assisted: true
+  title: Separate partial dependencies from dependency chains
+  source:
+    kind: authored
+    factual_reference_url: https://opentextbc.ca/dbdesign01/chapter/chapter-12-normalization/
+  body_markdown: |
+    Consider a table with one row per musician and festival. The key is
+    (`musician_id`, `festival_id`). Each musician has one email. Because
+    `musician_id` alone determines `email`, storing email on this table
+    introduces a partial dependency.
+
+    Now consider a separate table with one row per festival. Its key is
+    `festival_id`. Each festival picks one venue, and each venue has one
+    postal code. The chain `festival_id → venue_id → postal_code` makes
+    postal code transitively dependent on the festival key.
+
+    Ask two questions. Does a proper subset of the candidate key determine
+    the value? Does a non-key determinant carry the dependency through a
+    second step? Draw the arrows before trying the reserved checkpoints.

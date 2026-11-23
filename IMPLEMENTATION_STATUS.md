@@ -2,7 +2,7 @@
 
 **Authority:** `MASTER_PLAN.md` v1.2. This is a factual report; initial statuses below are NOT claims of tested code.
 
-- **Current stage:** S4 engineering (reviewed content and book clearance pending)
+- **Current stage:** S5 engineering (reviewed content and book clearance pending)
 - **Passing commits:** use `git log --oneline --grep='^S[0-6]\.'` (a commit cannot embed its own hash)
 - **Last updated by implementation agent:** 2026-11-23
 - **Environment/OS/tested versions:** see bootstrap CLI checks in `DECISIONS.md`
@@ -54,7 +54,7 @@
 |---|---|---|---|
 | S2 adaptation/practice | blocked | stable sessions, smarter selection and review | Engineering tested using synthetic fixtures. Reviewed demo replay still requires content approval. |
 | S3 rights-cleared retrieval/tutor | blocked | approved-lesson and cleared-section BM25 retrieval, actual indexed count and cited fallback | Engineering verified. 0 of 5 indexed, and the two-book goal awaits human clearance. |
-| S4 usable auth/product/privacy | in_progress | multi-user, SQL Lab, diagnostic, export/delete, ≥lean content | |
+| S4 usable auth/product/privacy | blocked | multi-user, SQL Lab, diagnostic, export/delete, ≥lean content | Engineering and browser tests passed. All authored content is awaiting human verification. |
 | S5 mandatory Ollama / hardening / evaluation | todo | Qwen3 grounded tutoring, mock-provider tests, real-model check, security tests and honest evaluation | |
 | S6 final docs/demo/viva | todo | fresh-clone reproducible offline demonstration | |
 
@@ -80,7 +80,7 @@
 |---|---|---|---|
 | S4.1 Local accounts and privacy | done_tested | Added account model/migration, Argon2, hashed sessions, origin and body-error protection, profiles, export and delete. Pytest 99 passed, including origin, redaction, expiry and isolation checks. Ruff, mypy, strict validation and Alembic check passed. Pushed to `origin/main` after workflow authorization. | 2026-11-23 / `f284d1f` |
 | S4.2 Signed-in learning and SQL API | done_tested | Added guarded curriculum, lessons, diagnostic, practice, checkpoints, progress, hypothesis, SQL and tutor endpoints. Pytest 100 passed, including cross-account isolation and complete learning-data deletion. Ruff/mypy/strict validation, frontend checks and three Chrome E2E tests passed. Pushed to `origin/main`. | 2026-11-23 / `e74e167` |
-| S4.3 Dashboard, learning, SQL Lab and settings UI | done_tested | Added responsive dashboard, learning, practice, progress, Markdown lessons, CodeMirror SQL with visible samples, tutor and privacy settings. Pytest 101, Vitest 2, Chrome E2E 4 passed; lint, types and build passed. Reviewed content remains gated. | 2026-11-23 / `S4.3` |
-| S4.4 Lean content drafts and boundary | todo | | |
+| S4.3 Dashboard, learning, SQL Lab and settings UI | done_tested | Added responsive dashboard, learning, practice, progress, Markdown lessons, CodeMirror SQL with visible samples, tutor and privacy settings. Pytest 101, Vitest 2, Chrome E2E 4 passed; lint, types and build passed. Reviewed content remains gated. Pushed to `origin/main`. | 2026-11-23 / `cb333be` |
+| S4.4 Lean content drafts and boundary | done_tested | Added original draft keys, SQL and normalization content and grade fixtures. Totals: 30 draft MCQs, 6 draft lessons, 6 draft SQL exercises and 3 disabled patterns. Backend 102, Vitest 2 and Chrome E2E 4 passed; lint, types, build, strict validation, migration check and all SQL reference fixtures passed. Actual S4 content gate exited 1 pending review. | 2026-11-23 / `S4.4` |
 
 **Allowed task statuses:** `todo | in_progress | done_tested | blocked`. Mark `done_tested` only with executed commands, observed results and date. A passing stage is never inferred from completed scaffolding. If human review/licensing blocks a gate, label it **blocked**, continue eligible engineering work and disclose limitations honestly.

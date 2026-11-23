@@ -31,3 +31,7 @@ S1 introduces the learner A/B demo. S5 requires a separately invoked real Ollama
 ## S3 engineering boundary
 
 95 backend tests, two Vitest tests and three Chrome Playwright tests passed. Lint, types, build, fresh Alembic upgrade and strict validation passed. Synthetic tests confirmed exact-hash approved import, BM25, revocation filtering, application-owned citations, provider fallback and curated tutoring in Chrome. The actual catalog shows zero of five books indexed and no approved lessons are available yet.
+
+## S4 engineering boundary
+
+102 backend tests, two Vitest tests and four Chrome Playwright tests passed. Backend and frontend lint, type checks, frontend build and the Alembic schema check passed. Six authored SQL reference queries passed the restricted worker across all three fixtures. The S4 validator exited 1 because the 30 MCQs, six lessons, six SQL exercises and three misconception patterns remain drafts awaiting review.

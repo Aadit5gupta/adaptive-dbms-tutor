@@ -1,0 +1,164 @@
+- id: sql_sorted_customers
+  version: 1
+  type: sql
+  pool: practice
+  subtopic_id: sql.ordering
+  difficulty: easy
+  review_status: draft
+  ai_assisted: true
+  dialect: sqlite
+  min_sqlite_version: '3.35'
+  prompt: 'Return customer IDs and names in descending order of customer ID.
+
+    Tables: customers(id, name) and orders(id, customer_id).'
+  visible_fixture: content/sql_fixtures/shop_visible.sql
+  hidden_fixtures:
+  - content/sql_fixtures/shop_hidden_a.sql
+  - content/sql_fixtures/shop_hidden_b.sql
+  reference_query: SELECT id, name FROM customers ORDER BY id DESC
+  compare:
+    order_sensitive: true
+    duplicate_sensitive: true
+    column_names_matter: false
+  expected_results:
+  - fixture: content/sql_fixtures/shop_visible.sql
+    expected_result_file: tests/fixtures/expected/sorted_customers_shop_visible.json
+  - fixture: content/sql_fixtures/shop_hidden_a.sql
+    expected_result_file: tests/fixtures/expected/sorted_customers_shop_hidden_a.json
+  - fixture: content/sql_fixtures/shop_hidden_b.sql
+    expected_result_file: tests/fixtures/expected/sorted_customers_shop_hidden_b.json
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_select.html
+- id: sql_matched_customers
+  version: 1
+  type: sql
+  pool: practice
+  subtopic_id: sql.joins
+  difficulty: medium
+  review_status: draft
+  ai_assisted: true
+  dialect: sqlite
+  min_sqlite_version: '3.35'
+  prompt: 'Return the ID and name of each customer with at least one order. Return each customer once.
+
+    Tables: customers(id, name) and orders(id, customer_id).'
+  visible_fixture: content/sql_fixtures/shop_visible.sql
+  hidden_fixtures:
+  - content/sql_fixtures/shop_hidden_a.sql
+  - content/sql_fixtures/shop_hidden_b.sql
+  reference_query: SELECT c.id, c.name FROM customers c WHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_id
+    = c.id)
+  compare:
+    order_sensitive: false
+    duplicate_sensitive: true
+    column_names_matter: false
+  expected_results:
+  - fixture: content/sql_fixtures/shop_visible.sql
+    expected_result_file: tests/fixtures/expected/matched_customers_shop_visible.json
+  - fixture: content/sql_fixtures/shop_hidden_a.sql
+    expected_result_file: tests/fixtures/expected/matched_customers_shop_hidden_a.json
+  - fixture: content/sql_fixtures/shop_hidden_b.sql
+    expected_result_file: tests/fixtures/expected/matched_customers_shop_hidden_b.json
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_select.html
+- id: sql_unassigned_orders
+  version: 1
+  type: sql
+  pool: practice
+  subtopic_id: sql.null
+  difficulty: easy
+  review_status: draft
+  ai_assisted: true
+  dialect: sqlite
+  min_sqlite_version: '3.35'
+  prompt: 'Return the order IDs for orders whose customer assignment is missing.
+
+    Tables: customers(id, name) and orders(id, customer_id).'
+  visible_fixture: content/sql_fixtures/shop_visible.sql
+  hidden_fixtures:
+  - content/sql_fixtures/shop_hidden_a.sql
+  - content/sql_fixtures/shop_hidden_b.sql
+  reference_query: SELECT id FROM orders WHERE customer_id IS NULL
+  compare:
+    order_sensitive: false
+    duplicate_sensitive: true
+    column_names_matter: false
+  expected_results:
+  - fixture: content/sql_fixtures/shop_visible.sql
+    expected_result_file: tests/fixtures/expected/unassigned_orders_shop_visible.json
+  - fixture: content/sql_fixtures/shop_hidden_a.sql
+    expected_result_file: tests/fixtures/expected/unassigned_orders_shop_hidden_a.json
+  - fixture: content/sql_fixtures/shop_hidden_b.sql
+    expected_result_file: tests/fixtures/expected/unassigned_orders_shop_hidden_b.json
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_select.html
+- id: sql_customers_without_orders
+  version: 1
+  type: sql
+  pool: practice
+  subtopic_id: sql.joins
+  difficulty: easy
+  review_status: draft
+  ai_assisted: true
+  dialect: sqlite
+  min_sqlite_version: '3.35'
+  prompt: 'Return the ID and name of each customer who has placed no orders.
+
+    Tables: customers(id, name) and orders(id, customer_id).'
+  visible_fixture: content/sql_fixtures/shop_visible.sql
+  hidden_fixtures:
+  - content/sql_fixtures/shop_hidden_a.sql
+  - content/sql_fixtures/shop_hidden_b.sql
+  reference_query: SELECT c.id, c.name FROM customers c LEFT JOIN orders o ON o.customer_id = c.id WHERE o.id IS
+    NULL
+  compare:
+    order_sensitive: false
+    duplicate_sensitive: true
+    column_names_matter: false
+  expected_results:
+  - fixture: content/sql_fixtures/shop_visible.sql
+    expected_result_file: tests/fixtures/expected/customers_without_orders_shop_visible.json
+  - fixture: content/sql_fixtures/shop_hidden_a.sql
+    expected_result_file: tests/fixtures/expected/customers_without_orders_shop_hidden_a.json
+  - fixture: content/sql_fixtures/shop_hidden_b.sql
+    expected_result_file: tests/fixtures/expected/customers_without_orders_shop_hidden_b.json
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_select.html
+- id: sql_repeat_customers
+  version: 1
+  type: sql
+  pool: practice
+  subtopic_id: sql.aggregation
+  difficulty: medium
+  review_status: draft
+  ai_assisted: true
+  dialect: sqlite
+  min_sqlite_version: '3.35'
+  prompt: 'Return customer IDs and order counts for customers with at least two orders. Exclude orders without a
+    customer.
+
+    Tables: customers(id, name) and orders(id, customer_id).'
+  visible_fixture: content/sql_fixtures/shop_visible.sql
+  hidden_fixtures:
+  - content/sql_fixtures/shop_hidden_a.sql
+  - content/sql_fixtures/shop_hidden_b.sql
+  reference_query: SELECT customer_id, COUNT(*) FROM orders WHERE customer_id IS NOT NULL GROUP BY customer_id HAVING
+    COUNT(*) >= 2
+  compare:
+    order_sensitive: false
+    duplicate_sensitive: true
+    column_names_matter: false
+  expected_results:
+  - fixture: content/sql_fixtures/shop_visible.sql
+    expected_result_file: tests/fixtures/expected/repeat_customers_shop_visible.json
+  - fixture: content/sql_fixtures/shop_hidden_a.sql
+    expected_result_file: tests/fixtures/expected/repeat_customers_shop_hidden_a.json
+  - fixture: content/sql_fixtures/shop_hidden_b.sql
+    expected_result_file: tests/fixtures/expected/repeat_customers_shop_hidden_b.json
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_select.html

@@ -1,0 +1,410 @@
+- id: q_lean_norm_detector_registration
+  version: 1
+  type: mcq
+  pool: diagnostic
+  difficulty: easy
+  stem: The only candidate key in Registration is (student_id, class_id). student_id determines student_name on
+    its own. What kind of dependency does this show?
+  options:
+  - text: A transitive dependency.
+    correct: false
+    misconception_code: NORM-03
+  - text: A partial dependency.
+    correct: true
+  - text: A multivalued dependency.
+    correct: false
+  - text: A dependency on the whole key.
+    correct: false
+  explanation: student_id is a proper subset of the candidate key, and it determines a non-prime attribute.
+  subtopic_id: normalization.normal_forms
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://opentextbc.ca/dbdesign01/chapter/chapter-12-normalization/
+- id: q_lean_norm_detector_branch
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: The only candidate key in Store is store_id. Each store belongs to one region, and each region has one manager.
+    How does region_manager depend on store_id?
+  options:
+  - text: It is partially dependent on the store_id key.
+    correct: false
+    misconception_code: NORM-03
+  - text: It is unrelated to store_id.
+    correct: false
+  - text: It is transitively dependent through region_id.
+    correct: true
+  - text: It identifies store_id in every valid Store instance.
+    correct: false
+  explanation: store_id determines region_id, and region_id determines region_manager. The single-column key has
+    no nonempty proper subset.
+  subtopic_id: normalization.normal_forms
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://opentextbc.ca/dbdesign01/chapter/chapter-12-normalization/
+- id: q_lean_norm_checkpoint_order
+  version: 1
+  type: mcq
+  pool: checkpoint
+  difficulty: easy
+  stem: In OrderLine, the only candidate key is (order_id, product_id). Each product has one name. Which split addresses
+    the dependency of product_name on product_id?
+  options:
+  - text: Create Product(product_id, product_name) and keep product_id in OrderLine.
+    correct: true
+  - text: Add product_name to the OrderLine key.
+    correct: false
+  - text: Duplicate product_name in a second OrderLine column.
+    correct: false
+  - text: Create Product(order_id, product_name).
+    correct: false
+  explanation: product_name belongs with its determinant product_id. OrderLine retains a reference to Product.
+  subtopic_id: normalization.normal_forms
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://opentextbc.ca/dbdesign01/chapter/chapter-12-normalization/
+- id: q_lean_norm_checkpoint_depot
+  version: 1
+  type: mcq
+  pool: checkpoint
+  difficulty: easy
+  stem: Each parcel has one depot, and each depot has an assigned city. parcel_id is the only candidate key of ParcelLog.
+    Which attribute passes the dependency from parcel_id to city?
+  options:
+  - text: parcel_id itself.
+    correct: false
+  - text: The date of the most recent delivery.
+    correct: false
+  - text: The parcel weight.
+    correct: false
+  - text: depot_id.
+    correct: true
+  explanation: parcel_id determines depot_id, and depot_id determines city.
+  subtopic_id: normalization.normal_forms
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://opentextbc.ca/dbdesign01/chapter/chapter-12-normalization/
+- id: q_lean_keys_composite
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: A copy catalog records one row per physical copy. A copy number is unique only within a branch. Which columns
+    together identify a copy?
+  options:
+  - text: copy_number only.
+    correct: false
+  - text: branch_id only.
+    correct: false
+  - text: branch_id and copy_number.
+    correct: true
+  - text: branch_id and purchase_date.
+    correct: false
+  explanation: The same copy number can appear at different branches. Within one branch it names a single copy.
+  subtopic_id: relational.keys
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://opentextbc.ca/dbdesign01/chapter/chapter-7-the-relational-data-model/
+- id: q_lean_keys_superkey
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: medium
+  stem: Employee has a unique employee_id. Email is not constrained to be unique. Which set is a superkey but not
+    a candidate key?
+  options:
+  - text: '{email}'
+    correct: false
+  - text: '{employee_id, email}'
+    correct: true
+  - text: '{employee_id}'
+    correct: false
+  - text: '{}'
+    correct: false
+  explanation: employee_id alone identifies a row, so adding email does not create a minimal key.
+  subtopic_id: relational.keys
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://opentextbc.ca/dbdesign01/chapter/chapter-7-the-relational-data-model/
+- id: q_lean_keys_fk_target
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: Invoice.account_id is an enforced foreign key to Account.id. What does a non-null value of Invoice.account_id
+    require?
+  options:
+  - text: A row in Account with the same id.
+    correct: true
+  - text: A matching Invoice.id.
+    correct: false
+  - text: A unique value among invoices.
+    correct: false
+  - text: A positive integer even if there is a matching row with a negative ID.
+    correct: false
+  explanation: The constraint requires a parent key match.
+  subtopic_id: relational.keys
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://opentextbc.ca/dbdesign01/chapter/chapter-7-the-relational-data-model/
+- id: q_lean_keys_candidate_count
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: Inventory has a unique non-null barcode and a separate unique non-null item_id. Either column alone identifies
+    the row. How many candidate keys are described?
+  options:
+  - text: Zero.
+    correct: false
+  - text: One.
+    correct: false
+  - text: Three.
+    correct: false
+  - text: Two.
+    correct: true
+  explanation: Each single column forms a minimal identifier. Their combination is a nonminimal superkey.
+  subtopic_id: relational.keys
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://opentextbc.ca/dbdesign01/chapter/chapter-7-the-relational-data-model/
+- id: q_lean_select_between
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: For values 8, 9, 10 and 11, which values satisfy WHERE n BETWEEN 9 AND 10?
+  options:
+  - text: 9 only.
+    correct: false
+  - text: 9 and 10.
+    correct: true
+  - text: 10 only.
+    correct: false
+  - text: 8, 9, 10 and 11.
+    correct: false
+  explanation: BETWEEN includes both bounds, the same as n >= 9 AND n <= 10.
+  subtopic_id: sql.select
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_select.html
+- id: q_lean_select_null_filter
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: Which predicate matches rows where a tracking number has not been assigned and is stored as NULL?
+  options:
+  - text: tracking_number = NULL
+    correct: false
+  - text: tracking_number <> NULL
+    correct: false
+  - text: tracking_number IS NULL
+    correct: true
+  - text: tracking_number = ''
+    correct: false
+  explanation: IS NULL tests for a missing value directly. Equality against NULL yields unknown.
+  subtopic_id: sql.null
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_select.html
+- id: q_lean_select_order
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: Which ORDER BY sorts by score highest first and by student_id lowest first among tied scores?
+  options:
+  - text: ORDER BY score DESC, student_id ASC
+    correct: true
+  - text: ORDER BY score ASC, student_id DESC
+    correct: false
+  - text: ORDER BY student_id ASC, score DESC
+    correct: false
+  - text: ORDER BY score DESC, student_id DESC
+    correct: false
+  explanation: Sort by score first. The second term breaks only score ties.
+  subtopic_id: sql.ordering
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_select.html
+- id: q_lean_select_distinct
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: A query selects DISTINCT city from records with city values Pune, Pune, and Delhi. How many output rows
+    are guaranteed?
+  options:
+  - text: One.
+    correct: false
+  - text: Three.
+    correct: false
+  - text: Four.
+    correct: false
+  - text: Two.
+    correct: true
+  explanation: DISTINCT removes duplicate result rows. There are two different city values.
+  subtopic_id: sql.select
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_select.html
+- id: q_lean_join_multiple
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: One left-side customer row has three matching right-side order rows. What does an INNER JOIN on customer
+    ID produce for this customer?
+  options:
+  - text: One output row.
+    correct: false
+  - text: Three output rows.
+    correct: true
+  - text: Four output rows.
+    correct: false
+  - text: Zero output rows.
+    correct: false
+  explanation: Each matching pair produces one output row.
+  subtopic_id: sql.joins
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_select.html
+- id: q_lean_join_count
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: medium
+  stem: A LEFT JOIN has one unmatched left row. right_table.id is a non-null key when present. Within that left
+    row's group, what does COUNT(right_table.id) return?
+  options:
+  - text: '1.'
+    correct: false
+  - text: NULL.
+    correct: false
+  - text: '0.'
+    correct: true
+  - text: The number of rows in the entire right table.
+    correct: false
+  explanation: The preserved row has NULL right-hand fields. COUNT(expression) skips NULL.
+  subtopic_id: sql.joins
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_select.html
+- id: q_lean_group_filter
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: Which clause can keep only groups whose row count is at least three?
+  options:
+  - text: HAVING COUNT(*) >= 3
+    correct: true
+  - text: WHERE COUNT(*) >= 3
+    correct: false
+  - text: ORDER BY COUNT(*) >= 3
+    correct: false
+  - text: GROUP BY COUNT(*) >= 3
+    correct: false
+  explanation: HAVING filters after grouping and can use aggregates.
+  subtopic_id: sql.aggregation
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_aggfunc.html
+- id: q_lean_group_count
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: A group contains values 3, 3, and NULL in amount. Which pair gives COUNT(*) then COUNT(amount)?
+  options:
+  - text: 2 then 2.
+    correct: false
+  - text: 3 then 3.
+    correct: false
+  - text: 2 then 3.
+    correct: false
+  - text: 3 then 2.
+    correct: true
+  explanation: COUNT(*) counts all rows, while COUNT(amount) skips NULL and keeps both occurrences of 3.
+  subtopic_id: sql.aggregation
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_aggfunc.html
+- id: q_lean_fds_counterexample
+  version: 1
+  type: mcq
+  pool: diagnostic
+  difficulty: easy
+  stem: Which pair of rows disproves that route_id determines origin_city?
+  options:
+  - text: Different route_id values with different origin_city values.
+    correct: false
+  - text: The same route_id with two different origin_city values.
+    correct: true
+  - text: Different route_id values with the same origin_city.
+    correct: false
+  - text: Duplicate copies of the same route_id and origin_city.
+    correct: false
+  explanation: An FD requires equal determinants to have equal dependent values.
+  subtopic_id: normalization.fds
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://opentextbc.ca/dbdesign01/chapter/chapter-11-functional-dependencies/
+- id: q_lean_fds_closure
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: medium
+  stem: Given A → B and B → C, which attributes are in the closure of {A} on a schema with only A, B and C?
+  options:
+  - text: A only.
+    correct: false
+  - text: A and B only.
+    correct: false
+  - text: A, B and C.
+    correct: true
+  - text: B and C only.
+    correct: false
+  explanation: The closure starts with A, adds B using A → B, then adds C using B → C.
+  subtopic_id: normalization.fds
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://opentextbc.ca/dbdesign01/chapter/chapter-11-functional-dependencies/
