@@ -6,6 +6,7 @@ import { NavLink, Route, Routes } from 'react-router'
 
 import { fetchHealth } from '../api/health'
 import { DemoPage } from '../pages/DemoPage'
+import { LibraryPage } from '../pages/LibraryPage'
 import { FoundationPage } from '../pages/FoundationPage'
 
 const pages = [
@@ -73,7 +74,7 @@ export function App() {
         <main id="main" tabIndex={-1} className="mx-auto max-w-6xl px-6 py-12 md:px-10 md:py-20">
           <Routes>
             {pages.map(({ path, title, description }) => (
-              <Route key={path} path={path} element={<FoundationPage title={title} description={description} />} />
+              <Route key={path} path={path} element={path === "/library" ? <LibraryPage /> : <FoundationPage title={title} description={description} />} />
             ))}
             <Route path="/demo" element={<DemoPage />} />
             <Route path="*" element={<><h1>Page missing</h1><NavLink className="mt-6 inline-block underline" to="/">Return to dashboard</NavLink></>} />

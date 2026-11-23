@@ -97,3 +97,48 @@ def test_import_errors_and_rollback_leave_no_searchable_rows(
     with Session(engine) as db:
         assert hits(db, "clearance") == []
         assert db.scalars(select(Passage)).all() == []
+
+
+def test_retrieval_applies_current_clearance_and_counts_only_searchable_documents(
+    indexed_db: tuple[Engine, Content, Catalog], s1: Path
+) -> None:
+    from app.services.retrieval import Retriever, book_counts
+
+    from .content_fixtures import save
+
+    engine, content, catalog = indexed_db
+    manifest = "content/manifests/books.yaml"
+    save(s1, manifest, catalog.model_dump(mode="json"))
+    retriever = Retriever(engine, s1)
+    with Session(engine) as db, db.begin():
+        assert book_counts(db, catalog) == {}
+        index_reviewed_lessons(db, content)
+        import_book_section(db, catalog, BOOK_ID, "synthetic_clearance", "sql.joins", TEXT)
+        assert book_counts(db, catalog) == {BOOK_ID: {"synthetic_clearance": 1}}
+    results = retriever.search("explain clearance", ("sql.joins",))
+    assert len(results) == 1
+    citation = results[0].citation
+    assert citation.kind == "book"
+    assert citation.url == SECTION_URL
+    assert citation.attribution == "Synthetic test attribution"
+    assert citation.license_url == "https://creativecommons.org/licenses/by/4.0/"
+    assert retriever.search("how does it work") == []
+    assert retriever.search('"" (clearance) * AND (junk') == results
+    assert retriever.search("synthetic", ("relational.keys",), k=1)[0].citation.kind == "lesson"
+    save(s1, manifest, content.catalog.model_dump(mode="json"))
+    assert retriever.search("clearance") == []
+    with Session(engine) as db:
+        assert book_counts(db, content.catalog) == {}
+
+
+def test_retrieval_bm25_applies_topic_filter_before_broader_fallback(
+    indexed_db: tuple[Engine, Content, Catalog], s1: Path
+) -> None:
+    from app.services.retrieval import Retriever
+
+    engine, content, _ = indexed_db
+    with Session(engine) as db, db.begin():
+        index_reviewed_lessons(db, content)
+    hits_ = Retriever(engine, s1).search("synthetic lesson", ("relational.keys",), k=2)
+    assert [hit.topic_id for hit in hits_] == ["relational.keys", "sql.joins"]
+    assert all(hit.rank > 0 for hit in hits_)

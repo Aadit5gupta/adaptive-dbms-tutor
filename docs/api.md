@@ -23,3 +23,7 @@ With `DBMS_DEMO_ENABLED=true`, the application recognizes only the fixed demo id
 - `POST /demo/{learner}/sessions/{session_id}/sql/run` and `/sql/submit` accept `{"item_id":"...","query":"SELECT ..."}`. Submit requires an `Idempotency-Key` and commits feedback and learner progress.
 
 Mutations require an allowed loopback origin. Hidden fixtures and reference queries are excluded from the API.
+
+## Source catalog and search
+
+`GET /library/books` returns the five source records, current clearances and counts derived from documents present in the full-text index. `GET /library/search?q=foreign%20key&topic=relational.keys` ranks up to six passages using SQLite BM25. Topic-scoped results come first. Results include the stored attribution, source URL, optional license URL and a bounded excerpt.

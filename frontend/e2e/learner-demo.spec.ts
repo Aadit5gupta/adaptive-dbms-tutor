@@ -51,3 +51,12 @@ test('demo rejects cross-origin mutations', async ({ request }) => {
   })
   expect(response.status()).toBe(403)
 })
+
+test('library reports searchable sources and an honest empty search', async ({ page }) => {
+  await page.goto('/library')
+  await expect(page.getByText('0 of 5 indexed')).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Database Fundamentals' })).toBeVisible()
+  await page.getByRole('searchbox', { name: 'Search passages' }).fill('foreign key')
+  await page.getByRole('button', { name: 'Search', exact: true }).click()
+  await expect(page.getByText('No matching reviewed passages.')).toBeVisible()
+})

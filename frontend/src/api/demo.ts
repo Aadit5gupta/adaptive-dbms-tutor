@@ -1,3 +1,5 @@
+import { request } from './client'
+
 export type Learner = 'a' | 'b'
 export type Activity = 'diagnostic' | 'practice' | 'checkpoint' | 'sql'
 
@@ -36,15 +38,6 @@ export interface QueryResult {
   rows: (string | number | null)[][]
 }
 
-export class ApiError extends Error {
-  readonly status: number
-
-  constructor(message: string, status: number) {
-    super(message)
-    this.status = status
-  }
-}
-
 export async function demoRequest<T>(
   learner: Learner,
   path = '',
@@ -54,23 +47,9 @@ export async function demoRequest<T>(
   if (params) headers.set('Content-Type', 'application/json')
   if (params?.key) headers.set('Idempotency-Key', params.key)
 
-  const response = await fetch(`/api/v1/demo/${learner}${path}`, {
+  return request<T>(`/demo/${learner}${path}`, {
     method: params ? 'POST' : 'GET',
     headers,
     body: params ? JSON.stringify(params.body) : undefined,
   })
-  if (!response.ok) {
-    let detail = 'The backend request failed. Retry in a moment.'
-    try {
-      const error: unknown = await response.json()
-      if (typeof error === 'object' && error !== null && 'detail' in error
-          && typeof error.detail === 'string' && response.status !== 404) {
-        detail = error.detail
-      }
-    } catch {
-      // Transport or framework errors can return a response without a JSON body.
-    }
-    throw new ApiError(detail, response.status)
-  }
-  return response.json() as Promise<T>
 }

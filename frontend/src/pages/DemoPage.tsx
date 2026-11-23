@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
 
-import { ApiError, demoRequest } from '../api/demo'
+import { ApiError } from '../api/client'
+import { demoRequest } from '../api/demo'
 import type { Activity, AnswerResult, DemoState, Item, Learner, Lesson, QueryResult } from '../api/demo'
 
 export const demoButton = 'rounded-lg bg-green-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-800 disabled:cursor-default disabled:opacity-50'

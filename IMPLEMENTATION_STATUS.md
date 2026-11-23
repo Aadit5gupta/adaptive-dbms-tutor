@@ -70,8 +70,8 @@
 
 | Task | Status | Tests and push | Date/commit |
 |---|---|---|---|
-| S3.1 Approved passage import and FTS5 migration | done_tested | Added FTS migration, reviewed lesson indexing, exact-byte book importer, seed integration and tests. Pytest 92 passed; Ruff, mypy, structural validator, Alembic check, actual lesson import and demo seed passed. Actual corpus has zero reviewed or cleared passages. Push pending workflow scope. | 2026-11-23 / `S3.1` |
-| S3.2 BM25 retrieval and source catalog API | todo | | |
+| S3.1 Approved passage import and FTS5 migration | done_tested | Added FTS migration, reviewed lesson indexing, exact-byte book importer, seed integration and tests. Pytest 92 passed; Ruff, mypy, structural validator, Alembic check, actual lesson import and demo seed passed. Actual corpus has zero reviewed or cleared passages. Push pending workflow scope. | 2026-11-23 / `e61f6b7` |
+| S3.2 BM25 retrieval and source catalog API | done_tested | Added BM25 retrieval, current-rights filtering, FTS vocabulary-derived counts, API and Library screen. Pytest 94, Vitest 2 and Chrome E2E 3 passed; lint, types, build, strict content validator and Alembic check passed. Actual UI reports 0 of 5 indexed. Push pending workflow scope. | 2026-11-23 / `S3.2` |
 | S3.3 Curated tutor and provider contract | todo | | |
 
 **Allowed task statuses:** `todo | in_progress | done_tested | blocked`. Mark `done_tested` only with executed commands, observed results and date. A passing stage is never inferred from completed scaffolding. If human review/licensing blocks a gate, label it **blocked**, continue eligible engineering work and disclose limitations honestly.
