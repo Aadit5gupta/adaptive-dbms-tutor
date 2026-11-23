@@ -1,0 +1,26 @@
+review_status: draft
+cases:
+  - id: fk_repeat
+    query: Can several rows refer to the same foreign key?
+    topic_id: relational.keys
+    expected_lessons: [lesson_fk_multiplicity@1]
+  - id: compound_key
+    query: How do I find a minimal candidate key for a registration?
+    topic_id: relational.keys
+    expected_lessons: [lesson_candidate_keys@1]
+  - id: join_preserve
+    query: Which join keeps unmatched left rows and gives NULL on the right?
+    topic_id: sql.joins
+    expected_lessons: [lesson_join_unmatched@1]
+  - id: row_filter
+    query: What does WHERE filter before the SQL SELECT returns columns?
+    topic_id: sql.select
+    expected_lessons: [lesson_select_filter@1]
+  - id: counting_null
+    query: What is the difference between COUNT(*) and counting a column with NULL?
+    topic_id: sql.aggregation
+    expected_lessons: [lesson_group_counts@1]
+  - id: dependency_chain
+    query: How do partial dependencies differ from transitive dependencies?
+    topic_id: normalization.normal_forms
+    expected_lessons: [lesson_dependency_chain@1]

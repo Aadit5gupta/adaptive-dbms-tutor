@@ -345,3 +345,30 @@ def test_progress_coverage_review_and_persisted_recommendation(assessment_db: En
         "created_at",
         "mastery_after",
     }
+
+
+def test_publishing_preserves_reserved_pool_and_disables_removed_rules(
+    assessment_db: Engine, s1: Path
+) -> None:
+    from app.db.models import Misconception
+
+    rules_file = s1 / "content/misconceptions.yaml"
+    rules = yaml.safe_load(rules_file.read_text())
+    for rule in rules:
+        rule["enabled"] = False
+    save(s1, "content/misconceptions.yaml", rules)
+    with Session(assessment_db) as db, db.begin():
+        publish_from_disk(db, s1)
+        assert all(not rule.enabled for rule in db.scalars(select(Misconception)))
+
+    questions_file = s1 / "content/questions/test.yaml"
+    questions = yaml.safe_load(questions_file.read_text())
+    questions[0]["pool"] = "diagnostic"
+    questions[0]["version"] = 2
+    save(s1, "content/questions/test.yaml", questions)
+    with (
+        Session(assessment_db) as db,
+        db.begin(),
+        pytest.raises(ContentError, match="pool of a published"),
+    ):
+        publish_from_disk(db, s1)

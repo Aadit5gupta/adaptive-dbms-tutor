@@ -49,3 +49,16 @@ def test_due_review_uses_real_available_topic() -> None:
     action = choose_next(inputs)
     assert action.action_type == "MIXED_REVIEW"
     assert action.subtopic_id == "sql.joins"
+
+
+def test_simulation_is_deterministic_and_labeled_synthetic() -> None:
+    from scripts.simulate_policy import simulate
+
+    result = simulate()
+    assert result == simulate()
+    assert result["data"] == "synthetic"
+    outcomes = result["outcomes"]
+    assert isinstance(outcomes, dict)
+    assert outcomes["three_independent_correct"]["scores"] == [0.6, 0.68, 0.744]
+    assert outcomes["one_correct_repeated"]["distinct_answers"] == 1
+    assert outcomes["two_independent_detector_errors"]["action"] == "MISCONCEPTION_REMEDIATION"

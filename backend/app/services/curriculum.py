@@ -4,6 +4,7 @@ import json
 from hashlib import sha256
 from pathlib import Path
 
+from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
 from app.db.models import (
@@ -63,6 +64,12 @@ def publish_question(db: Session, item: MCQ | SQLQuestion, root: Path) -> None:
     elif (question.subtopic_id, question.type) != (item.subtopic_id, item.type):
         raise ContentError(f"{item.id}: type and topic of a published question are immutable")
 
+    prior_pool = db.scalar(
+        select(QuestionVersion.pool).where(QuestionVersion.question_id == item.id).limit(1)
+    )
+    if prior_pool is not None and prior_pool != item.pool:
+        raise ContentError(f"{item.id}: pool of a published logical question is immutable")
+
     if isinstance(item, MCQ):
         db.add_all(
             QuestionOption(
@@ -106,6 +113,7 @@ def publish_content(db: Session, content: Content, root: Path = ROOT) -> None:
         for position, (topic, title) in enumerate(domain.subtopics.items()):
             db.merge(Topic(id=topic, domain_slug=domain.id, title=title, position=position))
     db.flush()
+    db.execute(delete(TopicPrerequisite))
     for edge in content.prerequisites:
         db.merge(TopicPrerequisite(topic_id=edge.subtopic_id, prerequisite_id=edge.prerequisite_id))
 
@@ -138,6 +146,15 @@ def publish_content(db: Session, content: Content, root: Path = ROOT) -> None:
         if question.reviewed:
             publish_question(db, question, root)
 
+    db.execute(
+        update(Misconception)
+        .where(
+            Misconception.code.not_in(
+                [rule.code for rule in content.rules.values() if rule.enabled]
+            )
+        )
+        .values(enabled=False)
+    )
     for rule in content.rules.values():
         if rule.enabled:
             snapshot = rule.model_dump_json()

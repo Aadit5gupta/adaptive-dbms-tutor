@@ -11,7 +11,7 @@ if __package__ in ("", None):
 
 from app.core.config import Settings
 from app.core.db import open_engine
-from app.providers.contracts import ProviderUnavailable, TutorContext
+from app.providers.contracts import ProviderUnavailable, Turn, TutorContext
 from app.providers.ollama import OllamaProvider
 from app.schemas.tutor import TutorInput
 from app.services.retrieval import Citation, PassageHit, Retriever
@@ -49,6 +49,27 @@ async def run(provider_only: bool) -> None:
             raise ProviderUnavailable("the model did not cite the supplied smoke passage")
         print(f"{settings.ollama_model} returned a grounded reply using test-only evidence.")
         print(reply.text)
+        followup = TutorInput(
+            query="Why does a customer with no matching order still appear in the report, and what values appear in the order columns?",
+            topic_id="sql.joins",
+            mode="ask",
+        )
+        next_answer = await provider.respond(
+            TutorContext(
+                followup,
+                (source,),
+                history=(Turn("user", request.query), Turn("assistant", reply.text)),
+            )
+        )
+        if (
+            source.citation.id not in next_answer.passage_ids
+            or "null" not in next_answer.text.lower()
+        ):
+            raise ProviderUnavailable(
+                "the follow-up did not cite the test evidence and explain NULL"
+            )
+        print("Follow-up:")
+        print(next_answer.text)
         return
 
     engine = open_engine(settings.app_db)

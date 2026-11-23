@@ -65,9 +65,7 @@ def create_app(settings: Settings | None = None, *, content_root: Path = PROJECT
                 content={"detail": "The request origin is not allowed.", "code": "invalid_origin"},
             )
         response = await call_next(request)
-        if request.url.path.startswith(
-            ("/api/v1/me", "/api/v1/auth", "/api/v1/tutor", "/api/v1/demo")
-        ):
+        if request.url.path.startswith("/api/v1/"):
             response.headers["Cache-Control"] = "no-store"
         return response
 

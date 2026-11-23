@@ -2,7 +2,7 @@
 
 **Authority:** `MASTER_PLAN.md` v1.2. This is a factual report; initial statuses below are NOT claims of tested code.
 
-- **Current stage:** S5 engineering (reviewed content and book clearance pending)
+- **Current stage:** S6 verification and documentation (reviewed content and book clearance pending)
 - **Passing commits:** use `git log --oneline --grep='^S[0-6]\.'` (a commit cannot embed its own hash)
 - **Last updated by implementation agent:** 2026-11-23
 - **Environment/OS/tested versions:** see bootstrap CLI checks in `DECISIONS.md`
@@ -55,7 +55,7 @@
 | S2 adaptation/practice | blocked | stable sessions, smarter selection and review | Engineering tested using synthetic fixtures. Reviewed demo replay still requires content approval. |
 | S3 rights-cleared retrieval/tutor | blocked | approved-lesson and cleared-section BM25 retrieval, actual indexed count and cited fallback | Engineering verified. 0 of 5 indexed, and the two-book goal awaits human clearance. |
 | S4 usable auth/product/privacy | blocked | multi-user, SQL Lab, diagnostic, export/delete, ≥lean content | Engineering and browser tests passed. All authored content is awaiting human verification. |
-| S5 mandatory Ollama / hardening / evaluation | in_progress | Qwen3 grounded tutoring, mock-provider tests, real-model check, security tests and honest evaluation | |
+| S5 mandatory Ollama / hardening / evaluation | blocked | Qwen3 grounded tutoring, mock-provider tests, real-model check, security tests and honest evaluation | Real provider verified with test evidence. Reviewed-corpus model check and retrieval metrics await content approval. |
 | S6 final docs/demo/viva | todo | fresh-clone reproducible offline demonstration | |
 
 ### S2 iterations
@@ -88,7 +88,7 @@
 | Task | Status | Tests and push | Date/commit |
 |---|---|---|---|
 | S5.1 Bounded Ollama provider and real-model smoke | done_tested | Added local Ollama adapter, settings, mock HTTP tests, fallback and smoke CLI. Pytest 111 passed with Ruff/mypy/strict validation. Real `qwen3:1.7b` returned a correct cited LEFT JOIN explanation using test-only evidence. Reviewed-corpus check exited 1 awaiting approved passages. Pushed to `origin/main`. | 2026-11-23 / `ab871f8` |
-| S5.2 Private follow-ups, progressive hints and SQL context | done_tested | Added conversation migration, owned threads, contextual tutoring, progressive hint eligibility, safe SQL feedback, user export/delete and chat interface. Pytest 113, Vitest 2, Chrome E2E 4 passed, plus Ruff, mypy, content, migration, lint, typecheck and build. | 2026-11-23 / `S5.2` |
-| S5.3 Evaluation, privacy hardening and boundary verification | todo | | |
+| S5.2 Private follow-ups, progressive hints and SQL context | done_tested | Added conversation migration, owned threads, contextual tutoring, progressive hint eligibility, safe SQL feedback, user export/delete and chat interface. Pytest 113, Vitest 2, Chrome E2E 4 passed, plus Ruff, mypy, content, migration, lint, typecheck and build. Pushed and hosted CI passed. | 2026-11-23 / `f30be59` |
+| S5.3 Evaluation, privacy hardening and boundary verification | done_tested | Added hit@k/MRR and synthetic policy tools, SQL fixture path guard, no-store headers and safe republishing checks. Pytest 116, Vitest 2, Chrome E2E 4 passed with lint, types, build, content and migration. Real Qwen3 explanation and follow-up passed on 8 GiB. Real-corpus retrieval evaluation remains blocked. | 2026-11-23 / `S5.3` |
 
 **Allowed task statuses:** `todo | in_progress | done_tested | blocked`. Mark `done_tested` only with executed commands, observed results and date. A passing stage is never inferred from completed scaffolding. If human review/licensing blocks a gate, label it **blocked**, continue eligible engineering work and disclose limitations honestly.

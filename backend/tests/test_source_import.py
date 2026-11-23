@@ -187,3 +187,35 @@ def test_curated_tutor_and_mock_provider_cannot_invent_citations(
         )
     )
     assert missing.degraded and missing.status == "no_evidence" and not missing.citations
+
+
+def test_retrieval_evaluator_requires_the_actual_ground_truth_in_fts(
+    indexed_db: tuple[Engine, Content, Catalog], s1: Path
+) -> None:
+    from app.services.retrieval import Retriever
+
+    from scripts.evaluate_retrieval import Case, QuerySet, evaluate
+    from scripts.validate_content import ContentError
+
+    engine, content, _ = indexed_db
+    queries = QuerySet(
+        review_status="draft",
+        cases=[
+            Case(id="keys", query="keys", topic_id="relational.keys", expected_lessons=["keys@1"]),
+            Case(id="join", query="joins", topic_id="sql.joins", expected_lessons=["joins@1"]),
+            Case(
+                id="unmatched",
+                query="unseen evidence",
+                topic_id="sql.joins",
+                expected_lessons=["joins@1"],
+            ),
+        ],
+    )
+    with pytest.raises(ContentError, match="missing from FTS"):
+        evaluate(engine, Retriever(engine, s1), queries, 4)
+    with Session(engine) as db, db.begin():
+        index_reviewed_lessons(db, content)
+    metrics = evaluate(engine, Retriever(engine, s1), queries, 4)
+    assert metrics["hit_rate"] == pytest.approx(2 / 3)
+    assert metrics["mean_reciprocal_rank"] == pytest.approx(2 / 3)
+    assert metrics["label_review_status"] == "draft"

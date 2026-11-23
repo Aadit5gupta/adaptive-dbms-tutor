@@ -35,3 +35,11 @@ S1 introduces the learner A/B demo. S5 requires a separately invoked real Ollama
 ## S4 engineering boundary
 
 102 backend tests, two Vitest tests and four Chrome Playwright tests passed. Backend and frontend lint, type checks, frontend build and the Alembic schema check passed. Six authored SQL reference queries passed the restricted worker across all three fixtures. The S4 validator exited 1 because the 30 MCQs, six lessons, six SQL exercises and three misconception patterns remain drafts awaiting review.
+
+## S5 engineering boundary
+
+116 backend tests, two Vitest tests and four Chrome Playwright tests passed on the 8 GiB Mac. Ruff, mypy, frontend lint, typecheck, build, structural content validation and Alembic schema checks passed.
+
+The opt-in real `qwen3:1.7b` check correctly explained why a LEFT JOIN preserves unmatched rows and why their right-side columns are NULL. The follow-up used the same test evidence. The approved-corpus check exited 1 because no reviewed passages are indexed.
+
+The synthetic policy script produced score paths of 0.60 → 0.68 → 0.744 for three correct answers. The independent sequence reached emerging confidence, while the repeated sequence remained insufficient. Two independent mistakes recommended remediation. The retrieval metric tests passed on a temporary corpus. The release-corpus evaluator reported all six expected lesson versions missing pending review.

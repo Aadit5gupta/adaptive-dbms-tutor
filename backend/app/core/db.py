@@ -15,7 +15,7 @@ def open_engine(path: Path, *, create: bool = False) -> Engine:
         url = URL.create(
             "sqlite+pysqlite", database=path.as_uri(), query={"uri": "true", "mode": "rw"}
         )
-    engine = create_engine(url, connect_args={"timeout": 3})
+    engine = create_engine(url, connect_args={"timeout": 3}, hide_parameters=True)
 
     @event.listens_for(engine, "connect")
     def enforce_foreign_keys(connection: object, _: object) -> None:

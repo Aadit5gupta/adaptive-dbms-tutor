@@ -132,7 +132,11 @@ def with_fixture(root: Path, fixture: Fixture, run: Callable[[Path], R]) -> R | 
         return WorkerError(error="worker_unavailable")
     fixtures_dir = (root / "content/sql_fixtures").resolve()
     fixture_path = (root / fixture.path).resolve()
-    if not fixture_path.is_relative_to(fixtures_dir) or fixture_path.suffix != ".sql":
+    if (
+        not fixtures_dir.is_relative_to(root.resolve())
+        or not fixture_path.is_relative_to(fixtures_dir)
+        or fixture_path.suffix != ".sql"
+    ):
         return WorkerError(error="worker_unavailable")
     try:
         with fixture_path.open("rb") as file:
