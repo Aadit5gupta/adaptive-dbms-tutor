@@ -43,3 +43,11 @@ S1 introduces the learner A/B demo. S5 requires a separately invoked real Ollama
 The opt-in real `qwen3:1.7b` check correctly explained why a LEFT JOIN preserves unmatched rows and why their right-side columns are NULL. The follow-up used the same test evidence. The approved-corpus check exited 1 because no reviewed passages are indexed.
 
 The synthetic policy script produced score paths of 0.60 → 0.68 → 0.744 for three correct answers. The independent sequence reached emerging confidence, while the repeated sequence remained insufficient. Two independent mistakes recommended remediation. The retrieval metric tests passed on a temporary corpus. The release-corpus evaluator reported all six expected lesson versions missing pending review.
+
+## S6 fresh-clone and live verification
+
+Cloned private GitHub revision `5df42ea` into a new temporary directory on 23 November 2026. Installed both locked dependency sets and applied a fresh Alembic upgrade through `0006_tutor_threads`. The Alembic schema check, strict content validator, 117 pytest tests, Ruff, strict mypy, frontend lint, typecheck, build, two Vitest tests and four headless Chrome Playwright tests passed. The checkout stayed clean after testing.
+
+The clone's reset and seed commands ran against its dedicated demo database. The authored demo replay, S4 content gate and approved-corpus Ollama check exited 1 at the pending-review gates. The separate real-model explanation and follow-up passed again on the same Mac.
+
+The workspace frontend and backend were started on loopback. The frontend, proxied health request, library catalog and both demo identities responded successfully. Hosted Actions passed for the clean-clone revision. [GitHub Actions run](https://github.com/Aadit5gupta/adaptive-dbms-tutor/actions/runs/45136868018)

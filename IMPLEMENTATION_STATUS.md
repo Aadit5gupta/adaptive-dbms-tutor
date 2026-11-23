@@ -2,7 +2,7 @@
 
 **Authority:** `MASTER_PLAN.md` v1.2. This is a factual report; initial statuses below are NOT claims of tested code.
 
-- **Current stage:** S6 verification and documentation (reviewed content and book clearance pending)
+- **Current stage:** S6 engineering and verification complete; final acceptance blocked by human review and source clearance
 - **Passing commits:** use `git log --oneline --grep='^S[0-6]\.'` (a commit cannot embed its own hash)
 - **Last updated by implementation agent:** 2026-11-23
 - **Environment/OS/tested versions:** see bootstrap CLI checks in `DECISIONS.md`
@@ -30,7 +30,7 @@
 | S0.3 dated books manifest + clearance validation | done_tested | Added rights models, exact UTF-8 hash and approval checks, content clearance references, contributor docs and tests. Pytest 24 passed; Ruff, strict mypy and strict content CLI passed (5 catalog entries, 0 approved sections). Search index and atomic import verification follow in S3. Pushed to `origin/main`. | 2026-11-23 / `1b38a0e` |
 | S0.4 FastAPI/SQLite skeleton, `/api/v1/health` | done_tested | Added application settings, SQLite FK enforcement, Alembic baseline, readiness router, API tests and README commands. Pytest 27 passed; Ruff, strict mypy and strict content CLI passed. Alembic upgrade/current reported `0001_baseline (head)`. Pushed to `origin/main`. | 2026-11-23 / `4f4acd2` |
 | S0.5 React shell + local API proxy + tests | done_tested | Added Vite/React/Tailwind shell, router, readiness states, frontend lockfile, tests and README. Vitest 2 passed; frontend lint/typecheck/build passed. Live loopback Vite /learn and proxied FastAPI health succeeded. Backend 27 tests, Ruff and strict mypy passed. Pushed to `origin/main`. | 2026-11-23 / `7ef90b1` |
-| S0.6 CI and source/secret hygiene | done_tested | Added GitHub Actions checks, backend lockfile, shared check script, test report and locked README setup. Clean locked backend setup and npm ci succeeded; 27 backend and 2 frontend tests passed; lint, types, build, content and fresh migration passed. GitHub initially rejected the workflow. Pushed after CLI scope refresh. Hosted run pending. | 2026-11-23 / `35b9e78` |
+| S0.6 CI and source/secret hygiene | done_tested | Added GitHub Actions checks, backend lockfile, shared check script, test report and locked README setup. Clean locked backend setup and npm ci succeeded; 27 backend and 2 frontend tests passed; lint, types, build, content and fresh migration passed. GitHub initially rejected the workflow. Pushed after CLI scope refresh. Hosted CI verified. | 2026-11-23 / `35b9e78` |
 | S0.7 initial draft content for human verification | done_tested | Added 12 draft MCQs, 2 remediation lessons and 2 disabled definitions; added a draft SQL exercise, 3 fixtures and expected result files. Strict validation executed the reference SQL across all fixtures and passed. S1 gate expectedly exited 1. Backend 27 and frontend 2 tests, Ruff, mypy, frontend lint/typecheck/build and migration passed. Initially rejected for missing workflow scope, then pushed to `origin/main`. | 2026-11-23 / `b53178e` |
 | **S0 exit** | done_tested | Locked setup, live loopback smoke, full local tests, migration and structural validator passed. Hosted checks were initially pending. Queued commits are now pushed. | 2026-11-23 / `b53178e` |
 
@@ -56,7 +56,7 @@
 | S3 rights-cleared retrieval/tutor | blocked | approved-lesson and cleared-section BM25 retrieval, actual indexed count and cited fallback | Engineering verified. 0 of 5 indexed, and the two-book goal awaits human clearance. |
 | S4 usable auth/product/privacy | blocked | multi-user, SQL Lab, diagnostic, export/delete, ≥lean content | Engineering and browser tests passed. All authored content is awaiting human verification. |
 | S5 mandatory Ollama / hardening / evaluation | blocked | Qwen3 grounded tutoring, mock-provider tests, real-model check, security tests and honest evaluation | Real provider verified with test evidence. Reviewed-corpus model check and retrieval metrics await content approval. |
-| S6 final docs/demo/viva | in_progress | fresh-clone reproducible offline demonstration | |
+| S6 final docs/demo/viva | blocked | fresh-clone reproducible offline demonstration | Clean GitHub clone setup, full tests and real model transport passed. Real-course demo and corpus acceptance await human review. |
 
 ### S2 iterations
 
@@ -95,8 +95,8 @@
 
 | Task | Status | Tests and push | Date/commit |
 |---|---|---|---|
-| S6.1 Architecture, schema, demo and viva | done_tested | Added architecture and ER diagrams, schema dictionary, exact demo walkthrough, README updates and pinned the demo's documented JOIN exercise. Pytest 117, Ruff/mypy/content validation and local links passed. | 2026-11-23 / `S6.1` |
-| S6.2 Fresh-clone and hosted verification | todo | | |
+| S6.1 Architecture, schema, demo and viva | done_tested | Added architecture and ER diagrams, schema dictionary, exact demo walkthrough, README updates and pinned the demo's documented JOIN exercise. Pytest 117, Ruff/mypy/content validation and 22 local links passed. Pushed to `origin/main`; CI passed. | 2026-11-23 / `5df42ea` |
+| S6.2 Fresh-clone and hosted verification | done_tested | Verified GitHub clone `5df42ea`, fresh dependencies and database, 117 backend tests, 2 Vitest tests and 4 Chrome tests, lint, types, build and real Ollama. Hosted CI passed. Live workspace frontend, API, catalog and demo identities responded. Observed review-gate failures documented. | 2026-11-23 / `S6.2` |
 | Final acceptance | blocked | Reviewed-corpus demo, learner content and source clearance require human sign-off. The test-only A/B flow and real Ollama provider have been demonstrated. | 2026-11-23 |
 
 **Allowed task statuses:** `todo | in_progress | done_tested | blocked`. Mark `done_tested` only with executed commands, observed results and date. A passing stage is never inferred from completed scaffolding. If human review/licensing blocks a gate, label it **blocked**, continue eligible engineering work and disclose limitations honestly.
