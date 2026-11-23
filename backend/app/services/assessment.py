@@ -1,11 +1,13 @@
 """Server-owned allocation and deterministic MCQ submissions."""
 
+from collections import defaultdict
 from hashlib import sha256
+from itertools import zip_longest
 from pathlib import Path
 from time import time
 from uuid import uuid4
 
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
@@ -17,6 +19,7 @@ from app.db.models import (
     QuestionVersion,
     SessionItem,
     SQLExerciseVersion,
+    Topic,
 )
 from app.schemas.assessment import (
     AnswerInput,
@@ -81,6 +84,10 @@ def allocate_mcqs(
     subtopic: str | None = None,
     reserved_refs: tuple[str, ...] = (),
     misconception_code: str | None = None,
+    fresh_only: bool = False,
+    prefer_difficulty: str | None = None,
+    balance_domains: bool = False,
+    context: str | None = None,
 ) -> SessionView:
     if pool not in ("practice", "diagnostic", "checkpoint"):
         raise AssessmentError("This pool is reserved.", "reserved_pool")
@@ -93,34 +100,56 @@ def allocate_mcqs(
         .subquery()
     )
     query = (
-        select(QuestionVersion)
+        select(QuestionVersion, Topic.domain_slug)
         .join(Question, Question.id == QuestionVersion.question_id)
+        .join(Topic, Topic.id == Question.subtopic_id)
         .where(Question.type == "mcq", QuestionVersion.pool == pool)
     )
     if subtopic is not None:
         query = query.where(Question.subtopic_id == subtopic)
+    exposure = (
+        select(QuestionVersion.question_id, func.count().label("count"))
+        .join(SessionItem, SessionItem.question_version_id == QuestionVersion.id)
+        .join(AssessmentSession, AssessmentSession.id == SessionItem.session_id)
+        .where(AssessmentSession.user_id == user_id)
+        .group_by(QuestionVersion.question_id)
+        .subquery()
+    )
+    query = query.outerjoin(exposure, Question.id == exposure.c.question_id)
     if pool == "checkpoint":
-        seen = (
-            select(QuestionVersion.question_id)
-            .join(SessionItem, SessionItem.question_version_id == QuestionVersion.id)
-            .join(AssessmentSession, AssessmentSession.id == SessionItem.session_id)
-            .where(AssessmentSession.user_id == user_id)
-        )
-        query = query.where(QuestionVersion.id.in_(reserved_refs), Question.id.not_in(seen))
+        query = query.where(QuestionVersion.id.in_(reserved_refs), exposure.c.count.is_(None))
     else:
         query = query.join(
             latest,
             (QuestionVersion.question_id == latest.c.question_id)
             & (QuestionVersion.version == latest.c.version),
         )
-    versions = list(db.scalars(query.order_by(Question.id).limit(limit)))
+        if fresh_only:
+            query = query.where(exposure.c.count.is_(None))
+    query = query.order_by(func.coalesce(exposure.c.count, 0))
+    if prefer_difficulty:
+        query = query.order_by(case((QuestionVersion.difficulty == prefer_difficulty, 0), else_=1))
+    query = query.order_by(Question.id)
+    if balance_domains:
+        by_domain: dict[str, list[QuestionVersion]] = defaultdict(list)
+        for version, domain in db.execute(query):
+            if len(by_domain[domain]) < 3:
+                by_domain[domain].append(version)
+        versions = [
+            version
+            for round_ in zip_longest(*by_domain.values())
+            for version in round_
+            if version is not None
+        ][:limit]
+    else:
+        versions = [version for version, _ in db.execute(query.limit(limit))]
     if not versions:
         raise AssessmentError(
             "There are no eligible questions for this activity.", "no_content", 404
         )
 
     session = AssessmentSession(
-        id=uuid4().hex, user_id=user_id, kind=pool, status="open", created_at=int(time())
+        id=uuid4().hex, user_id=user_id, kind=context or pool, status="open", created_at=int(time())
     )
     db.add(session)
     db.flush()

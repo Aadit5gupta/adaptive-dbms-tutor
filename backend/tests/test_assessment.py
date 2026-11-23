@@ -98,7 +98,7 @@ def test_checkpoint_exposure_and_held_out_pool_are_reserved(assessment_db: Engin
 
 def test_new_version_preserves_existing_allocation(assessment_db: Engine, s1: Path) -> None:
     with Session(assessment_db) as db, db.begin():
-        existing = allocate_mcqs(db, "learner", "practice")
+        existing = allocate_mcqs(db, "learner", "practice", subtopic="relational.keys")
         selected = existing.items[0]
     path = s1 / "content/questions/test.yaml"
     questions = yaml.safe_load(path.read_text())
@@ -112,7 +112,7 @@ def test_new_version_preserves_existing_allocation(assessment_db: Engine, s1: Pa
     with Session(assessment_db) as db, db.begin():
         publish_from_disk(db, s1)
         publish_from_disk(db, s1)
-        current = allocate_mcqs(db, "learner", "practice").items[0]
+        current = allocate_mcqs(db, "learner", "practice", subtopic="relational.keys").items[0]
         assert current.question_ref == f"{logical_id}@2"
         assert current.stem == "New stem"
     submit_mcq(
@@ -269,3 +269,48 @@ def test_sql_grade_runs_before_transaction(
         submit_sql(assessment_db, s1, "learner", practice.session_id, "sql-key", answer) == result
     )
     assert calls == 1
+
+
+def test_five_question_practice_resumes_and_prefers_fresh_questions(assessment_db: Engine) -> None:
+    from app.services.study import start_study, study_session
+
+    with Session(assessment_db) as db, db.begin():
+        first = start_study(db, "learner", "practice")
+        assert len(first.items) == 5
+        assert start_study(db, "learner", "practice") == first
+        with pytest.raises(AssessmentError, match="not found"):
+            study_session(db, "other", first.session_id)
+    for item in first.items:
+        submit_mcq(
+            assessment_db,
+            "learner",
+            first.session_id,
+            item.item_id,
+            AnswerInput(item_id=item.item_id, option_index=0),
+        )
+    with Session(assessment_db) as db, db.begin():
+        second = start_study(db, "learner", "practice")
+        assert second.session_id != first.session_id
+        assert second.items[0].question_ref not in {item.question_ref for item in first.items}
+
+
+def test_diagnostic_allocates_only_fresh_reviewed_domains(assessment_db: Engine) -> None:
+    from app.services.study import start_study
+
+    with Session(assessment_db) as db, db.begin():
+        diagnostic = start_study(db, "learner", "diagnostic")
+        assert {row.subtopic_id for row in diagnostic.items} == {"relational.keys", "sql.joins"}
+    for item in diagnostic.items:
+        submit_mcq(
+            assessment_db,
+            "learner",
+            diagnostic.session_id,
+            item.item_id,
+            AnswerInput(item_id=item.item_id, option_index=0),
+        )
+    with (
+        Session(assessment_db) as db,
+        db.begin(),
+        pytest.raises(AssessmentError, match="no eligible questions"),
+    ):
+        start_study(db, "learner", "diagnostic", topic="relational.keys")

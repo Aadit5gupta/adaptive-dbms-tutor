@@ -2,7 +2,7 @@
 
 **Authority:** `MASTER_PLAN.md` v1.2. This is a factual report; initial statuses below are NOT claims of tested code.
 
-- **Current stage:** S1 (engineering; human content approval pending)
+- **Current stage:** S2 engineering (S1 human content gate blocked)
 - **Passing commits:** use `git log --oneline --grep='^S[0-6]\.'` (a commit cannot embed its own hash)
 - **Last updated by implementation agent:** 2026-11-23
 - **Environment/OS/tested versions:** see bootstrap CLI checks in `DECISIONS.md`
@@ -44,7 +44,7 @@
 | S1.4 definition/learner misconception states + checkpoints | done_tested | Added misconception signal/evidence service and atomic MCQ integration. Pytest 51 passed, including separation of learner evidence and unseen checkpoint transitions. Ruff/mypy/strict content validator passed. Push pending workflow scope. | 2026-11-23 / `5237472` |
 | S1.5 SQL sandbox + hidden-fixture result grading | done_tested | Added standalone restricted worker, fixture hashes, deterministic result comparator, preview/grader and failure-path tests. Pytest 75 passed; Ruff/mypy/strict content validation passed. Enabled on Apple Silicon macOS; OS address-space limit unavailable, SQLite heap and tested CPU/file/FD limits used. Push pending workflow scope. | 2026-11-23 / `8d193e9` |
 | S1.6 atomic, idempotent attempt and minimal explainable policy | done_tested | Unified MCQ/SQL submission and persisted mastery, evidence and recommendation in one transaction. Added policy and concurrency/rollback/worker-order tests. Pytest 81 passed; Ruff, mypy and strict content validation passed. Push pending workflow scope. | 2026-11-23 / `8719ebf` |
-| S1.7 minimal browser learning loop and protected seeded demo CLI | done_tested | Added loopback demo API, React demo page, protected scripts, safety tests and Playwright. 84 backend and 2 frontend tests passed; Ruff, mypy, lint, typecheck, build and 2 real Chrome E2E tests passed with temporary synthetic content. Actual reset and seed succeeded; verified-content replay blocked. Push pending workflow scope. | 2026-11-23 / `S1.7` |
+| S1.7 minimal browser learning loop and protected seeded demo CLI | done_tested | Added loopback demo API, React demo page, protected scripts, safety tests and Playwright. 84 backend and 2 frontend tests passed; Ruff, mypy, lint, typecheck, build and 2 real Chrome E2E tests passed with temporary synthetic content. Actual reset and seed succeeded; verified-content replay blocked. Push pending workflow scope. | 2026-11-23 / `d4bd841` |
 | S1.8 content human review + `--stage S1` + E2E exit | blocked | Drafts are files under `content/`. Owner review and independent SQL result confirmation pending. | 2026-11-23 |
 | **S1 exit** | blocked | Engineering completed with synthetic Chrome E2E and SQL tests. Actual reviewed content gate and demo replay exit 1 until human review. | 2026-11-23 |
 
@@ -52,10 +52,18 @@
 
 | Stage | Status | Required outcome | Evidence |
 |---|---|---|---|
-| S2 adaptation/practice | todo | stable sessions, smarter selection and review | |
+| S2 adaptation/practice | in_progress | stable sessions, smarter selection and review | |
 | S3 rights-cleared retrieval/tutor | todo | approved-lesson and cleared-section BM25 retrieval, actual indexed count and cited fallback | |
 | S4 usable auth/product/privacy | todo | multi-user, SQL Lab, diagnostic, export/delete, ≥lean content | |
 | S5 mandatory Ollama / hardening / evaluation | todo | Qwen3 grounded tutoring, mock-provider tests, real-model check, security tests and honest evaluation | |
 | S6 final docs/demo/viva | todo | fresh-clone reproducible offline demonstration | |
+
+### S2 iterations
+
+| Task | Status | Tests and push | Date/commit |
+|---|---|---|---|
+| S2.1 Resumable practice and diagnostic allocation | done_tested | Added study service, exposure ordering, domain balancing and tests. Pytest 86 passed, including synthetic replay. Ruff, mypy and strict validation passed. Push pending workflow scope. | 2026-11-23 / `S2.1` |
+| S2.2 Recommendation and review | todo | | |
+| S2.3 Progress data and boundary tests | todo | | |
 
 **Allowed task statuses:** `todo | in_progress | done_tested | blocked`. Mark `done_tested` only with executed commands, observed results and date. A passing stage is never inferred from completed scaffolding. If human review/licensing blocks a gate, label it **blocked**, continue eligible engineering work and disclose limitations honestly.
