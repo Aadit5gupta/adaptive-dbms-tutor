@@ -1,0 +1,34 @@
+- id: sql_join_001
+  version: 1
+  type: sql
+  pool: practice
+  subtopic_id: sql.joins
+  difficulty: easy
+  review_status: draft
+  ai_assisted: true
+  dialect: sqlite
+  min_sqlite_version: "3.35"
+  prompt: Return the ID, name, and order count for every customer, including customers with zero orders.
+  visible_fixture: content/sql_fixtures/shop_visible.sql
+  hidden_fixtures:
+    - content/sql_fixtures/shop_hidden_a.sql
+    - content/sql_fixtures/shop_hidden_b.sql
+  reference_query: |
+    SELECT c.id, c.name, COUNT(o.id) AS order_count
+    FROM customers AS c
+    LEFT JOIN orders AS o ON o.customer_id = c.id
+    GROUP BY c.id, c.name;
+  compare:
+    order_sensitive: false
+    duplicate_sensitive: true
+    column_names_matter: false
+  expected_results:
+    - fixture: content/sql_fixtures/shop_visible.sql
+      expected_result_file: tests/fixtures/expected/shop_visible.json
+    - fixture: content/sql_fixtures/shop_hidden_a.sql
+      expected_result_file: tests/fixtures/expected/shop_hidden_a.json
+    - fixture: content/sql_fixtures/shop_hidden_b.sql
+      expected_result_file: tests/fixtures/expected/shop_hidden_b.json
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_select.html

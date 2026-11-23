@@ -1,0 +1,48 @@
+- id: lesson_fk_multiplicity
+  version: 1
+  subtopic_id: relational.keys
+  review_status: draft
+  ai_assisted: true
+  title: One parent, many child rows
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/foreignkeys.html
+  body_markdown: |
+    A foreign key checks that a non-null reference points to an existing parent.
+    The parent key identifies a single parent row. Several child rows can point
+    to that same parent.
+
+    | support_ticket.id | support_ticket.account_id |
+    | --- | --- |
+    | 401 | 7 |
+    | 402 | 7 |
+
+    If account 7 exists, both tickets can reference it. A separate UNIQUE
+    constraint on support_ticket.account_id would instead allow at most one
+    ticket with a particular non-null account ID. Ask whether a rule checks
+    existence in another table or repetition within the current table.
+
+    **Practice:** Try the reserved foreign-key checkpoints after this lesson.
+- id: lesson_join_unmatched
+  version: 1
+  subtopic_id: sql.joins
+  review_status: draft
+  ai_assisted: true
+  title: Keep unmatched rows with LEFT JOIN
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_select.html
+  body_markdown: |
+    Suppose you need a list of all teams, including teams that have played
+    no games. Start with teams on the left of a LEFT JOIN.
+
+    | team | matching game |
+    | --- | --- |
+    | Cedar | 12 |
+    | Maple | NULL |
+
+    The missing game cells are NULL for Maple. An INNER JOIN keeps only teams
+    with a matching game. If you group by team, COUNT(game.id) gives Maple zero,
+    while COUNT(*) counts the single output row that LEFT JOIN preserved.
+
+    **Practice:** Try the reserved JOIN checkpoints after this lesson.

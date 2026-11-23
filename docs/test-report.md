@@ -13,4 +13,6 @@
 | Frontend | Lint, typecheck, build and two Vitest tests passed |
 | Live loopback smoke | Vite served `/learn` and proxied `/api/v1/health` successfully |
 
+At S0 exit the full local suite passed again. Strict validation checked the draft JOIN reference against three fixtures. GitHub rejected workflow creation because the active CLI token lacks `workflow` scope.
+
 S1 introduces the learner A/B demo. S5 requires a separately invoked real Ollama integration check.

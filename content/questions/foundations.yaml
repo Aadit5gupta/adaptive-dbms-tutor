@@ -1,0 +1,280 @@
+- id: q_keys_detector_tickets
+  version: 1
+  type: mcq
+  pool: diagnostic
+  difficulty: easy
+  stem: Tickets.account_id references Accounts.id. The column has no UNIQUE constraint. Account 9 exists. Which
+    insertion respects this foreign key?
+  explanation: Both tickets can reference account 9. The foreign key checks for a parent; it does not prohibit
+    repeating the child value.
+  options:
+  - text: Two distinct tickets that both reference account 9.
+    correct: true
+  - text: Only one ticket can reference account 9 because the foreign key makes Tickets.account_id unique.
+    correct: false
+    misconception_code: KEYS-02
+  - text: A ticket referencing nonexistent account 10.
+    correct: false
+  - text: A ticket whose account reference is erased by the database.
+    correct: false
+  subtopic_id: relational.keys
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/foreignkeys.html
+- id: q_keys_detector_members
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: Members.club_id references Clubs.id. A new member tries to join club 22, which already has a member.
+    What follows from the foreign key alone?
+  explanation: The new row can use club ID 22. A separate constraint would be required to disallow repeated
+    non-null club IDs.
+  options:
+  - text: The new row must replace the existing member.
+    correct: false
+  - text: The club ID must be changed to match the new member's own ID.
+    correct: false
+  - text: The foreign key permits the same existing club ID in both rows.
+    correct: true
+  - text: The new row is rejected because a foreign-key value must appear only once in Members.
+    correct: false
+    misconception_code: KEYS-02
+  subtopic_id: relational.keys
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/foreignkeys.html
+- id: q_keys_checkpoint_rooms
+  version: 1
+  type: mcq
+  pool: checkpoint
+  difficulty: easy
+  stem: Bookings.room_id references Rooms.id. Which additional constraint would limit each non-null room ID
+    to at most one Bookings row?
+  explanation: A UNIQUE constraint on the child column makes repeated non-null room IDs invalid.
+  options:
+  - text: NOT NULL on Bookings.room_id.
+    correct: false
+  - text: UNIQUE on Bookings.room_id.
+    correct: true
+  - text: PRIMARY KEY on Rooms.id.
+    correct: false
+  - text: NOT NULL on Rooms.id.
+    correct: false
+  subtopic_id: relational.keys
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/foreignkeys.html
+- id: q_keys_checkpoint_badges
+  version: 1
+  type: mcq
+  pool: checkpoint
+  difficulty: easy
+  stem: Badge.issue_office references Office.id, with no other constraint on issue_office. Office 2 exists.
+    Which pair of issue_office values can appear in two different badges?
+  explanation: Both badges can reference office 2. A value that does not exist in Office.id fails the foreign
+    key.
+  options:
+  - text: 2 and nonexistent office 7.
+    correct: false
+  - text: Nonexistent office 8 and 2.
+    correct: false
+  - text: Nonexistent office 7 twice.
+    correct: false
+  - text: 2 and 2.
+    correct: true
+  subtopic_id: relational.keys
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/foreignkeys.html
+- id: q_join_detector_routes
+  version: 1
+  type: mcq
+  pool: diagnostic
+  difficulty: easy
+  stem: A transit report needs every route, including routes with no scheduled departures. Routes is the left
+    table. Which join meets the requirement?
+  explanation: A LEFT JOIN preserves route rows that have no matching departure.
+  options:
+  - text: INNER JOIN Departures on the route ID.
+    correct: false
+    misconception_code: SQL-JOIN-01
+  - text: LEFT JOIN Departures on the route ID.
+    correct: true
+  - text: CROSS JOIN Departures.
+    correct: false
+  - text: INNER JOIN Departures on equal departure times.
+    correct: false
+  subtopic_id: sql.joins
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_select.html
+- id: q_join_detector_orders
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: An INNER JOIN connects Customers to Orders by customer ID. Imani has no orders. How many rows in the
+    join result are attributable to Imani?
+  explanation: A row appears only for a matched customer/order pair. An INNER JOIN produces zero rows for Imani.
+  options:
+  - text: One row with null order columns.
+    correct: false
+    misconception_code: SQL-JOIN-01
+  - text: One row for every order in the database.
+    correct: false
+  - text: Zero rows.
+    correct: true
+  - text: One row with a generated order ID.
+    correct: false
+  subtopic_id: sql.joins
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_select.html
+- id: q_join_checkpoint_households
+  version: 1
+  type: mcq
+  pool: checkpoint
+  difficulty: easy
+  stem: Households is the left side of a LEFT JOIN to Meters. Household 14 has no meter. There is no WHERE filter.
+    What does the result include for household 14?
+  explanation: The household row is preserved and fields from the unmatched side are NULL.
+  options:
+  - text: One household row with NULL meter columns.
+    correct: true
+  - text: Zero household rows.
+    correct: false
+  - text: One row per meter in the entire table.
+    correct: false
+  - text: A row with the meter ID copied from the household ID.
+    correct: false
+  subtopic_id: sql.joins
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_select.html
+- id: q_join_checkpoint_teams
+  version: 1
+  type: mcq
+  pool: checkpoint
+  difficulty: easy
+  stem: A LEFT JOIN from Teams to Games finds two matching games for Cedar and none for Maple. How many output
+    rows represent each team?
+  explanation: Cedar appears once per matching game; Maple contributes one row with NULL game fields.
+  options:
+  - text: Cedar 1, Maple 0.
+    correct: false
+  - text: Cedar 2, Maple 0.
+    correct: false
+  - text: Cedar 1, Maple 1.
+    correct: false
+  - text: Cedar 2, Maple 1.
+    correct: true
+  subtopic_id: sql.joins
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_select.html
+- id: q_practice_keys_missing
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: Invoices.customer_id references Customers.id and foreign-key enforcement is enabled. An invoice uses
+    a non-null customer ID absent from Customers. What happens when the constraint is checked?
+  explanation: A non-null foreign key must match a parent key. This invoice fails the constraint.
+  options:
+  - text: A customer is inserted automatically.
+    correct: false
+  - text: The invoice fails the foreign-key constraint.
+    correct: true
+  - text: The value becomes NULL.
+    correct: false
+  - text: The invoice is accepted if its own primary key is distinct.
+    correct: false
+  subtopic_id: relational.keys
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/foreignkeys.html
+- id: q_practice_select_where
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: Inventory has quantities 1, 3, 5, and 7. Which values survive WHERE quantity >= 5?
+  explanation: The condition includes quantities equal to 5 and greater than 5.
+  options:
+  - text: 1 and 3.
+    correct: false
+  - text: 7 only.
+    correct: false
+  - text: 5 and 7.
+    correct: true
+  - text: 3, 5, and 7.
+    correct: false
+  subtopic_id: sql.select
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_select.html
+- id: q_practice_select_columns
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: Products has columns id, name, and price. Which columns does SELECT name, price FROM Products return?
+  explanation: The SELECT list defines both the columns returned and their order.
+  options:
+  - text: name and price, in that order.
+    correct: true
+  - text: id, name, and price.
+    correct: false
+  - text: price and name, in that order.
+    correct: false
+  - text: name only.
+    correct: false
+  subtopic_id: sql.select
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_select.html
+- id: q_practice_count_null
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: The points column has values 4, NULL, and 9. What is COUNT(points)?
+  explanation: COUNT on a column counts non-null values. Two of the three values are non-null.
+  options:
+  - text: '0.'
+    correct: false
+  - text: '1.'
+    correct: false
+  - text: '3.'
+    correct: false
+  - text: '2.'
+    correct: true
+  subtopic_id: sql.aggregation
+  review_status: draft
+  ai_assisted: true
+  source:
+    kind: authored
+    factual_reference_url: https://www.sqlite.org/lang_aggfunc.html

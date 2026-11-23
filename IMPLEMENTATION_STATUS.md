@@ -2,7 +2,7 @@
 
 **Authority:** `MASTER_PLAN.md` v1.2. This is a factual report; initial statuses below are NOT claims of tested code.
 
-- **Current stage:** S0
+- **Current stage:** S1 (engineering; human content approval pending)
 - **Passing commits:** use `git log --oneline --grep='^S[0-6]\.'` (a commit cannot embed its own hash)
 - **Last updated by implementation agent:** 2026-11-23
 - **Environment/OS/tested versions:** see bootstrap CLI checks in `DECISIONS.md`
@@ -30,9 +30,9 @@
 | S0.3 dated books manifest + clearance validation | done_tested | Added rights models, exact UTF-8 hash and approval checks, content clearance references, contributor docs and tests. Pytest 24 passed; Ruff, strict mypy and strict content CLI passed (5 catalog entries, 0 approved sections). Search index and atomic import verification follow in S3. Pushed to `origin/main`. | 2026-11-23 / `1b38a0e` |
 | S0.4 FastAPI/SQLite skeleton, `/api/v1/health` | done_tested | Added application settings, SQLite FK enforcement, Alembic baseline, readiness router, API tests and README commands. Pytest 27 passed; Ruff, strict mypy and strict content CLI passed. Alembic upgrade/current reported `0001_baseline (head)`. Pushed to `origin/main`. | 2026-11-23 / `4f4acd2` |
 | S0.5 React shell + local API proxy + tests | done_tested | Added Vite/React/Tailwind shell, router, readiness states, frontend lockfile, tests and README. Vitest 2 passed; frontend lint/typecheck/build passed. Live loopback Vite /learn and proxied FastAPI health succeeded. Backend 27 tests, Ruff and strict mypy passed. Pushed to `origin/main`. | 2026-11-23 / `7ef90b1` |
-| S0.6 CI and source/secret hygiene | done_tested | Added GitHub Actions checks, backend lockfile, shared check script, test report and locked README setup. Clean locked backend setup and npm ci succeeded; 27 backend and 2 frontend tests passed; lint, types, build, content and fresh migration passed. GitHub Actions run pending push. | 2026-11-23 / `S0.6` |
-| S0.7 initial draft content for human verification | todo | | |
-| **S0 exit** | todo | | |
+| S0.6 CI and source/secret hygiene | done_tested | Added GitHub Actions checks, backend lockfile, shared check script, test report and locked README setup. Clean locked backend setup and npm ci succeeded; 27 backend and 2 frontend tests passed; lint, types, build, content and fresh migration passed. GitHub rejected the push because the CLI token lacks `workflow` scope; hosted CI has not run. | 2026-11-23 / `35b9e78` |
+| S0.7 initial draft content for human verification | done_tested | Added 12 draft MCQs, 2 remediation lessons and 2 disabled definitions; added a draft SQL exercise, 3 fixtures and expected result files. Strict validation executed the reference SQL across all fixtures and passed. S1 gate expectedly exited 1. Backend 27 and frontend 2 tests, Ruff, mypy, frontend lint/typecheck/build and migration passed. Push pending workflow scope. | 2026-11-23 / `S0.7` |
+| **S0 exit** | done_tested | Locked setup, live loopback smoke, full local tests, migration and structural validator passed. Hosted checks are pending GitHub authorization. | 2026-11-23 / `S0.7` |
 
 ## S1 — Complete walking skeleton in browser
 
@@ -45,7 +45,7 @@
 | S1.5 SQL sandbox + hidden-fixture result grading | todo | | |
 | S1.6 atomic, idempotent attempt and minimal explainable policy | todo | | |
 | S1.7 minimal browser learning loop and protected seeded demo CLI | todo | | |
-| S1.8 content human review + `--stage S1` + E2E exit | todo | | |
+| S1.8 content human review + `--stage S1` + E2E exit | blocked | Drafts are files under `content/`. Owner review and independent SQL result confirmation pending. | 2026-11-23 |
 | **S1 exit** | todo | | |
 
 ## Later stages
