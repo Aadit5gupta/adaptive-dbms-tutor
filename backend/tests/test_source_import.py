@@ -142,3 +142,48 @@ def test_retrieval_bm25_applies_topic_filter_before_broader_fallback(
     hits_ = Retriever(engine, s1).search("synthetic lesson", ("relational.keys",), k=2)
     assert [hit.topic_id for hit in hits_] == ["relational.keys", "sql.joins"]
     assert all(hit.rank > 0 for hit in hits_)
+
+
+def test_curated_tutor_and_mock_provider_cannot_invent_citations(
+    indexed_db: tuple[Engine, Content, Catalog], s1: Path
+) -> None:
+    import asyncio
+
+    from app.providers.contracts import ProviderAnswer, ProviderUnavailable, TutorContext
+    from app.schemas.tutor import TutorInput
+    from app.services.retrieval import Retriever
+    from app.services.tutor import TutorService
+
+    engine, content, _ = indexed_db
+    retriever = Retriever(engine, s1)
+    request = TutorInput(query="Explain the concept", topic_id="relational.keys")
+    with Session(engine) as db, db.begin():
+        index_reviewed_lessons(db, content)
+
+    class MockProvider:
+        async def respond(self, context: TutorContext) -> ProviderAnswer:
+            assert context.passages[0].topic_id == "relational.keys"
+            return ProviderAnswer("A clear explanation.", (context.passages[0].citation.id,))
+
+    class FabricatedProvider:
+        async def respond(self, context: TutorContext) -> ProviderAnswer:
+            return ProviderAnswer("A different explanation.", ("made-up-citation",))
+
+    class UnavailableProvider:
+        async def respond(self, context: TutorContext) -> ProviderAnswer:
+            raise ProviderUnavailable
+
+    curated = asyncio.run(TutorService(retriever).answer(request))
+    assert curated.provider == "curated" and curated.citations[0].kind == "lesson"
+    reply = asyncio.run(TutorService(retriever, MockProvider()).answer(request))
+    assert reply.provider == "ollama" and reply.citations == curated.citations
+    fabricated = asyncio.run(TutorService(retriever, FabricatedProvider()).answer(request))
+    unavailable = asyncio.run(TutorService(retriever, UnavailableProvider()).answer(request))
+    assert fabricated == unavailable
+    assert fabricated.status == "ai_unavailable" and fabricated.citations == curated.citations
+    missing = asyncio.run(
+        TutorService(retriever, MockProvider()).answer(
+            TutorInput(query="zephyr", topic_id="sql.select"),
+        )
+    )
+    assert missing.degraded and missing.status == "no_evidence" and not missing.citations

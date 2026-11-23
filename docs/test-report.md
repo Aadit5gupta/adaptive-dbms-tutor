@@ -27,3 +27,7 @@ S1 introduces the learner A/B demo. S5 requires a separately invoked real Ollama
 ## S2 engineering boundary
 
 89 backend tests, two Vitest tests and two Chrome Playwright tests passed. Backend and frontend lint, type checks, build and strict content validation passed. The test-only A/B replay passed again. The actual demo verification exited 1 at the unchanged human review gate.
+
+## S3 engineering boundary
+
+95 backend tests, two Vitest tests and three Chrome Playwright tests passed. Lint, types, build, fresh Alembic upgrade and strict validation passed. Synthetic tests confirmed exact-hash approved import, BM25, revocation filtering, application-owned citations, provider fallback and curated tutoring in Chrome. The actual catalog shows zero of five books indexed and no approved lessons are available yet.

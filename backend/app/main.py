@@ -12,10 +12,13 @@ from fastapi.responses import JSONResponse
 from app.api.demo import demo_router
 from app.api.health import health_router
 from app.api.library import library_router
+from app.api.tutor import local_tutor_router
 from app.core.config import PROJECT_ROOT, Settings
 from app.core.db import open_engine
 from app.core.demo import demo_path
 from app.services.assessment import AssessmentError
+from app.services.retrieval import Retriever
+from app.services.tutor import TutorService
 
 ALEMBIC_INI = Path(__file__).resolve().parents[1] / "alembic.ini"
 
@@ -45,6 +48,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     if demo_engine is not None:
         app.include_router(demo_router(demo_engine, PROJECT_ROOT), prefix="/api/v1")
+        app.include_router(
+            local_tutor_router(TutorService(Retriever(demo_engine))), prefix="/api/v1"
+        )
     app.include_router(library_router(engine, PROJECT_ROOT), prefix="/api/v1")
     app.include_router(health_router(engine, heads), prefix="/api/v1")
     return app

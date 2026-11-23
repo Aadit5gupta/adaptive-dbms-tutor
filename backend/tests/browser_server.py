@@ -7,14 +7,19 @@ import uvicorn
 from alembic import command
 from alembic.config import Config
 from app.api.demo import demo_router
+from app.api.tutor import local_tutor_router
 from app.core.config import Settings
 from app.core.db import open_engine
 from app.core.demo import demo_path, ensure_demo_marker
 from app.main import ALEMBIC_INI, create_app
-from app.services.curriculum import publish_from_disk
+from app.services.curriculum import publish_content
 from app.services.demo import seed_learners
+from app.services.retrieval import Retriever
+from app.services.source_import import index_reviewed_lessons
+from app.services.tutor import TutorService
 
 from scripts.demo_support import demo_write
+from scripts.validate_content import load_content
 
 from .content_fixtures import make_foundation, make_s1_content
 
@@ -38,9 +43,14 @@ def run() -> None:
                     cfg.attributes["connection"] = connection
                     command.upgrade(cfg, "head")
             with demo_write(engine) as session:
-                publish_from_disk(session, bank)
+                content = load_content(bank)
+                publish_content(session, content, bank)
+                index_reviewed_lessons(session, content)
                 seed_learners(session)
             app.include_router(demo_router(engine, bank), prefix="/api/v1")
+            app.include_router(
+                local_tutor_router(TutorService(Retriever(engine, bank))), prefix="/api/v1"
+            )
             uvicorn.run(app, host="127.0.0.1", port=8000, proxy_headers=False)
         finally:
             engine.dispose()

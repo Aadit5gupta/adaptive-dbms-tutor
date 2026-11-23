@@ -1,0 +1,97 @@
+"""Grounded tutoring; returned references come from retrieval metadata."""
+
+import re
+
+from sqlalchemy.exc import SQLAlchemyError
+from starlette.concurrency import run_in_threadpool
+
+from app.providers.contracts import ProviderUnavailable, Turn, TutorContext, TutorProvider
+from app.providers.curated import CuratedProvider
+from app.schemas.tutor import TutorInput, TutorReply
+from app.services.retrieval import PassageHit, Retriever
+from scripts.validate_content import ContentError
+
+MODEL_CITATION = re.compile(r"https?://|\bwww\.|\[\s*\d+\s*\]", re.IGNORECASE)
+
+
+class TutorService:
+    def __init__(self, retriever: Retriever, provider: TutorProvider | None = None):
+        self.retriever = retriever
+        self.provider = provider
+        self.curated = CuratedProvider()
+
+    async def evidence(self, request: TutorInput) -> list[PassageHit]:
+        topics = (request.topic_id,) if request.topic_id else ()
+        try:
+            hits = await run_in_threadpool(self.retriever.search, request.query, topics, 4)
+        except (SQLAlchemyError, ContentError):
+            hits = []
+        if topics:
+            selected = [hit for hit in hits if hit.topic_id == request.topic_id]
+            if selected:
+                return selected
+            try:
+                fallback = await run_in_threadpool(self.retriever.topic_passages, topics[0])
+            except SQLAlchemyError:
+                fallback = []
+            if fallback:
+                return fallback
+        return hits
+
+    async def answer(
+        self,
+        request: TutorInput,
+        *,
+        history: tuple[Turn, ...] = (),
+        learner_context: str = "",
+    ) -> TutorReply:
+        hits = await self.evidence(request)
+        if not hits:
+            return TutorReply(
+                answer="I could not find reviewed material for this question. Try naming a specific DBMS topic or check the Library.",
+                citations=[],
+                mode=request.mode,
+                provider="curated",
+                degraded=True,
+                status="no_evidence",
+            )
+
+        context = TutorContext(
+            request=request,
+            passages=tuple(hits[:4]),
+            history=tuple(Turn(turn.role, turn.text[:450]) for turn in history[-6:]),
+            learner_context=learner_context[:400],
+        )
+        citations = {hit.citation.id: hit.citation for hit in context.passages}
+        if self.provider is not None:
+            try:
+                candidate = await self.provider.respond(context)
+                ids = tuple(dict.fromkeys(candidate.passage_ids))
+                answer = candidate.text.strip()
+                if (
+                    answer
+                    and len(answer) <= 2_400
+                    and ids
+                    and all(ref in citations for ref in ids)
+                    and not MODEL_CITATION.search(answer)
+                ):
+                    return TutorReply(
+                        answer=answer,
+                        citations=[citations[ref] for ref in ids],
+                        mode=request.mode,
+                        provider="ollama",
+                        degraded=False,
+                        status="ok",
+                    )
+            except ProviderUnavailable:
+                pass
+
+        curated = await self.curated.respond(context)
+        return TutorReply(
+            answer=curated.text,
+            citations=[citations[ref] for ref in curated.passage_ids],
+            mode=request.mode,
+            provider="curated",
+            degraded=self.provider is not None,
+            status="ai_unavailable" if self.provider is not None else "ok",
+        )

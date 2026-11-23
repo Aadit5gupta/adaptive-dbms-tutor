@@ -3,6 +3,7 @@ import { useRef, useState } from 'react'
 
 import { ApiError } from '../api/client'
 import { demoRequest } from '../api/demo'
+import { TutorPanel } from '../components/TutorPanel'
 import type { Activity, AnswerResult, DemoState, Item, Learner, Lesson, QueryResult } from '../api/demo'
 
 export const demoButton = 'rounded-lg bg-green-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-800 disabled:cursor-default disabled:opacity-50'
@@ -173,6 +174,7 @@ function LearnerPanel({ learner }: { learner: Learner }) {
             </>}
           </section>
         )}
+        {lessonOpen && ref && <TutorPanel topic={state.topic} />}
       </div>
       <aside className="grid content-start gap-4">
         <section className={card}>
