@@ -41,9 +41,9 @@
 
 | Date | Stage/task | Problem / deviation | Impact | Fallback | Owner action required |
 |---|---|---|---|---|---|
-| 2026-11-23 | S0.1 / S5 | Ollama CLI unavailable at bootstrap | Real-model acceptance remains pending | Curated path and mock tests during development | Install Ollama and manually pull the configured model before real-model verification |
+| 2026-11-23 | S0.1 / S5 | Ollama CLI unavailable at bootstrap | Real-model acceptance remained pending | Owner installed Ollama and `ollama list` confirmed `qwen3:1.7b` on 23 November 2026 | Run the opt-in real-model check after S5 integration |
 
-| 2026-11-23 | S0.6 and later pushes | GitHub rejects workflow creation with current CLI OAuth token | Local commits remain ahead of GitHub; hosted CI is pending | Continue local checks and commits | Authorize `gh auth refresh -h github.com -s workflow` |
+| 2026-11-23 | S0.6 and later pushes | GitHub rejects workflow creation with current CLI OAuth token | Initially delayed commits and CI | `workflow` scope confirmed and queued commits pushed successfully on 23 November 2026 | Resolved |
 | 2026-11-23 | S1.8 | Initial lessons, questions and SQL output artifacts await human verification | S1 content gate cannot pass | Continue engineering with labeled synthetic test fixtures | Review and explicitly verify the draft content |
 
 Never invent the owner's approval, manual review, license clearance or human pilot enrollment.

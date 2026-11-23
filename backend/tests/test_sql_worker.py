@@ -180,3 +180,16 @@ def test_os_worker_resource_caps_are_active(tmp_path: Path) -> None:
     limits = invoke_worker(tmp_path, b"", worker=program)
     assert isinstance(limits, ResultRows)
     assert limits.rows == [(2,), (2 * 1024 * 1024,), (24,), (0,)]
+
+
+@TESTED_PLATFORM
+def test_schema_explorer_contains_only_visible_fixture(join_exercise: SQLExerciseVersion) -> None:
+    from app.services.sql_grading import visible_schema
+
+    preview = visible_schema(ROOT, join_exercise)
+    assert isinstance(preview, list)
+    assert [table.name for table in preview] == ["customers", "orders"]
+    customers = preview[0]
+    assert customers.data.columns == ["id", "name"]
+    assert (2, "Mina") in customers.data.rows
+    assert all("Alex" not in row for row in customers.data.rows)

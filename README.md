@@ -75,3 +75,9 @@ DBMS_TEST_CHROME=1 npm --prefix frontend run test:e2e
 ```
 
 SQL execution support and limits are documented in the [SQL worker notes](docs/sql-worker.md).
+
+## Signed-in learning
+
+After migration, publish the reviewed local curriculum and build the lesson index with `python scripts/import_books.py lessons`. Open the frontend and create a local account. Use Settings to save a learning goal and experience level, export your learning data or delete your account.
+
+The dashboard shows reviewed activity, coverage and the deterministic next recommendation. Practice and diagnostics resume on refresh. SQL Lab shows visible fixture rows and includes a SQLite-aware editor. Preview leaves your progress unchanged, and Submit grades against the published exercise's fixtures.

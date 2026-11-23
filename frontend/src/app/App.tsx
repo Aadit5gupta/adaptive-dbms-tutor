@@ -1,21 +1,35 @@
 import { useQuery } from '@tanstack/react-query'
 import {
-  BookOpen, ChartNoAxesCombined, Database, House, LibraryBig, PenLine, Terminal, Users,
+  BookOpen, ChartNoAxesCombined, Database, House, LibraryBig, MessageCircle, PenLine, Settings, Terminal, Users,
 } from 'lucide-react'
+import { lazy, Suspense } from 'react'
 import { NavLink, Route, Routes } from 'react-router'
 
 import { fetchHealth } from '../api/health'
+import { RequireAccount } from '../components/account'
+import { PageHeading, Pending } from '../components/layout'
+import { TutorPanel } from '../components/TutorPanel'
+import { DashboardPage } from '../pages/DashboardPage'
 import { DemoPage } from '../pages/DemoPage'
 import { LibraryPage } from '../pages/LibraryPage'
-import { FoundationPage } from '../pages/FoundationPage'
+import { PracticePage } from '../pages/PracticePage'
+import { ProgressPage } from '../pages/ProgressPage'
+import { SettingsPage } from '../pages/SettingsPage'
+
+const LearnPage = lazy(async () => ({ default: (await import('../pages/LearnPage')).LearnPage }))
+const LessonPage = lazy(async () => ({ default: (await import('../pages/LearnPage')).LessonPage }))
+const SqlPage = lazy(async () => ({ default: (await import('../pages/SqlPage')).SqlPage }))
 
 const pages = [
-  { path: '/', title: 'Dashboard', icon: House, description: 'See your next learning step and recent progress.' },
-  { path: '/learn', title: 'Learn', icon: BookOpen, description: 'Explore DBMS lessons and worked examples.' },
-  { path: '/practice', title: 'Practice', icon: PenLine, description: 'Check your understanding and get feedback on your answers.' },
-  { path: '/sql', title: 'SQL Lab', icon: Terminal, description: 'Write queries against exercise datasets.' },
-  { path: '/library', title: 'Library', icon: LibraryBig, description: 'Find attributed source material for DBMS and SQL.' },
-  { path: '/progress', title: 'Progress', icon: ChartNoAxesCombined, description: 'Review your practice history and topics due for revision.' },
+  { path: '/', title: 'Dashboard', icon: House },
+  { path: '/learn', title: 'Learn', icon: BookOpen },
+  { path: '/practice', title: 'Practice', icon: PenLine },
+  { path: '/sql', title: 'SQL Lab', icon: Terminal },
+  { path: '/library', title: 'Library', icon: LibraryBig },
+  { path: '/progress', title: 'Progress', icon: ChartNoAxesCombined },
+  { path: '/tutor', title: 'Ask Tutor', icon: MessageCircle },
+  { path: '/settings', title: 'Settings', icon: Settings },
+  { path: '/demo', title: 'Learner demo', icon: Users },
 ] as const
 
 function BackendStatus() {
@@ -60,11 +74,6 @@ export function App() {
               <Icon size={18} aria-hidden="true" />{title}
             </NavLink>
           ))}
-          <NavLink to="/demo" className={({ isActive }) =>
-            `flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium ${isActive ? 'bg-green-100 text-green-950' : 'text-stone-600 hover:bg-stone-100'}`
-          }>
-            <Users size={18} aria-hidden="true" />Learner demo
-          </NavLink>
         </nav>
       </aside>
       <div>
@@ -73,9 +82,18 @@ export function App() {
         </header>
         <main id="main" tabIndex={-1} className="mx-auto max-w-6xl px-6 py-12 md:px-10 md:py-20">
           <Routes>
-            {pages.map(({ path, title, description }) => (
-              <Route key={path} path={path} element={path === "/library" ? <LibraryPage /> : <FoundationPage title={title} description={description} />} />
-            ))}
+            <Route path="/" element={<RequireAccount>{(account) => <DashboardPage account={account} />}</RequireAccount>} />
+            <Route path="/learn" element={<RequireAccount>{() => <Suspense fallback={<Pending />}><LearnPage /></Suspense>}</RequireAccount>} />
+            <Route path="/learn/:ref" element={<RequireAccount>{() => <Suspense fallback={<Pending />}><LessonPage /></Suspense>}</RequireAccount>} />
+            <Route path="/practice" element={<RequireAccount>{() => <PracticePage />}</RequireAccount>} />
+            <Route path="/sql" element={<RequireAccount>{() => <Suspense fallback={<Pending />}><SqlPage /></Suspense>}</RequireAccount>} />
+            <Route path="/progress" element={<RequireAccount>{() => <ProgressPage />}</RequireAccount>} />
+            <Route path="/tutor" element={<RequireAccount>{() => <>
+              <PageHeading title="DBMS tutor">Ask about a concept, work through an example, or request a hint.</PageHeading>
+              <div className="mt-6 max-w-2xl"><TutorPanel /></div>
+            </>}</RequireAccount>} />
+            <Route path="/settings" element={<RequireAccount>{(account) => <SettingsPage account={account} />}</RequireAccount>} />
+            <Route path="/library" element={<LibraryPage />} />
             <Route path="/demo" element={<DemoPage />} />
             <Route path="*" element={<><h1>Page missing</h1><NavLink className="mt-6 inline-block underline" to="/">Return to dashboard</NavLink></>} />
           </Routes>

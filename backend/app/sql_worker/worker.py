@@ -157,6 +157,18 @@ def evaluate(query: str, tables: dict[str, set[str]]) -> str:
         return '{"columns":' + columns_json + ',"rows":[' + ",".join(rows) + "]}"
 
 
+def describe(tables: dict[str, set[str]]) -> str:
+    samples = []
+    for table_name in sorted(tables)[:10]:
+        quoted = '"' + table_name.replace('"', '""') + '"'
+        rows = json.loads(evaluate(f"SELECT * FROM {quoted} LIMIT 4", tables))
+        samples.append({"name": table_name, "data": rows})
+    packet = json.dumps(samples, ensure_ascii=True)
+    if len(packet) > MAX_RESULT_BYTES:
+        raise RejectedQuery("output_limit")
+    return packet
+
+
 def main() -> None:
     try:
         restrict_process()
@@ -173,7 +185,7 @@ def main() -> None:
         return
 
     try:
-        print(evaluate(query, tables))
+        print(describe(tables) if sys.argv[1:] == ["--describe"] else evaluate(query, tables))
     except RejectedQuery as error:
         print(json.dumps({"error": str(error)}))
     except sqlite3.Error as error:

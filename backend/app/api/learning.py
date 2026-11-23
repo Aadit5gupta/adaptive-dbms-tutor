@@ -37,7 +37,13 @@ from app.services.catalog import (
     reviewed_exercises,
 )
 from app.services.progress import Progress, latest_recommendation, read_progress
-from app.services.sql_grading import WorkerError, run_visible, worker_supported
+from app.services.sql_grading import (
+    FixtureTable,
+    WorkerError,
+    run_visible,
+    visible_schema,
+    worker_supported,
+)
 from app.services.study import start_checkpoints, start_study, study_session
 from content.sql_results import ResultRows
 
@@ -165,6 +171,25 @@ def learning_router(accounts: Accounts, root: Path) -> APIRouter:
         if item is None:
             raise AssessmentError("The SQL exercise is unavailable.", "no_content", 404)
         return item
+
+    @router.get("/sql/exercises/{logical_id}/schema")
+    def schema(logical_id: str) -> list[FixtureTable]:
+        with Session(engine) as db:
+            version = db.scalar(
+                select(SQLExerciseVersion)
+                .join(QuestionVersion, QuestionVersion.id == SQLExerciseVersion.question_version_id)
+                .where(
+                    QuestionVersion.question_id == logical_id, QuestionVersion.pool == "practice"
+                )
+                .order_by(QuestionVersion.version.desc())
+                .limit(1)
+            )
+        if version is None:
+            raise AssessmentError("The SQL exercise is unavailable.", "no_content", 404)
+        tables = visible_schema(root, version)
+        if isinstance(tables, WorkerError):
+            raise AssessmentError("The visible fixture is unavailable.", tables.error, 503)
+        return tables
 
     @router.post("/sql/exercises/{logical_id}/sessions")
     def begin_sql(logical_id: str, user_id: Annotated[str, Depends(identity)]) -> SessionView:

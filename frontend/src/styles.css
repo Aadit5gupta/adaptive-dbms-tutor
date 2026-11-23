@@ -13,3 +13,40 @@
     @apply outline-2 outline-offset-4 outline-green-800;
   }
 }
+
+.lesson-markdown p, .lesson-markdown ul, .lesson-markdown ol, .lesson-markdown pre,
+.lesson-markdown table {
+  @apply mb-4 leading-7;
+}
+
+.lesson-markdown h2, .lesson-markdown h3 {
+  @apply mb-3 mt-5 font-semibold;
+}
+
+.lesson-markdown ul {
+  @apply ml-5 list-disc;
+}
+
+.lesson-markdown ol {
+  @apply ml-5 list-decimal;
+}
+
+.lesson-markdown th, .lesson-markdown td {
+  @apply border border-stone-200 px-3 py-1 text-left;
+}
+
+.lesson-markdown th {
+  @apply bg-stone-100;
+}
+
+.lesson-markdown code {
+  @apply rounded bg-stone-100 px-1 font-mono text-sm;
+}
+
+.lesson-markdown pre {
+  @apply overflow-x-auto rounded-lg bg-stone-100 p-3;
+}
+
+.lesson-markdown a {
+  @apply text-green-900 underline;
+}

@@ -5,13 +5,14 @@ import platform
 import sqlite3
 import subprocess
 import sys
+from collections.abc import Callable
 from hashlib import sha256
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from threading import BoundedSemaphore
-from typing import Literal
+from typing import Literal, TypeVar
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, TypeAdapter, ValidationError
 
 from app.db.models import SQLExerciseVersion
 from content.schemas.models import Comparison
@@ -68,12 +69,26 @@ def worker_supported() -> bool:
     return platform.system() == "Darwin" and platform.machine() == "arm64"
 
 
-def invoke_worker(
-    cwd: Path, query: bytes, *, worker: Path = WORKER, timeout: float = WALL_SECONDS
-) -> ResultRows | WorkerError:
+class FixtureTable(BaseModel):
+    name: str
+    data: ResultRows
+
+
+FixturePreview = TypeAdapter(list[FixtureTable])
+R = TypeVar("R")
+
+
+def worker_packet(
+    cwd: Path,
+    query: bytes,
+    *,
+    worker: Path = WORKER,
+    timeout: float = WALL_SECONDS,
+    describe: bool = False,
+) -> object:
     try:
         process = subprocess.run(
-            [sys.executable, "-I", "-S", str(worker)],
+            [sys.executable, "-I", "-S", str(worker), *(["--describe"] if describe else [])],
             input=query,
             capture_output=True,
             cwd=cwd,
@@ -92,6 +107,18 @@ def invoke_worker(
         response = json.loads(process.stdout)
         if isinstance(response, dict) and "error" in response:
             return WorkerError.model_validate(response)
+        return response
+    except (ValidationError, ValueError):
+        return WorkerError(error="worker_unavailable")
+
+
+def invoke_worker(
+    cwd: Path, query: bytes, *, worker: Path = WORKER, timeout: float = WALL_SECONDS
+) -> ResultRows | WorkerError:
+    response = worker_packet(cwd, query, worker=worker, timeout=timeout)
+    if isinstance(response, WorkerError):
+        return response
+    try:
         rows = ResultRows.model_validate(response)
         if not all(len(row) == len(rows.columns) for row in rows.rows):
             return WorkerError(error="worker_unavailable")
@@ -100,11 +127,9 @@ def invoke_worker(
         return WorkerError(error="worker_unavailable")
 
 
-def run_fixture(root: Path, fixture: Fixture, query: str) -> ResultRows | WorkerError:
+def with_fixture(root: Path, fixture: Fixture, run: Callable[[Path], R]) -> R | WorkerError:
     if not worker_supported():
         return WorkerError(error="worker_unavailable")
-    if len(query.encode("utf-8")) > QUERY_LIMIT or "\0" in query:
-        return WorkerError(error="unsupported_statement")
     fixtures_dir = (root / "content/sql_fixtures").resolve()
     fixture_path = (root / fixture.path).resolve()
     if not fixture_path.is_relative_to(fixtures_dir) or fixture_path.suffix != ".sql":
@@ -120,10 +145,29 @@ def run_fixture(root: Path, fixture: Fixture, query: str) -> ResultRows | Worker
             if not WORKER_SLOTS.acquire(blocking=False):
                 return WorkerError(error="worker_unavailable")
             try:
-                return invoke_worker(path, query.encode("utf-8"))
+                return run(path)
             finally:
                 WORKER_SLOTS.release()
     except OSError:
+        return WorkerError(error="worker_unavailable")
+
+
+def run_fixture(root: Path, fixture: Fixture, query: str) -> ResultRows | WorkerError:
+    if len(query.encode("utf-8")) > QUERY_LIMIT or "\0" in query:
+        return WorkerError(error="unsupported_statement")
+    return with_fixture(root, fixture, lambda cwd: invoke_worker(cwd, query.encode("utf-8")))
+
+
+def visible_schema(root: Path, version: SQLExerciseVersion) -> list[FixtureTable] | WorkerError:
+    spec = FixtureSpec.model_validate_json(version.fixture_spec)
+    response = with_fixture(
+        root, spec.fixtures[0], lambda cwd: worker_packet(cwd, b"", describe=True)
+    )
+    if isinstance(response, WorkerError):
+        return response
+    try:
+        return FixturePreview.validate_python(response)
+    except ValidationError:
         return WorkerError(error="worker_unavailable")
 
 

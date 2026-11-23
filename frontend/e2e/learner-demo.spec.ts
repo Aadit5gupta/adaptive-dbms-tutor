@@ -60,7 +60,49 @@ test('library reports searchable sources and an honest empty search', async ({ p
   await page.goto('/library')
   await expect(page.getByText('0 of 5 indexed')).toBeVisible()
   await expect(page.getByRole('link', { name: 'Database Fundamentals' })).toBeVisible()
-  await page.getByRole('searchbox', { name: 'Search passages' }).fill('foreign key')
+  await page.getByRole('searchbox', { name: 'Search passages' }).fill('materialized view')
   await page.getByRole('button', { name: 'Search', exact: true }).click()
   await expect(page.getByText('No matching reviewed passages.')).toBeVisible()
+})
+
+test('signed-in learner registers, sets preferences, practices and reviews their progress', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Create an account' }).click()
+  await page.getByLabel('Email', { exact: true }).fill('browser-learner@example.com')
+  await page.getByLabel('Password', { exact: true }).fill('synthetic browser passphrase')
+  await page.getByRole('button', { name: 'Create account', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Dashboard', exact: true })).toBeVisible()
+
+  await page.getByRole('link', { name: 'Set preferences' }).click()
+  await page.getByRole('combobox', { name: 'Goal', exact: true }).selectOption('exam')
+  await page.getByLabel('Daily study minutes').fill('20')
+  await page.getByRole('button', { name: 'Save preferences' }).click()
+  await expect(page.getByText('Preferences saved.')).toBeVisible()
+
+  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Practice' }).click()
+  await page.getByRole('button', { name: 'Start or resume practice' }).click()
+  await expect(page.getByText('Question 1 of 5')).toBeVisible()
+  await answer(page, 'A')
+  await expect(page.getByText('Question 2 of 5')).toBeVisible()
+  await page.reload()
+  await expect(page.getByText('Question 2 of 5')).toBeVisible()
+
+  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Progress' }).click()
+  await expect(page.getByRole('heading', { name: 'Recent attempts' })).toBeVisible()
+  await expect(page.getByText('practice · correct')).toBeVisible()
+
+  if (process.platform === 'darwin' && process.arch === 'arm64') {
+    await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'SQL Lab' }).click()
+    await expect(page.getByRole('table', { name: 't', exact: true })).toBeVisible()
+    await page.getByRole('button', { name: 'Start or resume exercise' }).click()
+    await page.getByLabel('Your SQLite query').fill('SELECT n FROM t')
+    await page.getByRole('button', { name: 'Run preview' }).click()
+    await expect(page.getByRole('table', { name: 'Preview result' })).toBeVisible()
+    await page.getByRole('button', { name: 'Submit for grading' }).click()
+    await expect(page.getByText('The query returned the required results on all grading fixtures.')).toBeVisible()
+  }
+
+  await page.getByRole('link', { name: 'Settings', exact: true }).click()
+  await page.getByRole('button', { name: 'Sign out' }).click()
+  await expect(page.getByRole('heading', { name: 'Sign in', exact: true })).toBeVisible()
 })

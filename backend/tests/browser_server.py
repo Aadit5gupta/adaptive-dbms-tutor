@@ -31,7 +31,7 @@ def run() -> None:
         settings = Settings(
             app_db=root / "app.sqlite", demo_db=root / "demo.sqlite", demo_enabled=False
         )
-        app = create_app(settings)
+        app = create_app(settings, content_root=bank)
         admin = open_engine(settings.app_db, create=True)
         engine = open_engine(demo_path(settings, settings.demo_db), create=True)
         try:
@@ -42,11 +42,13 @@ def run() -> None:
                         ensure_demo_marker(connection)
                     cfg.attributes["connection"] = connection
                     command.upgrade(cfg, "head")
-            with demo_write(engine) as session:
-                content = load_content(bank)
-                publish_content(session, content, bank)
-                index_reviewed_lessons(session, content)
-                seed_learners(session)
+            content = load_content(bank)
+            for target in (admin, engine):
+                with demo_write(target) as session:
+                    publish_content(session, content, bank)
+                    index_reviewed_lessons(session, content)
+                    if target is engine:
+                        seed_learners(session)
             app.include_router(demo_router(engine, bank), prefix="/api/v1")
             app.include_router(
                 local_tutor_router(TutorService(Retriever(engine, bank))), prefix="/api/v1"
