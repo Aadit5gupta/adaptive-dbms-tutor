@@ -1,0 +1,45 @@
+- id: er
+  title: ER modeling
+  subtopics:
+    er.entities: Entities and attributes
+    er.cardinality: Relationships and cardinality
+    er.weak_entities: Weak entities
+- id: relational
+  title: Relational model
+  subtopics:
+    relational.relations: Relations and constraints
+    relational.keys: Candidate, primary and foreign keys
+    relational.algebra: Relational operators
+- id: sql
+  title: SQL
+  subtopics:
+    sql.select: SELECT and WHERE
+    sql.ordering: ORDER BY
+    sql.joins: INNER and LEFT JOIN
+    sql.aggregation: Aggregates, GROUP BY and HAVING
+    sql.subqueries: Subqueries
+    sql.null: NULL and three-valued logic
+- id: normalization
+  title: Functional dependencies and normalization
+  subtopics:
+    normalization.fds: Functional dependencies and closure
+    normalization.normal_forms: Normal forms and anomalies
+    normalization.decomposition: Lossless decomposition
+- id: transactions
+  title: Transactions
+  subtopics:
+    transactions.acid: ACID
+    transactions.schedules: Schedules and conflict serializability
+    transactions.recoverability: Recoverability
+- id: concurrency
+  title: Concurrency
+  subtopics:
+    concurrency.locks: Locks and two-phase locking
+    concurrency.deadlocks: Deadlocks
+    concurrency.isolation: Isolation anomalies
+- id: indexing
+  title: Indexing
+  subtopics:
+    indexing.layout: Clustered, nonclustered, dense and sparse indexes
+    indexing.structures: Tree and hash indexes
+    indexing.plans: Basic query plans

@@ -25,8 +25,8 @@
 
 | Task | Status | Actual tests/commands/results | Date/commit |
 |---|---|---|---|
-| S0.1 canonical docs and Git setup | done_tested | Verified 4 relative links, canonical paths, Git ignore examples and SQLite FTS5/BM25 probe. Files: plan, decisions, status, stage checklist, README, Git ignore and example env. | 2026-11-23 / `S0.1` |
-| S0.2 content schema + strict structural/stage validator | todo | | |
+| S0.1 canonical docs and Git setup | done_tested | Verified 4 relative links, canonical paths, Git ignore examples and SQLite FTS5/BM25 probe. Files: plan, decisions, status, stage checklist, README, Git ignore and example env. Pushed to private `origin/main` over HTTPS. | 2026-11-23 / `7509d1c` |
+| S0.2 content schema + strict structural/stage validator | done_tested | Added `content/schemas`, curriculum YAML, `scripts/validate_content.py`, backend dev dependencies and validator tests. Pytest 15 passed; Ruff and strict mypy passed; strict CLI passed; real S1 gate exited 1 with zero reviewed items as expected. Synthetic S1 test passes. Section clearance support follows in S0.3. | 2026-11-23 / `S0.2` |
 | S0.3 dated books manifest + clearance validation | todo | | |
 | S0.4 FastAPI/SQLite skeleton, `/api/v1/health` | todo | | |
 | S0.5 React shell + local API proxy + tests | todo | | |
