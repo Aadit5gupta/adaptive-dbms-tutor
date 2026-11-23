@@ -1,0 +1,150 @@
+from collections.abc import Iterator
+from pathlib import Path
+
+import pytest
+import yaml
+from alembic import command
+from alembic.config import Config
+from app.core.config import Settings
+from app.core.db import open_engine
+from app.db.models import Attempt, QuestionVersion, SQLExerciseVersion, User
+from app.main import ALEMBIC_INI
+from app.schemas.assessment import AnswerInput
+from app.services.assessment import AssessmentError, allocate_mcqs, submit_mcq
+from app.services.curriculum import publish_from_disk
+from sqlalchemy import func, select
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session
+
+from scripts.validate_content import ContentError
+
+from .content_fixtures import save
+
+
+@pytest.fixture
+def assessment_db(tmp_path: Path, s1: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Engine]:
+    monkeypatch.setenv("DBMS_APP_DB", str(tmp_path / "app.sqlite"))
+    monkeypatch.setenv("DBMS_DEMO_DB", str(tmp_path / "demo.sqlite"))
+    command.upgrade(Config(str(ALEMBIC_INI)), "head")
+    engine = open_engine(Settings().app_db)
+    try:
+        with Session(engine) as db, db.begin():
+            db.add_all(User(id=id_, is_demo=False, created_at=0) for id_ in ("learner", "other"))
+            publish_from_disk(db, s1)
+        yield engine
+    finally:
+        engine.dispose()
+
+
+def test_allocation_withholds_key_and_sql_specs(assessment_db: Engine) -> None:
+    with Session(assessment_db) as db, db.begin():
+        view = allocate_mcqs(db, "learner", "practice", limit=20)
+        assert len(view.items) == 8
+        for item in view.items:
+            assert set(item.model_dump()) == {
+                "item_id",
+                "question_ref",
+                "subtopic_id",
+                "stem",
+                "options",
+            }
+            assert len(item.options) == 4
+            assert "checkpoint" not in item.question_ref
+            assert item.question_ref != "sql_fixture@1"
+        assert db.get(SQLExerciseVersion, "sql_fixture@1") is not None
+
+
+def test_grading_uses_stored_answer_and_blocks_cross_learner_access(assessment_db: Engine) -> None:
+    with Session(assessment_db) as db, db.begin():
+        practice = allocate_mcqs(db, "learner", "practice", limit=2)
+    answer = AnswerInput(item_id=practice.items[0].item_id, option_index=1)
+    with pytest.raises(AssessmentError, match="not found"):
+        submit_mcq(assessment_db, "other", practice.session_id, "key", answer)
+    result = submit_mcq(assessment_db, "learner", practice.session_id, "key", answer)
+    assert not result.correct
+    assert result.explanation == "Synthetic explanation"
+    assert submit_mcq(assessment_db, "learner", practice.session_id, "key", answer) == result
+    changed = answer.model_copy(update={"option_index": 0})
+    with pytest.raises(AssessmentError, match="key was already used"):
+        submit_mcq(assessment_db, "learner", practice.session_id, "key", changed)
+    with pytest.raises(AssessmentError, match="already has a submission"):
+        submit_mcq(assessment_db, "learner", practice.session_id, "new-key", changed)
+    next_item = AnswerInput(item_id=practice.items[1].item_id, option_index=0)
+    assert submit_mcq(assessment_db, "learner", practice.session_id, "next", next_item).correct
+    with Session(assessment_db) as db:
+        assert db.scalar(select(func.count()).select_from(Attempt)) == 2
+
+
+def test_checkpoint_exposure_and_held_out_pool_are_reserved(assessment_db: Engine) -> None:
+    with Session(assessment_db) as db, db.begin():
+        with pytest.raises(AssessmentError, match="reserved"):
+            allocate_mcqs(db, "learner", "pre_test_a")
+        with pytest.raises(AssessmentError, match="No verified checkpoint"):
+            allocate_mcqs(db, "learner", "checkpoint")
+        keys = ("keys_checkpoint_0@1", "keys_checkpoint_1@1")
+        first = allocate_mcqs(
+            db, "learner", "checkpoint", reserved_refs=keys, misconception_code="KEYS-02"
+        )
+        second = allocate_mcqs(
+            db, "learner", "checkpoint", reserved_refs=keys, misconception_code="KEYS-02"
+        )
+        assert first.items[0].question_ref != second.items[0].question_ref
+        with pytest.raises(AssessmentError, match="no eligible questions"):
+            allocate_mcqs(
+                db, "learner", "checkpoint", reserved_refs=keys, misconception_code="KEYS-02"
+            )
+
+
+def test_new_version_preserves_existing_allocation(assessment_db: Engine, s1: Path) -> None:
+    with Session(assessment_db) as db, db.begin():
+        existing = allocate_mcqs(db, "learner", "practice")
+        selected = existing.items[0]
+    path = s1 / "content/questions/test.yaml"
+    questions = yaml.safe_load(path.read_text())
+    logical_id = selected.question_ref.split("@")[0]
+    original = next(question for question in questions if question["id"] == logical_id)
+    save(
+        s1,
+        "content/questions/test.yaml",
+        [*questions, {**original, "version": 2, "stem": "New stem"}],
+    )
+    with Session(assessment_db) as db, db.begin():
+        publish_from_disk(db, s1)
+        publish_from_disk(db, s1)
+        current = allocate_mcqs(db, "learner", "practice").items[0]
+        assert current.question_ref == f"{logical_id}@2"
+        assert current.stem == "New stem"
+    submit_mcq(
+        assessment_db,
+        "learner",
+        existing.session_id,
+        "original",
+        AnswerInput(item_id=selected.item_id, option_index=0),
+    )
+    with Session(assessment_db) as db:
+        assert db.scalar(select(Attempt.question_version_id)) == selected.question_ref
+
+    original["stem"] = "Edit in place"
+    save(s1, "content/questions/test.yaml", questions)
+    with (
+        pytest.raises(ContentError, match="publish edits as a new question version"),
+        Session(assessment_db) as db,
+        db.begin(),
+    ):
+        publish_from_disk(db, s1)
+
+
+def test_draft_content_stays_out_of_published_pool(assessment_db: Engine, s1: Path) -> None:
+    path = s1 / "content/questions/test.yaml"
+    questions = yaml.safe_load(path.read_text())
+    draft = {
+        **questions[0],
+        "id": "unverified_question",
+        "review_status": "draft",
+        "verified_by": None,
+        "verified_on": None,
+    }
+    save(s1, "content/questions/test.yaml", [*questions, draft])
+    with Session(assessment_db) as db, db.begin():
+        publish_from_disk(db, s1)
+        assert db.get(QuestionVersion, "unverified_question@1") is None
