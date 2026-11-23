@@ -86,22 +86,22 @@ def update_misconception(
     item: SessionItem,
     question: QuestionVersion,
     option: QuestionOption,
-) -> None:
+) -> UserMisconception | None:
     code = item.remediation_code or option.misconception_code
     if code is None:
-        return
+        return None
     rule = db.get(Misconception, code)
     if rule is None or not rule.enabled:
-        return
+        return None
     definition = Definition.model_validate_json(rule.definition_json)
     signal = identify_signal(definition, item, question, option)
     if signal is None:
-        return
+        return None
     current = db.get(UserMisconception, (attempt.user_id, code))
     if signal != "detector_wrong" and (
         current is None or current.state not in ("active", "improving")
     ):
-        return
+        return None
     history = list(
         db.scalars(
             select(MisconceptionEvidence)
@@ -113,7 +113,7 @@ def update_misconception(
         )
     )
     if any(evidence.question_id == question.question_id for evidence in history):
-        return
+        return None
 
     reasons = {
         "detector_wrong": "Selected a reviewed distractor linked to this hypothesis.",
@@ -141,14 +141,15 @@ def update_misconception(
         [*signals, Signal(question.question_id, signal)],
         definition.evidence_rule.min_distinct_logical_questions,
     )
-    if outcome.state is not None:
-        db.merge(
-            UserMisconception(
-                user_id=attempt.user_id,
-                code=code,
-                state=outcome.state,
-                evidence_count=outcome.evidence_count,
-                last_seen_at=attempt.created_at,
-                resolved_at=attempt.created_at if outcome.state == "resolved" else None,
-            )
+    if outcome.state is None:
+        return None
+    return db.merge(
+        UserMisconception(
+            user_id=attempt.user_id,
+            code=code,
+            state=outcome.state,
+            evidence_count=outcome.evidence_count,
+            last_seen_at=attempt.created_at,
+            resolved_at=attempt.created_at if outcome.state == "resolved" else None,
         )
+    )

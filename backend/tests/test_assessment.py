@@ -195,3 +195,77 @@ def test_independent_evidence_stays_with_the_correct_learner(assessment_db: Engi
     with Session(assessment_db) as db:
         resolved = db.get(UserMisconception, ("learner", "KEYS-02"))
         assert resolved is not None and resolved.state == "resolved"
+
+
+def test_concurrent_retry_commits_learning_state_once(assessment_db: Engine) -> None:
+    from concurrent.futures import ThreadPoolExecutor
+
+    from app.db.models import Mastery, MasteryHistory, PolicyDecision, Recommendation
+
+    with Session(assessment_db) as db, db.begin():
+        practice = allocate_mcqs(db, "learner", "practice", subtopic="relational.keys")
+    answer = AnswerInput(item_id=practice.items[0].item_id, option_index=1)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        a = pool.submit(submit_mcq, assessment_db, "learner", practice.session_id, "retry", answer)
+        b = pool.submit(submit_mcq, assessment_db, "learner", practice.session_id, "retry", answer)
+        assert a.result() == b.result()
+    with Session(assessment_db) as db:
+        for table in (Attempt, Mastery, MasteryHistory, PolicyDecision, Recommendation):
+            assert db.scalar(select(func.count()).select_from(table)) == 1
+
+
+def test_policy_failure_rolls_back_answer_and_mastery(
+    assessment_db: Engine, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from app.db.models import Mastery, SessionItem
+
+    with Session(assessment_db) as db, db.begin():
+        practice = allocate_mcqs(db, "learner", "practice")
+    item_id = practice.items[0].item_id
+
+    def fail(*_: object) -> None:
+        raise RuntimeError("Synthetic policy failure")
+
+    monkeypatch.setattr("app.services.learning_state.choose_next", fail)
+    with pytest.raises(RuntimeError, match="Synthetic policy failure"):
+        submit_mcq(
+            assessment_db,
+            "learner",
+            practice.session_id,
+            "key",
+            AnswerInput(item_id=item_id, option_index=0),
+        )
+    with Session(assessment_db) as db:
+        assert db.scalar(select(func.count()).select_from(Attempt)) == 0
+        assert db.scalar(select(func.count()).select_from(Mastery)) == 0
+        item = db.get(SessionItem, item_id)
+        assert item is not None and item.status == "open"
+
+
+def test_sql_grade_runs_before_transaction(
+    assessment_db: Engine, s1: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from app.schemas.assessment import SQLAnswerInput
+    from app.services.assessment import allocate_sql, submit_sql
+    from app.services.sql_grading import Grade
+
+    with Session(assessment_db) as db, db.begin():
+        practice = allocate_sql(db, "learner", "sql_fixture")
+    calls = 0
+
+    def mock_grade(*_: object) -> Grade:
+        nonlocal calls
+        calls += 1
+        with assessment_db.connect() as connection:
+            connection.exec_driver_sql("BEGIN IMMEDIATE")
+            connection.rollback()
+        return Grade(correct=True, feedback_code="correct", checked_fixtures=2)
+
+    monkeypatch.setattr("app.services.assessment.grade_sql", mock_grade)
+    answer = SQLAnswerInput(item_id=practice.items[0].item_id, query="SELECT n FROM t")
+    result = submit_sql(assessment_db, s1, "learner", practice.session_id, "sql-key", answer)
+    assert result.correct and result.mastery and result.mastery.after == 0.6
+    assert (
+        submit_sql(assessment_db, s1, "learner", practice.session_id, "sql-key", answer) == result
+    )
+    assert calls == 1

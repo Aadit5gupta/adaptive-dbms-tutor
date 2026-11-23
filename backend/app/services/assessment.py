@@ -1,6 +1,7 @@
 """Server-owned allocation and deterministic MCQ submissions."""
 
 from hashlib import sha256
+from pathlib import Path
 from time import time
 from uuid import uuid4
 
@@ -15,9 +16,19 @@ from app.db.models import (
     QuestionOption,
     QuestionVersion,
     SessionItem,
+    SQLExerciseVersion,
 )
-from app.schemas.assessment import AnswerInput, AnswerResult, ItemView, SessionView
+from app.schemas.assessment import (
+    AnswerInput,
+    AnswerResult,
+    ItemView,
+    MasteryChange,
+    SessionView,
+    SQLAnswerInput,
+)
+from app.services.learning_state import mastery_for, recommend, save_recommendation
 from app.services.misconceptions import update_misconception
+from app.services.sql_grading import Grade, grade_sql
 from content.schemas.models import Pool
 
 
@@ -129,63 +140,148 @@ def allocate_mcqs(
     return open_item_views(db, session)
 
 
-def submit_mcq(
-    engine: Engine, user_id: str, session_id: str, key: str, answer: AnswerInput
+def allocate_sql(db: Session, user_id: str, logical_id: str) -> SessionView:
+    version = db.scalar(
+        select(QuestionVersion)
+        .join(SQLExerciseVersion, SQLExerciseVersion.question_version_id == QuestionVersion.id)
+        .where(QuestionVersion.question_id == logical_id, QuestionVersion.pool == "practice")
+        .order_by(QuestionVersion.version.desc())
+        .limit(1)
+    )
+    if version is None:
+        raise AssessmentError("No reviewed SQL exercise is available.", "no_content", 404)
+    session = AssessmentSession(
+        id=uuid4().hex, user_id=user_id, kind="sql", status="open", created_at=int(time())
+    )
+    db.add(session)
+    db.flush()
+    db.add(
+        SessionItem(
+            id=uuid4().hex,
+            session_id=session.id,
+            question_version_id=version.id,
+            position=0,
+            status="open",
+            revealing_hint_used=False,
+        )
+    )
+    db.flush()
+    return open_item_views(db, session)
+
+
+def ensure_submission(
+    db: Session, user_id: str, session_id: str, item_id: str
+) -> tuple[AssessmentSession, SessionItem, QuestionVersion]:
+    session = db.get(AssessmentSession, session_id)
+    item = db.get(SessionItem, item_id)
+    if (
+        session is None
+        or session.user_id != user_id
+        or item is None
+        or item.session_id != session.id
+    ):
+        raise AssessmentError("Assessment item not found.", "item_not_found", 404)
+    if item.status != "open":
+        raise AssessmentError("This assessment item already has a submission.", "already_answered")
+    version = db.get(QuestionVersion, item.question_version_id)
+    if version is None:
+        raise AssessmentError("Question version unavailable.", "invalid_item")
+    return session, item, version
+
+
+def existing_submission(
+    db: Session, user_id: str, key: str, fingerprint: str
+) -> AnswerResult | None:
+    committed = db.scalar(
+        select(Attempt).where(Attempt.user_id == user_id, Attempt.idempotency_key == key)
+    )
+    if committed is None:
+        return None
+    if committed.request_fingerprint != fingerprint:
+        raise AssessmentError("This submission key was already used.", "idempotency_conflict")
+    return AnswerResult.model_validate_json(committed.result_json)
+
+
+def fingerprint_for(session_id: str, key: str, answer: AnswerInput | SQLAnswerInput) -> str:
+    if not key.isascii() or not 1 <= len(key) <= 128 or any(char.isspace() for char in key):
+        raise AssessmentError("Supply a valid idempotency key.", "invalid_key", 422)
+    return sha256(f"{session_id}:{answer.model_dump_json()}".encode()).hexdigest()
+
+
+def persist_submission(
+    engine: Engine,
+    user_id: str,
+    session_id: str,
+    key: str,
+    answer: AnswerInput | SQLAnswerInput,
+    fingerprint: str,
+    sql_grade: Grade | None = None,
+    expected_version: str | None = None,
 ) -> AnswerResult:
-    fingerprint = sha256(f"{session_id}:{answer.model_dump_json()}".encode()).hexdigest()
     with Session(engine) as db, db.begin():
         db.connection().exec_driver_sql("BEGIN IMMEDIATE")
-        committed = db.scalar(
-            select(Attempt).where(Attempt.user_id == user_id, Attempt.idempotency_key == key)
-        )
+        committed = existing_submission(db, user_id, key, fingerprint)
         if committed is not None:
-            if committed.request_fingerprint != fingerprint:
-                raise AssessmentError(
-                    "This submission key was already used.", "idempotency_conflict"
-                )
-            return AnswerResult.model_validate_json(committed.result_json)
+            return committed
+        session, item, version = ensure_submission(db, user_id, session_id, answer.item_id)
+        question = db.get(Question, version.question_id)
+        if question is None:
+            raise AssessmentError("Question information unavailable.", "invalid_item")
 
-        session = db.get(AssessmentSession, session_id)
-        item = db.get(SessionItem, answer.item_id)
-        if (
-            session is None
-            or session.user_id != user_id
-            or item is None
-            or item.session_id != session.id
-        ):
-            raise AssessmentError("Assessment item not found.", "item_not_found", 404)
-        if item.status != "open":
-            raise AssessmentError(
-                "This assessment item already has a submission.", "already_answered"
-            )
-        version = db.get(QuestionVersion, item.question_version_id)
-        option = db.get(QuestionOption, (item.question_version_id, answer.option_index))
-        if version is None or version.explanation is None or option is None:
-            raise AssessmentError(
-                "This assessment item cannot be graded as an MCQ.", "invalid_item"
+        option: QuestionOption | None = None
+        if isinstance(answer, AnswerInput):
+            option = db.get(QuestionOption, (version.id, answer.option_index))
+            if question.type != "mcq" or version.explanation is None or option is None:
+                raise AssessmentError("This item cannot be graded as an MCQ.", "invalid_item")
+            correct = option.is_correct
+            explanation = version.explanation
+            feedback_code = "correct" if correct else "incorrect"
+        else:
+            if sql_grade is None or question.type != "sql" or version.id != expected_version:
+                raise AssessmentError("The SQL exercise version changed.", "invalid_item")
+            correct = sql_grade.correct
+            feedback_code = sql_grade.feedback_code
+            explanation = SQL_FEEDBACK.get(
+                feedback_code, "Review the query syntax and exercise schema."
             )
 
-        now = int(time())
-        result = AnswerResult(
-            attempt_id=uuid4().hex, correct=option.is_correct, explanation=version.explanation
-        )
         attempt = Attempt(
-            id=result.attempt_id,
+            id=uuid4().hex,
             user_id=user_id,
             session_item_id=item.id,
             question_version_id=version.id,
             idempotency_key=key,
             request_fingerprint=fingerprint,
-            result_json=result.model_dump_json(),
-            selected_option_index=answer.option_index,
-            correct=result.correct,
+            selected_option_index=answer.option_index if isinstance(answer, AnswerInput) else None,
+            submitted_sql=answer.query if isinstance(answer, SQLAnswerInput) else None,
+            correct=correct,
             hint_used=item.revealing_hint_used,
             context=session.kind,
-            created_at=now,
+            created_at=int(time()),
         )
+        with db.no_autoflush:
+            before, after = mastery_for(db, attempt, question)
+            hypothesis = (
+                update_misconception(db, attempt, item, version, option)
+                if option is not None
+                else None
+            )
+            action, decision = recommend(db, attempt, question.subtopic_id, after, hypothesis)
+        result = AnswerResult(
+            attempt_id=attempt.id,
+            correct=correct,
+            explanation=explanation,
+            feedback_code=feedback_code,
+            mastery=MasteryChange(
+                before=before.score, after=after.score, confidence=after.confidence
+            ),
+            next_action=action,
+        )
+        attempt.result_json = result.model_dump_json()
         db.add(attempt)
         db.flush()
-        update_misconception(db, attempt, item, version, option)
+        save_recommendation(db, attempt, decision, action)
+
         item.status = "answered"
         db.flush()
         remaining = db.scalar(
@@ -195,5 +291,44 @@ def submit_mcq(
         )
         if remaining is None:
             session.status = "completed"
-            session.completed_at = now
+            session.completed_at = attempt.created_at
         return result
+
+
+SQL_FEEDBACK = {
+    "correct": "The query returned the required results on all grading fixtures.",
+    "result_mismatch": "The result differs from the requested output. Check which rows and columns should appear.",
+    "execution_limit": "The query exceeded the execution limit. Try reducing unnecessary row combinations.",
+    "output_limit": "The result exceeded the size limit. Check the expected rows and columns.",
+    "query_denied": "Use a SELECT query against the exercise tables.",
+}
+
+
+def submit_mcq(
+    engine: Engine, user_id: str, session_id: str, key: str, answer: AnswerInput
+) -> AnswerResult:
+    return persist_submission(
+        engine, user_id, session_id, key, answer, fingerprint_for(session_id, key, answer)
+    )
+
+
+def submit_sql(
+    engine: Engine, root: Path, user_id: str, session_id: str, key: str, answer: SQLAnswerInput
+) -> AnswerResult:
+    fingerprint = fingerprint_for(session_id, key, answer)
+    with Session(engine) as db:
+        committed = existing_submission(db, user_id, key, fingerprint)
+        if committed is not None:
+            return committed
+        _, _, version = ensure_submission(db, user_id, session_id, answer.item_id)
+        exercise = db.get(SQLExerciseVersion, version.id)
+        if exercise is None:
+            raise AssessmentError("This item cannot be graded as SQL.", "invalid_item")
+        version_id = version.id
+
+    grade = grade_sql(root, exercise, answer.query)
+    if grade.feedback_code == "worker_unavailable":
+        raise AssessmentError("SQL grading is temporarily unavailable.", "worker_unavailable", 503)
+    return persist_submission(
+        engine, user_id, session_id, key, answer, fingerprint, grade, version_id
+    )

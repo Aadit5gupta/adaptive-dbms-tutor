@@ -4,6 +4,8 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
+from app.services.adaptive import NextAction
+
 
 class ItemView(BaseModel):
     item_id: str
@@ -25,7 +27,23 @@ class AnswerInput(BaseModel):
     option_index: Annotated[int, Field(strict=True, ge=0, le=3)]
 
 
+class SQLAnswerInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    item_id: Annotated[str, StringConstraints(min_length=1, max_length=64)]
+    query: Annotated[str, StringConstraints(min_length=1, max_length=8192)]
+
+
+class MasteryChange(BaseModel):
+    before: float
+    after: float
+    confidence: str
+
+
 class AnswerResult(BaseModel):
     attempt_id: str
     correct: bool
     explanation: str
+    feedback_code: str | None = None
+    mastery: MasteryChange | None = None
+    next_action: NextAction | None = None
