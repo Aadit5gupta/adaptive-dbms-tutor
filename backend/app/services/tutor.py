@@ -14,6 +14,14 @@ from scripts.validate_content import ContentError
 MODEL_CITATION = re.compile(r"https?://|\bwww\.|\[\s*\d+\s*\]", re.IGNORECASE)
 
 
+# Assessment guidance is deliberately independent of generated text and stored answer keys.
+ASSESSMENT_HINTS = (
+    "Restate what the result needs to include. Which property or rule should you check first?",
+    "List the conditions in the question. Check each option against every condition and set aside any option that breaks one.",
+    "Make a tiny example with your own values. Trace the remaining choices against it, including a boundary case.",
+)
+
+
 class TutorService:
     def __init__(self, retriever: Retriever, provider: TutorProvider | None = None):
         self.retriever = retriever
@@ -44,10 +52,11 @@ class TutorService:
         *,
         history: tuple[Turn, ...] = (),
         learner_context: str = "",
+        explain_join_count: bool = False,
     ) -> TutorReply:
-        if request.mode == "hint" and request.item_id is not None and request.hint_level == 1:
+        if request.mode == "hint" and request.item_id is not None:
             return TutorReply(
-                answer="Restate what the result needs to include. Which property or rule should you check first?",
+                answer=ASSESSMENT_HINTS[request.hint_level - 1],
                 citations=[],
                 mode="hint",
                 provider="curated",
@@ -56,6 +65,23 @@ class TutorService:
                 topic_id=request.topic_id,
             )
         hits = await self.evidence(request)
+        if explain_join_count:
+            hits = [hit for hit in hits if hit.citation.lesson_ref == "lesson_join_unmatched@1"]
+            if hits:
+                return TutorReply(
+                    answer=(
+                        "Group by the customer ID so customers with the same name stay separate. "
+                        "A LEFT JOIN keeps the customer with no orders, so COUNT(*) counts that "
+                        "preserved row. Count the order ID instead. It is NULL on the unmatched "
+                        "row, so it contributes zero."
+                    ),
+                    citations=[hits[0].citation],
+                    mode=request.mode,
+                    provider="curated",
+                    degraded=False,
+                    status="ok",
+                    topic_id=request.topic_id,
+                )
         if not hits:
             return TutorReply(
                 topic_id=request.topic_id,

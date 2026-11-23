@@ -31,7 +31,7 @@ Reviewed original lessons and hash-matched cleared book sections are indexed in 
 
 The model receives up to four approved passages, recent turns and scoped learning context. The application resolves source IDs against retrieved records, rejects fabricated source IDs and uses curated text on timeout, connection failure, busy inference or malformed output. The model provider has no grading or learner-state write methods.
 
-The configured provider has one inference slot, 4,096 context tokens, up to 384 output tokens and a 30-second total deadline. The starter practice hint gives a general strategy. The application records higher hints before inference and excludes potentially revealing attempts from independent evidence.
+The configured provider has one inference slot, 4,096 context tokens, up to 384 output tokens and a 30-second total deadline. Practice items use three curated reasoning prompts. The application records higher hints before returning guidance and excludes potentially revealing attempts from independent evidence. Open-ended DBMS tutoring uses Ollama when reviewed evidence and a local model are available.
 
 ## Main relationships
 

@@ -10,7 +10,6 @@ import { RequireAccount } from '../components/account'
 import { PageHeading, Pending } from '../components/layout'
 import { TutorPanel } from '../components/TutorPanel'
 import { DashboardPage } from '../pages/DashboardPage'
-import { DemoPage } from '../pages/DemoPage'
 import { LibraryPage } from '../pages/LibraryPage'
 import { PracticePage } from '../pages/PracticePage'
 import { ProgressPage } from '../pages/ProgressPage'
@@ -18,6 +17,7 @@ import { SettingsPage } from '../pages/SettingsPage'
 
 const LearnPage = lazy(async () => ({ default: (await import('../pages/LearnPage')).LearnPage }))
 const LessonPage = lazy(async () => ({ default: (await import('../pages/LearnPage')).LessonPage }))
+const DemoPage = lazy(async () => ({ default: (await import('../pages/DemoPage')).DemoPage }))
 const SqlPage = lazy(async () => ({ default: (await import('../pages/SqlPage')).SqlPage }))
 
 const pages = [
@@ -94,7 +94,7 @@ export function App() {
             </>}</RequireAccount>} />
             <Route path="/settings" element={<RequireAccount>{(account) => <SettingsPage account={account} />}</RequireAccount>} />
             <Route path="/library" element={<LibraryPage />} />
-            <Route path="/demo" element={<DemoPage />} />
+            <Route path="/demo" element={<Suspense fallback={<Pending />}><DemoPage /></Suspense>} />
             <Route path="*" element={<><h1>Page missing</h1><NavLink className="mt-6 inline-block underline" to="/">Return to dashboard</NavLink></>} />
           </Routes>
         </main>

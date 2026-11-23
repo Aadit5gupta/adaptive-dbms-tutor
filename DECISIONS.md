@@ -39,6 +39,8 @@
 
 | D11 | 2026-11-23 | Allow two-pass `ai_verified` originals in local learning and preserve human-only gates | Owner authorized post-build activation. Exact chapter evidence, separate-context review and independent SQL checks support the initial bank | Treating AI review as human sign-off or clearing book text during factual review | Learner gates use explicit `--review-policy learner`. Human pilot review and section-rights approvals retain their existing requirements. |
 
+| D12 | 2026-11-23 | Keep open assessment hints and the original JOIN count mismatch explanation curated | Actual Chrome sessions exposed repeated incomplete hints and an incorrect COUNT recommendation from the small model | Giving all generated output the same instructional weight | The curated prompts preserve answer and evidence boundaries. Other eligible DBMS and SQL tutoring still uses the bounded local provider. |
+
 ## Deviations and blockers
 
 | Date | Stage/task | Problem / deviation | Impact | Fallback | Owner action required |

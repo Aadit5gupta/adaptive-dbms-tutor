@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db.models import AssessmentSession, Question, QuestionVersion, SessionItem
@@ -38,7 +38,10 @@ def start_study(
             select(SessionItem.session_id)
             .join(QuestionVersion, QuestionVersion.id == SessionItem.question_version_id)
             .join(Question, Question.id == QuestionVersion.question_id)
-            .where(Question.subtopic_id == topic)
+            .group_by(SessionItem.session_id)
+            .having(
+                func.min(Question.subtopic_id) == topic, func.max(Question.subtopic_id) == topic
+            )
         )
         query = query.where(AssessmentSession.id.in_(eligible))
     existing = db.scalar(

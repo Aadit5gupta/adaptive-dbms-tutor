@@ -117,3 +117,19 @@ def test_busy_inference_degrades_immediately_and_timeout_releases_slot() -> None
         assert not provider.inference.locked()
 
     asyncio.run(run())
+
+
+def test_sql_feedback_keeps_the_counting_rule_in_a_typical_lesson() -> None:
+    from app.providers.ollama import chat_payload
+
+    rule = "COUNT(column) skips NULL, while COUNT(*) counts every result row."
+    passage = PASSAGE.model_copy(update={"text": ("An unmatched left row remains. " * 13) + rule})
+    context = TutorContext(
+        TutorInput(query="Why do I get one for a customer with no orders?", mode="sql_feedback"),
+        (passage,),
+        learner_context="Exercise goal: Return all customers and the number of orders for each.",
+    )
+    payload, _ = chat_payload(context, "qwen3:1.7b")
+    data = json.loads(payload["messages"][1]["content"])
+    assert rule in data["evidence"][0]["text"]
+    assert "Exercise goal:" in data["learner"]

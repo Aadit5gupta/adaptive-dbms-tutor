@@ -1,11 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
 import { Link, useParams, useSearchParams } from 'react-router'
 
 import { request } from '../api/client'
 import type { LessonDetail } from '../api/learning'
 import { card, Failure, PageHeading, Pending, primary, secondary, textLink } from '../components/layout'
+import { LessonBody } from '../components/LessonBody'
 import { TutorPanel } from '../components/TutorPanel'
 import { useCurriculum } from './DashboardPage'
 
@@ -55,12 +54,10 @@ export function LessonPage() {
   return <>
     <Link className={textLink} to="/learn">Back to curriculum</Link>
     <div className="mt-4"><PageHeading title={lesson.data.title} /></div>
-    <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(18rem,1fr)]">
+    <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(18rem,1fr)]">
       <article className={card}>
         {lesson.data.review_status === 'ai_verified' && <p className="mb-4 text-sm text-stone-600">AI-verified original lesson</p>}
-        <div className="lesson-markdown overflow-x-auto">
-          <ReactMarkdown remarkPlugins={[remarkGfm]} skipHtml>{lesson.data.body}</ReactMarkdown>
-        </div>
+        <LessonBody body={lesson.data.body} />
         <div className="mt-6 flex flex-wrap items-center gap-3">
           {checkpoint && <Link className={primary} to="/practice?mode=checkpoint">Open checkpoints</Link>}
           {!checkpoint && canPractice && <Link className={secondary} to={`/practice?topic=${lesson.data.topic_id}`}>Practice this topic</Link>}

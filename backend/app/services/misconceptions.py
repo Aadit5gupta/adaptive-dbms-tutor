@@ -97,6 +97,22 @@ def update_misconception(
     signal = identify_signal(definition, item, question, option)
     if signal is None:
         return None
+    # Once this answer has been graded, a later attempt can use the feedback.
+    # Treat it as practice regardless of the earlier answer's correctness.
+    if (
+        signal == "detector_wrong"
+        and db.scalar(
+            select(Attempt.id)
+            .join(QuestionVersion, QuestionVersion.id == Attempt.question_version_id)
+            .where(
+                Attempt.user_id == attempt.user_id,
+                QuestionVersion.question_id == question.question_id,
+            )
+            .limit(1)
+        )
+        is not None
+    ):
+        return None
     current = db.get(UserMisconception, (attempt.user_id, code))
     if signal != "detector_wrong" and (
         current is None or current.state not in ("active", "improving")

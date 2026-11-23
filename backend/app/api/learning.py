@@ -25,6 +25,7 @@ from app.services.assessment import (
     AssessmentError,
     allocate_sql,
     open_item_views,
+    preview_sql,
     submit_mcq,
     submit_sql,
 )
@@ -40,7 +41,6 @@ from app.services.progress import Progress, latest_recommendation, read_progress
 from app.services.sql_grading import (
     FixtureTable,
     WorkerError,
-    run_visible,
     visible_schema,
     worker_supported,
 )
@@ -240,15 +240,7 @@ def learning_router(accounts: Accounts, root: Path) -> APIRouter:
     def run_sql(
         logical_id: str, body: SqlInput, user_id: Annotated[str, Depends(identity)]
     ) -> ResultRows:
-        result = run_visible(root, own_sql(user_id, logical_id, body), body.query)
-        if isinstance(result, WorkerError):
-            unavailable = result.error == "worker_unavailable"
-            raise AssessmentError(
-                "SQL preview is unavailable." if unavailable else "Check the query and try again.",
-                result.error,
-                503 if unavailable else 422,
-            )
-        return result
+        return preview_sql(root, own_sql(user_id, logical_id, body), body.query)
 
     @router.post("/sql/exercises/{logical_id}/submit")
     def answer_sql(

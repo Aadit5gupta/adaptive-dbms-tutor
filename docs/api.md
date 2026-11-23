@@ -44,10 +44,10 @@ The curriculum, versioned lessons, assessments, practice, revision, SQL Lab and 
 
 Session responses carry a current item, total and remaining counts. Send a choice with an idempotency key to `/practice/sessions/{id}/answer` or `/assessments/{id}/submit`. `POST /practice/checkpoints` uses the current learner's recommended and still-eligible remediation. Progress, hypotheses and recommendations can be fetched from `/progress`, `/misconceptions` and `/recommendations/next`.
 
-For a reviewed SQL exercise, start a session with `POST /sql/exercises/{id}/sessions`. Run or submit a query to the matching endpoint with the returned session and item IDs. Session ownership, immutable versions and secret-free feedback apply to both routes.
+A targeted session only resumes a session whose items are all in the requested topic. For a reviewed SQL exercise, start a session with `POST /sql/exercises/{id}/sessions`. Run or submit a query to the matching endpoint with the returned session and item IDs. Session ownership, immutable versions and secret-free feedback apply to both routes.
 
 ## Tutor follow-ups
 
 Signed-in tutor requests can include the `conversation_id` from the first reply. The application uses the latest three turns with the saved topic and approved sources. `GET /tutor/conversations/{id}` returns the most recent messages to the owning account. The loopback demo uses `/demo/tutor/{learner}/...` and stores its history in the dedicated demo database.
 
-A hint for a practice item uses its `item_id` and progresses through levels 1 to 3. Level 1 gives a general strategy. Levels 2 and 3 are conservatively recorded as potentially answer-revealing and make the response ineligible as independent evidence. Diagnostics and checkpoints accept no item-specific tutor hints. SQL mistake explanations use a completed `attempt_id`, the assessed topic and a safe feedback category.
+A practice hint uses its `item_id` and advances through three curated reasoning prompts. Levels 2 and 3 still make the response ineligible as independent evidence. Diagnostics and checkpoints accept no item-specific tutor hints. SQL mistake explanations use a completed `attempt_id`, the assessed topic, the visible exercise goal and a safe feedback category. The original LEFT JOIN count exercise uses a reviewed explanation on result mismatch. Preview errors expose safe categories for syntax/schema, unsupported statements, execution limits and result limits.

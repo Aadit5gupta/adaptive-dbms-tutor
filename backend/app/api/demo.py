@@ -9,7 +9,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
 from app.schemas.assessment import AnswerInput, AnswerResult, SessionView, SQLAnswerInput
-from app.services.assessment import AssessmentError, submit_mcq, submit_sql
+from app.services.assessment import AssessmentError, preview_sql, submit_mcq, submit_sql
 from app.services.demo import (
     Activity,
     DemoState,
@@ -21,7 +21,6 @@ from app.services.demo import (
     start_activity,
     visible_exercise,
 )
-from app.services.sql_grading import WorkerError, run_visible
 from content.sql_results import ResultRows
 
 LOOPBACK = {"127.0.0.1", "localhost", "::1"}
@@ -77,17 +76,7 @@ def demo_router(engine: Engine, root: Path) -> APIRouter:
     def sql_run(learner: Learner, session_id: str, body: SQLAnswerInput) -> ResultRows:
         with Session(engine) as db:
             exercise = visible_exercise(db, learner, session_id, body.item_id)
-        result = run_visible(root, exercise, body.query)
-        if isinstance(result, WorkerError):
-            message = (
-                "SQL preview is temporarily unavailable."
-                if result.error == "worker_unavailable"
-                else "The query could not run. Check the statement and exercise tables."
-            )
-            raise AssessmentError(
-                message, result.error, 503 if result.error == "worker_unavailable" else 422
-            )
-        return result
+        return preview_sql(root, exercise, body.query)
 
     @router.post("/{learner}/sessions/{session_id}/sql/submit", response_model=AnswerResult)
     def sql_submit(

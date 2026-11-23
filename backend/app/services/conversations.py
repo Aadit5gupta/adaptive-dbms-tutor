@@ -44,6 +44,7 @@ class Snapshot:
     request: TutorInput
     history: tuple[Turn, ...]
     learner_context: str
+    explain_join_count: bool
 
 
 def owned_conversation(db: Session, user_id: str, reference: str) -> TutorConversation:
@@ -75,6 +76,7 @@ def learner_snapshot(engine: Engine, user_id: str, body: TutorInput) -> Snapshot
         )
         topic = body.topic_id or (conversation.topic_id if conversation else None)
         facts: list[str] = []
+        explain_join_count = False
         if body.item_id is not None:
             item = db.get(SessionItem, body.item_id)
             session = db.get(AssessmentSession, item.session_id) if item else None
@@ -100,9 +102,6 @@ def learner_snapshot(engine: Engine, user_id: str, body: TutorInput) -> Snapshot
             item.highest_hint_level = max(item.highest_hint_level, body.hint_level)
             if body.hint_level >= 2:
                 item.revealing_hint_used = True
-            facts.append(
-                "This is an open assessment. Give the next reasoning step without giving its answer."
-            )
 
         if body.attempt_id is not None:
             attempt = db.get(Attempt, body.attempt_id)
@@ -113,14 +112,22 @@ def learner_snapshot(engine: Engine, user_id: str, body: TutorInput) -> Snapshot
                 or attempt.context != "sql"
             ):
                 raise AssessmentError("SQL attempt not found.", "attempt_not_found", 404)
+            version = db.get(QuestionVersion, attempt.question_version_id)
+            if version is not None:
+                goal = version.stem.splitlines()[0][:200]
+                facts.append(f"Exercise goal: {goal}")
             result = AnswerResult.model_validate_json(attempt.result_json)
+            explain_join_count = (
+                version is not None
+                and version.question_id == "sql_join_001"
+                and result.feedback_code == "result_mismatch"
+            )
             facts.append(
                 SQL_CONTEXT.get(
                     result.feedback_code or "",
                     "Explain the query feedback using the supplied topic.",
                 )
             )
-            version = db.get(QuestionVersion, attempt.question_version_id)
             question = db.get(Question, version.question_id) if version else None
             topic = question.subtopic_id if question else topic
 
@@ -160,6 +167,7 @@ def learner_snapshot(engine: Engine, user_id: str, body: TutorInput) -> Snapshot
             request=body.model_copy(update={"topic_id": topic}),
             history=history,
             learner_context=" ".join(facts),
+            explain_join_count=explain_join_count,
         )
 
 
@@ -211,7 +219,10 @@ async def teach(
 ) -> TutorReply:
     snapshot = await run_in_threadpool(learner_snapshot, engine, user_id, body)
     reply = await service.answer(
-        snapshot.request, history=snapshot.history, learner_context=snapshot.learner_context
+        snapshot.request,
+        history=snapshot.history,
+        learner_context=snapshot.learner_context,
+        explain_join_count=snapshot.explain_join_count,
     )
     reply.conversation_id = snapshot.id
     await run_in_threadpool(store_reply, engine, user_id, snapshot, reply)

@@ -300,14 +300,23 @@ def test_tutor_is_private_and_hints_affect_only_independent_evidence(
             ).status_code == 409
             basic = (await a.post("/api/v1/tutor/hint", json=hint)).json()
             assert basic["provider"] == "curated" and basic["citations"] == []
+            model_calls = len(contexts)
             advanced = (
                 await a.post(
                     "/api/v1/tutor/hint",
                     json={**hint, "hint_level": 2, "conversation_id": basic["conversation_id"]},
                 )
             ).json()
-            assert advanced["provider"] == "ollama"
-            assert "open assessment" in contexts[-1].learner_context
+            assert advanced["provider"] == "curated" and advanced["citations"] == []
+            example = (
+                await a.post(
+                    "/api/v1/tutor/hint",
+                    json={**hint, "hint_level": 3, "conversation_id": basic["conversation_id"]},
+                )
+            ).json()
+            assert example["provider"] == "curated" and example["citations"] == []
+            assert len({basic["answer"], advanced["answer"], example["answer"]}) == 3
+            assert len(contexts) == model_calls
             prepared = "/api/v1/practice/sessions/" + practice["session_id"] + "/answer"
             grade = await a.post(
                 prepared,
@@ -346,6 +355,7 @@ def test_sql_tutor_uses_safe_grade_category_without_leaking_query(
 
     class MockTutor:
         async def respond(self, context: TutorContext) -> ProviderAnswer:
+            assert "Exercise goal: Provide the rows." in context.learner_context
             assert "returned a different result" in context.learner_context
             assert "raw query marker" not in context.learner_context
             assert context.request.topic_id == "sql.joins"
@@ -398,6 +408,71 @@ def test_sql_tutor_uses_safe_grade_category_without_leaking_query(
             )
             assert reply.status_code == 200 and reply.json()["provider"] == "ollama"
             assert "raw query marker" not in reply.text
+
+    try:
+        asyncio.run(run())
+    finally:
+        engine.dispose()
+
+
+def test_count_exercise_uses_reviewed_feedback_for_result_mismatch(
+    local_app: tuple[FastAPI, Settings], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from app.services.curriculum import publish_content
+    from app.services.source_import import index_reviewed_lessons
+    from app.services.sql_grading import Grade
+
+    from scripts.validate_content import ROOT, load_content
+
+    _, settings = local_app
+    monkeypatch.setattr("app.api.learning.worker_supported", lambda: True)
+    monkeypatch.setattr(
+        "app.services.assessment.grade_sql",
+        lambda *_: Grade(correct=False, feedback_code="result_mismatch", checked_fixtures=2),
+    )
+    app = create_app(settings.model_copy(update={"tutor_provider": "ollama"}), content_root=ROOT)
+    engine = open_engine(settings.app_db)
+    with Session(engine) as db, db.begin():
+        content = load_content()
+        publish_content(db, content)
+        index_reviewed_lessons(db, content)
+
+    async def run() -> None:
+        async with AsyncClient(
+            transport=ASGITransport(app), base_url=BASE_URL, headers=ORIGIN
+        ) as client:
+            assert (await client.post("/api/v1/auth/register", json=FIRST)).status_code == 201
+            exercise = "/api/v1/sql/exercises/sql_join_001"
+            started = (await client.post(exercise + "/sessions")).json()
+            graded = await client.post(
+                exercise + "/submit",
+                json={
+                    "session_id": started["session_id"],
+                    "item_id": started["items"][0]["item_id"],
+                    "query": "SELECT COUNT(*) FROM customers",
+                },
+                headers={**ORIGIN, "Idempotency-Key": "aggregate-mistake"},
+            )
+            question = {"mode": "sql_feedback", "attempt_id": graded.json()["attempt_id"]}
+            first = (
+                await client.post(
+                    "/api/v1/tutor/explain", json={**question, "query": "Why did COUNT(*) fail?"}
+                )
+            ).json()
+            followup = (
+                await client.post(
+                    "/api/v1/tutor/explain",
+                    json={
+                        **question,
+                        "query": "What should I count?",
+                        "conversation_id": first["conversation_id"],
+                    },
+                )
+            ).json()
+            for reply in (first, followup):
+                assert reply["provider"] == "curated" and not reply["degraded"]
+                assert "Count the order ID instead" in reply["answer"]
+                assert reply["citations"][0]["lesson_ref"] == "lesson_join_unmatched@1"
 
     try:
         asyncio.run(run())

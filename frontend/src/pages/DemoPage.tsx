@@ -3,6 +3,7 @@ import { useRef, useState } from 'react'
 
 import { ApiError } from '../api/client'
 import { demoRequest } from '../api/demo'
+import { LessonBody } from '../components/LessonBody'
 import { TutorPanel } from '../components/TutorPanel'
 import type { Activity, AnswerResult, DemoState, Item, Learner, Lesson, QueryResult } from '../api/demo'
 
@@ -134,7 +135,7 @@ function LearnerPanel({ learner }: { learner: Learner }) {
   const state = query.data
   const item = state.session?.items[0]
   return (
-    <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.65fr)]">
+    <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.65fr)]">
       <div className="grid content-start gap-4">
         {feedback && <section className={card} aria-live="polite">
           <h2 className="text-lg font-semibold">{feedback.correct ? 'Correct' : 'Keep practicing'}</h2>
@@ -169,7 +170,8 @@ function LearnerPanel({ learner }: { learner: Learner }) {
             <ErrorMessage error={lesson.error} />
             {lesson.data && <>
               <h2 className="text-xl font-semibold">{lesson.data.title}</h2>
-              <p className="mt-4 whitespace-pre-wrap leading-7 text-stone-700">{lesson.data.body}</p>
+              {lesson.data.review_status === 'ai_verified' && <p className="mt-2 text-sm text-stone-600">AI-verified original lesson</p>}
+              <div className="mt-4"><LessonBody body={lesson.data.body} /></div>
               <a href={lesson.data.source_url} className="mt-4 inline-block text-sm text-green-800 underline">Lesson reference</a>
             </>}
           </section>

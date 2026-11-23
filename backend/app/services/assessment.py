@@ -31,8 +31,9 @@ from app.schemas.assessment import (
 )
 from app.services.learning_state import mastery_for, recommend, save_recommendation
 from app.services.misconceptions import update_misconception
-from app.services.sql_grading import Grade, grade_sql
+from app.services.sql_grading import Grade, WorkerError, grade_sql, run_visible
 from content.schemas.models import Pool
+from content.sql_results import ResultRows
 
 
 class AssessmentError(ValueError):
@@ -336,7 +337,19 @@ SQL_FEEDBACK = {
     "execution_limit": "The query exceeded the execution limit. Try reducing unnecessary row combinations.",
     "output_limit": "The result exceeded the size limit. Check the expected rows and columns.",
     "query_denied": "Use a SELECT query against the exercise tables.",
+    "unsupported_statement": "Use one read-only SELECT query against the exercise tables.",
+    "invalid_query": "Check the SQL syntax and the table and column names in the visible fixture.",
+    "unsupported_result": "Use SQLite text, numbers or NULL in the result columns.",
 }
+
+
+def preview_sql(root: Path, exercise: SQLExerciseVersion, query: str) -> ResultRows:
+    result = run_visible(root, exercise, query)
+    if isinstance(result, WorkerError):
+        if result.error == "worker_unavailable":
+            raise AssessmentError("SQL preview is temporarily unavailable.", result.error, 503)
+        raise AssessmentError(SQL_FEEDBACK[result.error], result.error, 422)
+    return result
 
 
 def submit_mcq(

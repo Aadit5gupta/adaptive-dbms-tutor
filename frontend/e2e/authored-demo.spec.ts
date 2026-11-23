@@ -19,10 +19,11 @@ test('original questions, lessons and SQL take both demo learners through remedi
   await expect(page.getByText('KEYS-02 · active · 2 distinct signals')).toBeVisible()
   await page.getByRole('button', { name: 'Open lesson' }).click()
   await expect(page.getByRole('heading', { name: 'One parent, many child rows' })).toBeVisible()
+  await expect(page.getByRole('table')).toBeVisible()
   await expect(page.getByRole('link', { name: 'Lesson reference' })).toHaveAttribute('href', /07-constraints\/constraints\.html$/)
   await page.getByLabel('Your question').fill('Why can two tickets reference one account with a foreign key?')
   await page.getByRole('button', { name: 'Ask tutor', exact: true }).click()
-  await expect(page.getByText(/AI-verified original lesson/)).toHaveCount(1)
+  await expect(page.getByText(/AI-verified original lesson by/)).toHaveCount(1)
   await page.getByLabel('Follow-up question').fill('What changes when the child column is unique?')
   await page.getByRole('button', { name: 'Send follow-up' }).click()
   await expect(page.getByText('Curated tutor', { exact: true })).toHaveCount(2)
@@ -60,4 +61,18 @@ test('original questions, lessons and SQL take both demo learners through remedi
   }
   await page.goto('/library')
   await expect(page.getByText('0 of 5 indexed')).toBeVisible()
+})
+
+
+test('a narrow lesson scrolls its example table inside the page', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 900 })
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Create an account' }).click()
+  await page.getByLabel('Email', { exact: true }).fill('mobile-audit@example.com')
+  await page.getByLabel('Password', { exact: true }).fill('synthetic lesson passphrase')
+  await page.getByRole('button', { name: 'Create account', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
+  await page.goto('/learn/lesson_candidate_keys@1')
+  await expect(page.getByRole('table', { name: '' })).toBeVisible()
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(390)
 })

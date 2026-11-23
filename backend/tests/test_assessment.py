@@ -392,3 +392,90 @@ def test_demo_selects_the_documented_count_exercise(assessment_db: Engine, s1: P
     with Session(assessment_db) as db, db.begin():
         publish_from_disk(db, s1)
         assert first_sql_exercise(db) == "sql_join_001"
+
+
+@pytest.mark.parametrize(
+    ("code", "message", "status"),
+    [
+        (
+            "invalid_query",
+            "Check the SQL syntax and the table and column names in the visible fixture.",
+            422,
+        ),
+        (
+            "execution_limit",
+            "The query exceeded the execution limit. Try reducing unnecessary row combinations.",
+            422,
+        ),
+        (
+            "unsupported_statement",
+            "Use one read-only SELECT query against the exercise tables.",
+            422,
+        ),
+        ("worker_unavailable", "SQL preview is temporarily unavailable.", 503),
+    ],
+)
+def test_preview_distinguishes_safe_worker_errors(
+    assessment_db: Engine,
+    s1: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    code: str,
+    message: str,
+    status: int,
+) -> None:
+    from app.db.models import SQLExerciseVersion
+    from app.services.assessment import preview_sql
+    from app.services.sql_grading import WorkerError
+
+    worker_error = WorkerError.model_validate({"error": code})
+    monkeypatch.setattr("app.services.assessment.run_visible", lambda *_: worker_error)
+    with Session(assessment_db) as db:
+        exercise = db.get(SQLExerciseVersion, "sql_fixture@1")
+        assert exercise is not None
+        with pytest.raises(AssessmentError) as error:
+            preview_sql(s1, exercise, "SELECT n FROM t")
+        assert (error.value.code, str(error.value), error.value.status) == (code, message, status)
+
+
+def test_targeted_study_does_not_resume_another_topic(assessment_db: Engine) -> None:
+    from app.services.study import start_study
+
+    with Session(assessment_db) as db, db.begin():
+        mixed = start_study(db, "learner", "diagnostic")
+        topic = mixed.items[-1].subtopic_id
+        assert mixed.items[0].subtopic_id != topic
+        assert len({item.subtopic_id for item in mixed.items}) > 1
+
+        practice = start_study(db, "learner", "practice")
+        assert len({item.subtopic_id for item in practice.items}) > 1
+        targeted = start_study(db, "learner", "practice", topic=topic)
+        assert targeted.session_id != practice.session_id
+        assert {item.subtopic_id for item in targeted.items} == {topic}
+        assert start_study(db, "learner", "practice", topic=topic) == targeted
+
+
+def test_mapped_repeat_after_correct_answer_is_not_independent(assessment_db: Engine) -> None:
+    from app.db.models import UserMisconception
+
+    def answer(pool: Pool, option: int, key: str, prior_ref: str | None = None) -> str:
+        with Session(assessment_db) as db, db.begin():
+            session = allocate_mcqs(db, "learner", pool, subtopic="relational.keys", limit=10)
+        item = next(
+            item for item in session.items if prior_ref is None or item.question_ref == prior_ref
+        )
+        submit_mcq(
+            assessment_db,
+            "learner",
+            session.session_id,
+            key,
+            AnswerInput(item_id=item.item_id, option_index=option),
+        )
+        return item.question_ref
+
+    answer("diagnostic", 1, "fresh-wrong")
+    practice_ref = answer("practice", 0, "fresh-correct")
+    answer("practice", 1, "repeated-wrong", practice_ref)
+    with Session(assessment_db) as db:
+        state = db.get(UserMisconception, ("learner", "KEYS-02"))
+        assert state is not None
+        assert (state.state, state.evidence_count) == ("possible", 1)
