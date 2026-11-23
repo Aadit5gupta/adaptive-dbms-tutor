@@ -31,14 +31,14 @@
 | S0.4 FastAPI/SQLite skeleton, `/api/v1/health` | done_tested | Added application settings, SQLite FK enforcement, Alembic baseline, readiness router, API tests and README commands. Pytest 27 passed; Ruff, strict mypy and strict content CLI passed. Alembic upgrade/current reported `0001_baseline (head)`. Pushed to `origin/main`. | 2026-11-23 / `4f4acd2` |
 | S0.5 React shell + local API proxy + tests | done_tested | Added Vite/React/Tailwind shell, router, readiness states, frontend lockfile, tests and README. Vitest 2 passed; frontend lint/typecheck/build passed. Live loopback Vite /learn and proxied FastAPI health succeeded. Backend 27 tests, Ruff and strict mypy passed. Pushed to `origin/main`. | 2026-11-23 / `7ef90b1` |
 | S0.6 CI and source/secret hygiene | done_tested | Added GitHub Actions checks, backend lockfile, shared check script, test report and locked README setup. Clean locked backend setup and npm ci succeeded; 27 backend and 2 frontend tests passed; lint, types, build, content and fresh migration passed. GitHub rejected the push because the CLI token lacks `workflow` scope; hosted CI has not run. | 2026-11-23 / `35b9e78` |
-| S0.7 initial draft content for human verification | done_tested | Added 12 draft MCQs, 2 remediation lessons and 2 disabled definitions; added a draft SQL exercise, 3 fixtures and expected result files. Strict validation executed the reference SQL across all fixtures and passed. S1 gate expectedly exited 1. Backend 27 and frontend 2 tests, Ruff, mypy, frontend lint/typecheck/build and migration passed. Push pending workflow scope. | 2026-11-23 / `S0.7` |
-| **S0 exit** | done_tested | Locked setup, live loopback smoke, full local tests, migration and structural validator passed. Hosted checks are pending GitHub authorization. | 2026-11-23 / `S0.7` |
+| S0.7 initial draft content for human verification | done_tested | Added 12 draft MCQs, 2 remediation lessons and 2 disabled definitions; added a draft SQL exercise, 3 fixtures and expected result files. Strict validation executed the reference SQL across all fixtures and passed. S1 gate expectedly exited 1. Backend 27 and frontend 2 tests, Ruff, mypy, frontend lint/typecheck/build and migration passed. Push retried and rejected for missing workflow scope. | 2026-11-23 / `b53178e` |
+| **S0 exit** | done_tested | Locked setup, live loopback smoke, full local tests, migration and structural validator passed. Hosted checks are pending GitHub authorization. | 2026-11-23 / `b53178e` |
 
 ## S1 — Complete walking skeleton in browser
 
 | Task | Status | Actual tests/commands/results | Date/commit |
 |---|---|---|---|
-| S1.1 versioned migrations and dedicated demo identities | todo | | |
+| S1.1 versioned migrations and dedicated demo identities | done_tested | Added ORM models, `0002_learning`, demo identity guard, persistence tests and API notes. Pytest 31 passed, Ruff/mypy/strict validator passed, Alembic upgrade/check/current passed. Push pending workflow scope. | 2026-11-23 / `S1.1` |
 | S1.2 question allocation, answer withholding, deterministic grader | todo | | |
 | S1.3 mastery + independent evidence boundary tests | todo | | |
 | S1.4 definition/learner misconception states + checkpoints | todo | | |

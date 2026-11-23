@@ -25,5 +25,6 @@ def open_engine(path: Path, *, create: bool = False) -> Engine:
         if not isinstance(connection, Connection):
             raise TypeError("expected an SQLite connection")
         connection.execute("PRAGMA foreign_keys=ON")
+        connection.execute("PRAGMA recursive_triggers=ON")
 
     return engine
