@@ -16,7 +16,7 @@ python scripts/seed_demo.py
 python scripts/verify_demo.py
 ```
 
-Run the backend with `DBMS_DEMO_ENABLED=true` and open `http://127.0.0.1:5173/demo`.
+Run the backend with `DBMS_DEMO_ENABLED=true` and open `http://127.0.0.1:5173/demo`. Between walkthroughs, choose **Reset demo**, then **Reset both learners**. This clears both synthetic learners' progress, open activities and tutor chats, and returns the page to Learner A.
 
 ## Five-to-ten-minute walkthrough
 

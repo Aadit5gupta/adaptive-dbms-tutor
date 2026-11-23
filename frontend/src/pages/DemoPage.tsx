@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
 
-import { ApiError } from '../api/client'
+import { ApiError, request } from '../api/client'
 import { demoRequest } from '../api/demo'
 import { LessonBody } from '../components/LessonBody'
 import { TutorPanel } from '../components/TutorPanel'
@@ -207,19 +207,54 @@ function LearnerPanel({ learner }: { learner: Learner }) {
 }
 
 export function DemoPage() {
+  const client = useQueryClient()
   const [learner, setLearner] = useState<Learner>('a')
+  const [confirmReset, setConfirmReset] = useState(false)
+  const [resetCount, setResetCount] = useState(0)
+  const reset = useMutation({
+    mutationFn: () => request<{ ok: boolean }>('/demo/reset', { method: 'POST' }),
+    onSuccess: () => {
+      client.removeQueries({ queryKey: ['demo'] })
+      client.removeQueries({ queryKey: ['demo-lesson'] })
+      setLearner('a')
+      setResetCount((count) => count + 1)
+      setConfirmReset(false)
+    },
+  })
   return (
     <>
       <h1>Learner demo</h1>
       <p className="mt-3 text-stone-600">Compare two synthetic learners in the dedicated demo database.</p>
-      <div aria-label="Choose learner" className="mt-5 flex gap-3" role="group">
-        {(['a', 'b'] as const).map((id) => (
-          <button key={id} aria-pressed={learner === id} className={learner === id ? demoButton : outlineButton} onClick={() => setLearner(id)}>
-            Learner {id.toUpperCase()}
-          </button>
-        ))}
+      <div className="mt-5 flex flex-wrap items-center gap-3">
+        <div aria-label="Choose learner" className="flex flex-wrap gap-3" role="group">
+          {(['a', 'b'] as const).map((id) => (
+            <button key={id} aria-pressed={learner === id} className={learner === id ? demoButton : outlineButton}
+              disabled={reset.isPending} onClick={() => setLearner(id)}>
+              Learner {id.toUpperCase()}
+            </button>
+          ))}
+        </div>
+        <button className={outlineButton} aria-expanded={confirmReset} aria-controls="demo-reset-confirmation"
+          disabled={reset.isPending} onClick={() => { reset.reset(); setConfirmReset(!confirmReset) }}>
+          Reset demo
+        </button>
       </div>
-      <LearnerPanel key={learner} learner={learner} />
+      <section id="demo-reset-confirmation" hidden={!confirmReset} className={`${card} mt-4 max-w-xl`}>
+        <h2 className="font-semibold">Reset Learners A and B?</h2>
+        <p className="mt-2 text-sm text-stone-600">This clears their answers, progress, and tutor chats.</p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <button className={outlineButton} disabled={reset.isPending} onClick={() => setConfirmReset(false)}>Cancel</button>
+          <button className="rounded-lg bg-red-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-900 disabled:opacity-50"
+            disabled={reset.isPending} onClick={() => reset.mutate()}>
+            {reset.isPending ? 'Resetting…' : 'Reset both learners'}
+          </button>
+        </div>
+        <ErrorMessage error={reset.error} />
+      </section>
+      {reset.isSuccess && <p role="status" className="mt-4 text-sm text-green-900">Both demo learners are ready to start again.</p>}
+      <fieldset className="min-w-0" disabled={reset.isPending}>
+        <LearnerPanel key={`${learner}-${resetCount}`} learner={learner} />
+      </fieldset>
     </>
   )
 }

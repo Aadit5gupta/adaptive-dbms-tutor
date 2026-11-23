@@ -20,12 +20,15 @@ def tutor_router(
     identity: Callable[..., str],
     *,
     prefix: str = "/tutor",
+    demo: bool = False,
 ) -> APIRouter:
     router = APIRouter(prefix=prefix)
 
     @router.post("/ask", response_model=TutorReply)
     async def ask(body: TutorInput, user_id: Annotated[str, Depends(identity)]) -> TutorReply:
-        return await teach(engine, service, user_id, body.model_copy(update={"mode": "ask"}))
+        return await teach(
+            engine, service, user_id, body.model_copy(update={"mode": "ask"}), demo=demo
+        )
 
     @router.post("/explain", response_model=TutorReply)
     async def explain(body: TutorInput, user_id: Annotated[str, Depends(identity)]) -> TutorReply:
@@ -34,11 +37,13 @@ def tutor_router(
             if body.mode in ("simpler", "example", "sql_feedback")
             else body.model_copy(update={"mode": "explain"})
         )
-        return await teach(engine, service, user_id, request)
+        return await teach(engine, service, user_id, request, demo=demo)
 
     @router.post("/hint", response_model=TutorReply)
     async def hint(body: TutorInput, user_id: Annotated[str, Depends(identity)]) -> TutorReply:
-        return await teach(engine, service, user_id, body.model_copy(update={"mode": "hint"}))
+        return await teach(
+            engine, service, user_id, body.model_copy(update={"mode": "hint"}), demo=demo
+        )
 
     @router.get("/conversations/{thread}")
     def history(thread: str, user_id: Annotated[str, Depends(identity)]) -> list[TutorTurnView]:
@@ -53,4 +58,6 @@ def local_tutor_router(service: TutorService, engine: Engine) -> APIRouter:
         with Session(engine) as db:
             return require_learner(db, learner)
 
-    return tutor_router(service, engine, learner_identity, prefix="/demo/tutor/{learner}")
+    return tutor_router(
+        service, engine, learner_identity, prefix="/demo/tutor/{learner}", demo=True
+    )

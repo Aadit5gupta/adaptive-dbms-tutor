@@ -82,7 +82,7 @@ python scripts/verify_demo.py
 DBMS_DEMO_ENABLED=true python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --no-proxy-headers --no-access-log
 ```
 
-Run Vite in the second terminal and open `http://127.0.0.1:5173/demo`. The replay uses the learner content gate. The default human-only content gate remains available for reporting human review coverage. See the [authoring and sign-off guide](docs/content_authoring_guide.md).
+Run Vite in the second terminal and open `http://127.0.0.1:5173/demo`. To repeat the demo, choose **Reset demo**, then **Reset both learners**. The replay uses the learner content gate. The default human-only content gate remains available for reporting human review coverage. See the [authoring and sign-off guide](docs/content_authoring_guide.md).
 
 The automated browser tests use isolated databases. Run the synthetic suite or the original learner bank in the existing Google Chrome installation.
 

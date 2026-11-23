@@ -18,6 +18,8 @@ from app.services.demo import (
     demo_state,
     recommended_lesson,
     require_learner,
+    reset_learners,
+    seed_learners,
     start_activity,
     visible_exercise,
 )
@@ -47,6 +49,14 @@ class StartInput(BaseModel):
 
 def demo_router(engine: Engine, root: Path) -> APIRouter:
     router = APIRouter(prefix="/demo", dependencies=[Depends(loopback_only)])
+
+    @router.post("/reset")
+    def reset() -> dict[str, bool]:
+        with Session(engine) as db, db.begin():
+            db.connection().exec_driver_sql("BEGIN IMMEDIATE")
+            reset_learners(db)
+            seed_learners(db)
+        return {"ok": True}
 
     @router.get("/{learner}", response_model=DemoState)
     def state(learner: Learner) -> DemoState:

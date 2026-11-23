@@ -16,6 +16,7 @@ Published question options and SQL specifications must be inserted before their 
 
 With `DBMS_DEMO_ENABLED=true`, the application recognizes only the fixed demo identities `a` and `b` and connects to the marked demo database.
 
+- `POST /demo/reset` clears and reseeds both synthetic learners in one transaction on the marked demo database.
 - `GET /demo/{learner}` returns progress, recommendation and any open activity.
 - `POST /demo/{learner}/sessions` accepts `{"activity":"diagnostic"}`. Activity values also include `practice`, `checkpoint` and `sql`.
 - `POST /demo/{learner}/sessions/{session_id}/answer` accepts `{"item_id":"...","option_index":1}` and an `Idempotency-Key` header.

@@ -66,10 +66,12 @@ def recent_messages(db: Session, reference: str) -> list[TutorMessage]:
     return list(reversed(rows))
 
 
-def learner_snapshot(engine: Engine, user_id: str, body: TutorInput) -> Snapshot:
+def learner_snapshot(
+    engine: Engine, user_id: str, body: TutorInput, *, demo: bool = False
+) -> Snapshot:
     with Session(engine) as db, db.begin():
         # Hint exposure must be stored before a concurrent assessment submission.
-        if body.item_id is not None:
+        if body.item_id is not None or (demo and body.conversation_id is None):
             db.connection().exec_driver_sql("BEGIN IMMEDIATE")
         conversation = (
             owned_conversation(db, user_id, body.conversation_id) if body.conversation_id else None
@@ -161,9 +163,23 @@ def learner_snapshot(engine: Engine, user_id: str, body: TutorInput) -> Snapshot
                 for row in recent_messages(db, conversation.id)
             )
         )
+        thread_id = conversation.id if conversation else uuid4().hex
+        revision = conversation.revision if conversation else None
+        if demo and conversation is None:
+            # A reset removes this reservation so a late answer cannot restore an old chat.
+            revision = 0
+            db.add(
+                TutorConversation(
+                    id=thread_id,
+                    user_id=user_id,
+                    topic_id=topic,
+                    created_at=int(time()),
+                    revision=0,
+                )
+            )
         return Snapshot(
-            id=conversation.id if conversation else uuid4().hex,
-            revision=conversation.revision if conversation else None,
+            id=thread_id,
+            revision=revision,
             request=body.model_copy(update={"topic_id": topic}),
             history=history,
             learner_context=" ".join(facts),
@@ -215,9 +231,9 @@ def store_reply(engine: Engine, user_id: str, snapshot: Snapshot, reply: TutorRe
 
 
 async def teach(
-    engine: Engine, service: TutorService, user_id: str, body: TutorInput
+    engine: Engine, service: TutorService, user_id: str, body: TutorInput, *, demo: bool = False
 ) -> TutorReply:
-    snapshot = await run_in_threadpool(learner_snapshot, engine, user_id, body)
+    snapshot = await run_in_threadpool(learner_snapshot, engine, user_id, body, demo=demo)
     reply = await service.answer(
         snapshot.request,
         history=snapshot.history,

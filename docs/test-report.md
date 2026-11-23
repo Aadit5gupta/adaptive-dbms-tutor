@@ -72,3 +72,7 @@ The earlier sections record the engineering baseline before publication. Human-o
 ## Final product acceptance
 
 The final audit reran the existing tests and used installed Chrome against the normal local runtime. Product revision `3b56e5c` passed 138 backend tests, two Vitest tests, six Chrome regression cases, both learner gates and real Ollama. The [acceptance report](FINAL_ACCEPTANCE_REPORT.md) records the browser evidence, fixes, human-only gate failures and separate local, public and human-study decisions.
+
+## Browser demo reset
+
+139 backend tests, two Vitest tests and six Chrome cases passed. Browser coverage exercised cancellation, reset with an open activity, both fresh learner states and a new diagnostic after reload. The API test checks loopback and Origin requirements, replay rejection and an in-flight tutor reply. Ruff, mypy, frontend lint/typecheck/build, S4 learner validation and the authored CLI replay passed. The live Chrome confirmation opened and canceled at 390 px.
