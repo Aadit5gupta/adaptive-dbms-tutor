@@ -27,8 +27,8 @@
 |---|---|---|---|
 | S0.1 canonical docs and Git setup | done_tested | Verified 4 relative links, canonical paths, Git ignore examples and SQLite FTS5/BM25 probe. Files: plan, decisions, status, stage checklist, README, Git ignore and example env. Pushed to private `origin/main` over HTTPS. | 2026-11-23 / `7509d1c` |
 | S0.2 content schema + strict structural/stage validator | done_tested | Added `content/schemas`, curriculum YAML, `scripts/validate_content.py`, backend dev dependencies and validator tests. Pytest 15 passed; Ruff and strict mypy passed; strict CLI passed; real S1 gate exited 1 with zero reviewed items as expected. Synthetic S1 test passes. Pushed to `origin/main`. | 2026-11-23 / `533309d` |
-| S0.3 dated books manifest + clearance validation | done_tested | Added rights models, exact UTF-8 hash and approval checks, content clearance references, contributor docs and tests. Pytest 24 passed; Ruff, strict mypy and strict content CLI passed (5 catalog entries, 0 approved sections). Search index and atomic import verification follow in S3. | 2026-11-23 / `S0.3` |
-| S0.4 FastAPI/SQLite skeleton, `/api/v1/health` | todo | | |
+| S0.3 dated books manifest + clearance validation | done_tested | Added rights models, exact UTF-8 hash and approval checks, content clearance references, contributor docs and tests. Pytest 24 passed; Ruff, strict mypy and strict content CLI passed (5 catalog entries, 0 approved sections). Search index and atomic import verification follow in S3. Pushed to `origin/main`. | 2026-11-23 / `1b38a0e` |
+| S0.4 FastAPI/SQLite skeleton, `/api/v1/health` | done_tested | Added application settings, SQLite FK enforcement, Alembic baseline, readiness router, API tests and README commands. Pytest 27 passed; Ruff, strict mypy and strict content CLI passed. Alembic upgrade/current reported `0001_baseline (head)`. | 2026-11-23 / `S0.4` |
 | S0.5 React shell + local API proxy + tests | todo | | |
 | S0.6 CI and source/secret hygiene | todo | | |
 | S0.7 initial draft content for human verification | todo | | |
