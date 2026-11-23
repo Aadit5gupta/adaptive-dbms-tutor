@@ -50,6 +50,7 @@ def mcq(id_: str, topic: str, pool: str = "practice", code: str | None = None) -
 @pytest.fixture
 def foundation(tmp_path: Path) -> Path:
     shutil.copytree(ROOT / "content/curriculum", tmp_path / "content/curriculum")
+    shutil.copytree(ROOT / "content/manifests", tmp_path / "content/manifests")
     return tmp_path
 
 

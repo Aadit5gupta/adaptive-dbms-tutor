@@ -26,17 +26,21 @@ The library UI must show actual `indexed_books of 5`, not a goal or a manifest g
 
 ```yaml
 section_clearances:
-  - section_url: https://example.org/specific/section
+  - id: source_section_slug
+    section_url: https://example.org/specific/section
     license_url: https://creativecommons.org/licenses/by/4.0/
     rights_status: approved_local_index
     scope: text_only
     exceptions_found: none
+    exceptions_resolved: false
     accessed_on: 'YYYY-MM-DD'
     reviewer: '<actual human reviewer>'
     reviewed_on: 'YYYY-MM-DD'
     approved_content_hash: '<sha256 of actual imported section text>'
     attribution_text: '<ready-to-display title/author/source/license/changes>'
 ```
+
+Set `exceptions_resolved` only after resolving documented exceptions. For DataField, a separate approval must include `permission_evidence_url`. Import verification hashes the exact UTF-8 bytes selected for indexing.
 
 8. Run `python scripts/validate_content.py --strict` and section-rights tests. The import script must reject missing clearance, hash mismatch, unresolved exceptions, wrong source IDs and accidentally imported images. Do not override this for demos.
 9. Run an idempotent offline import into FTS with section/page provenance. Confirm query hits and displayed license/attribution. Count imported sections only after searchable chunks are committed. Keep raw publisher source files out of Git unless expressly permitted and needed.

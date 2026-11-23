@@ -59,7 +59,7 @@ second_review: false
 ai_assisted: true
 ```
 
-All reviewer fields above are deliberately unfilled; this item must remain a **draft**. `factual_reference_url` is not a book-local indexing approval. If actual excerpts are copied or closely adapted, link a hash-matched, approved `source_section_clearance_id` and obey its license instead.
+All reviewer fields above are deliberately unfilled; this item must remain a **draft**. `factual_reference_url` is not a book-local indexing approval. If actual excerpts are copied or closely adapted, record the approved `source_section_clearance_id` and its `source_section_content_hash` and obey its license instead.
 
 ## D. Draft misconception definition — example only
 

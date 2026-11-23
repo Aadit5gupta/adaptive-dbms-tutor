@@ -22,6 +22,9 @@ class Source(Record):
     factual_reference_url: HttpUrl
     reproduced_book_text: bool = False
     source_section_clearance_id: LogicalId | None = None
+    source_section_content_hash: (
+        Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")] | None
+    ) = None
 
     @model_validator(mode="after")
     def require_clearance(self) -> "Source":
@@ -29,6 +32,8 @@ class Source(Record):
             self.source_section_clearance_id is None
         ):
             raise ValueError("reproduced material requires source_section_clearance_id")
+        if bool(self.source_section_clearance_id) != bool(self.source_section_content_hash):
+            raise ValueError("source clearance ID requires the approved section hash")
         return self
 
 

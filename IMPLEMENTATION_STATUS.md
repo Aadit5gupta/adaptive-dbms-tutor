@@ -17,7 +17,7 @@
 | Human-reviewed lessons | 0 | ≥2 | ≥6 |
 | SQL exercises with independently checked expected results on all fixtures | 0 | ≥1 | ≥6 |
 | Indexed books in searchable FTS (not just licensed) | 0 | 0 acceptable (authored lesson fallback) | target 2; report actual count |
-| Five catalog entries | not validated yet | 5 | 5 |
+| Five catalog entries | 5 | 5 | 5 |
 
 **Important:** the structural `--strict` check can pass with zero enabled misconceptions; the **S1 stage gate** must explicitly fail until its content minima pass. Unreviewed AI-drafted content never counts.
 
@@ -26,8 +26,8 @@
 | Task | Status | Actual tests/commands/results | Date/commit |
 |---|---|---|---|
 | S0.1 canonical docs and Git setup | done_tested | Verified 4 relative links, canonical paths, Git ignore examples and SQLite FTS5/BM25 probe. Files: plan, decisions, status, stage checklist, README, Git ignore and example env. Pushed to private `origin/main` over HTTPS. | 2026-11-23 / `7509d1c` |
-| S0.2 content schema + strict structural/stage validator | done_tested | Added `content/schemas`, curriculum YAML, `scripts/validate_content.py`, backend dev dependencies and validator tests. Pytest 15 passed; Ruff and strict mypy passed; strict CLI passed; real S1 gate exited 1 with zero reviewed items as expected. Synthetic S1 test passes. Section clearance support follows in S0.3. | 2026-11-23 / `S0.2` |
-| S0.3 dated books manifest + clearance validation | todo | | |
+| S0.2 content schema + strict structural/stage validator | done_tested | Added `content/schemas`, curriculum YAML, `scripts/validate_content.py`, backend dev dependencies and validator tests. Pytest 15 passed; Ruff and strict mypy passed; strict CLI passed; real S1 gate exited 1 with zero reviewed items as expected. Synthetic S1 test passes. Pushed to `origin/main`. | 2026-11-23 / `533309d` |
+| S0.3 dated books manifest + clearance validation | done_tested | Added rights models, exact UTF-8 hash and approval checks, content clearance references, contributor docs and tests. Pytest 24 passed; Ruff, strict mypy and strict content CLI passed (5 catalog entries, 0 approved sections). Search index and atomic import verification follow in S3. | 2026-11-23 / `S0.3` |
 | S0.4 FastAPI/SQLite skeleton, `/api/v1/health` | todo | | |
 | S0.5 React shell + local API proxy + tests | todo | | |
 | S0.6 CI and source/secret hygiene | todo | | |

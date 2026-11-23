@@ -26,6 +26,7 @@ from content.schemas.models import (
     Reviewed,
     SQLQuestion,
 )
+from content.schemas.rights import Catalog, Clearance
 
 Question = Annotated[MCQ | SQLQuestion, Field(discriminator="type")]
 QUESTIONS = TypeAdapter(list[Question])
@@ -61,6 +62,7 @@ class Counts:
 
 @dataclass(frozen=True)
 class Content:
+    catalog: Catalog
     domains: list[Domain]
     prerequisites: list[Prerequisite]
     questions: dict[str, MCQ | SQLQuestion]
@@ -123,11 +125,20 @@ def check_graph(domains: list[Domain], edges: list[Prerequisite]) -> set[str]:
     return topics
 
 
-def require_topic_and_source(record: Reviewed, topics: set[str], label: str) -> None:
+def require_topic_and_source(
+    record: Reviewed, topics: set[str], clearances: dict[str, Clearance], label: str
+) -> None:
     if record.subtopic_id not in topics:
         raise ContentError(f"{label}: unknown subtopic {record.subtopic_id}")
-    if record.source.source_section_clearance_id:
-        raise ContentError(f"{label}: source section clearance is not approved")
+    source = record.source
+    if source.source_section_clearance_id:
+        clearance = clearances.get(source.source_section_clearance_id)
+        if (
+            clearance is None
+            or clearance.approved_content_hash != source.source_section_content_hash
+            or clearance.section_url != source.factual_reference_url
+        ):
+            raise ContentError(f"{label}: source URL and hash must match an approved clearance")
 
 
 def safe_path(root: Path, value: str, directory: str, suffix: str) -> Path:
@@ -237,6 +248,12 @@ def check_rule(
 
 def load_content(root: Path = ROOT) -> Content:
     content = root / "content"
+    manifest = content / "manifests/books.yaml"
+    try:
+        catalog = Catalog.model_validate(read_yaml(manifest))
+    except ValidationError as error:
+        raise ContentError(f"{manifest}: {error}") from error
+    clearances = catalog.approved_clearances
     domains = read_records(content / "curriculum/topics.yaml", DOMAINS)
     prerequisites = read_records(content / "curriculum/prerequisites.yaml", PREREQUISITES)
     topics = check_graph(domains, prerequisites)
@@ -245,7 +262,7 @@ def load_content(root: Path = ROOT) -> Content:
     identities: dict[str, tuple[str, str, str]] = {}
     for path in sorted((content / "questions").glob("*.yaml")):
         for question in read_records(path, QUESTIONS):
-            require_topic_and_source(question, topics, f"{path}: {question.ref}")
+            require_topic_and_source(question, topics, clearances, f"{path}: {question.ref}")
             if question.ref in questions:
                 raise ContentError(f"{path}: duplicate question version {question.ref}")
             identity = (question.type, question.subtopic_id, question.pool)
@@ -261,7 +278,7 @@ def load_content(root: Path = ROOT) -> Content:
     lesson_topics: dict[str, str] = {}
     for path in sorted((content / "lessons").glob("*.yaml")):
         for lesson in read_records(path, LESSONS):
-            require_topic_and_source(lesson, topics, f"{path}: {lesson.ref}")
+            require_topic_and_source(lesson, topics, clearances, f"{path}: {lesson.ref}")
             if lesson.ref in lessons:
                 raise ContentError(f"{path}: duplicate lesson version {lesson.ref}")
             if lesson_topics.setdefault(lesson.id, lesson.subtopic_id) != lesson.subtopic_id:
@@ -272,7 +289,7 @@ def load_content(root: Path = ROOT) -> Content:
     rules: dict[str, Misconception] = {}
     reserved: set[str] = set()
     for rule in read_records(rule_file, RULES) if rule_file.exists() else ():
-        require_topic_and_source(rule, topics, rule.code)
+        require_topic_and_source(rule, topics, clearances, rule.code)
         if rule.code in rules:
             raise ContentError(f"{rule_file}: duplicate code {rule.code}")
         checkpoints = check_rule(rule, questions, lessons)
@@ -315,7 +332,7 @@ def load_content(root: Path = ROOT) -> Content:
         ),
         enabled_patterns=sum(rule.enabled for rule in rules.values()),
     )
-    return Content(domains, prerequisites, questions, lessons, rules, counts)
+    return Content(catalog, domains, prerequisites, questions, lessons, rules, counts)
 
 
 def check_stage(counts: Counts, stage: Stage) -> None:
@@ -337,6 +354,9 @@ def main() -> int:
     args = parser.parse_args()
     try:
         content = load_content()
+        print(
+            f"catalog_books={len(content.catalog.books)}, cleared_sections={len(content.catalog.approved_clearances)}"
+        )
         print(", ".join(f"{key}={value}" for key, value in asdict(content.counts).items()))
         if args.stage:
             check_stage(content.counts, args.stage)
