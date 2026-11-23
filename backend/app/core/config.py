@@ -1,8 +1,9 @@
 """Local settings shared by the ASGI server and migrations."""
 
 from pathlib import Path
+from typing import Literal
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -13,16 +14,28 @@ class Settings(BaseSettings):
         env_prefix="DBMS_",
         env_file=PROJECT_ROOT / ".env",
         extra="ignore",
+        populate_by_name=True,
     )
 
     app_db: Path = Path("data/app.sqlite")
     demo_db: Path = Path("data/demo.sqlite")
     demo_enabled: bool = False
     secure_cookies: bool = False
-    allowed_origins: frozenset[str] = frozenset({
-        "http://127.0.0.1:5173", "http://localhost:5173",
-        "http://127.0.0.1:8000", "http://localhost:8000",
-    })
+    tutor_provider: Literal["ollama", "curated"] = Field(
+        default="ollama", validation_alias="TUTOR_PROVIDER"
+    )
+    ollama_model: str = Field(default="qwen3:1.7b", validation_alias="OLLAMA_MODEL")
+    ollama_base_url: str = Field(
+        default="http://127.0.0.1:11434", validation_alias="OLLAMA_BASE_URL"
+    )
+    allowed_origins: frozenset[str] = frozenset(
+        {
+            "http://127.0.0.1:5173",
+            "http://localhost:5173",
+            "http://127.0.0.1:8000",
+            "http://localhost:8000",
+        }
+    )
 
     @model_validator(mode="after")
     def separate_database_paths(self) -> "Settings":

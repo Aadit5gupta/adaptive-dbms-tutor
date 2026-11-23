@@ -23,6 +23,7 @@ from app.core.config import PROJECT_ROOT, Settings
 from app.core.db import open_engine
 from app.core.demo import demo_path
 from app.core.origin import SAFE, allowed_origin
+from app.providers.ollama import OllamaProvider
 from app.services.assessment import AssessmentError
 from app.services.retrieval import Retriever
 from app.services.tutor import TutorService
@@ -34,6 +35,11 @@ def create_app(settings: Settings | None = None, *, content_root: Path = PROJECT
     config = settings or Settings()
     engine = open_engine(config.app_db)
     demo_engine = open_engine(demo_path(config)) if config.demo_enabled else None
+    provider = (
+        OllamaProvider(config.ollama_base_url, config.ollama_model)
+        if config.tutor_provider == "ollama"
+        else None
+    )
     heads = frozenset(ScriptDirectory.from_config(Config(str(ALEMBIC_INI))).get_heads())
 
     @asynccontextmanager
@@ -84,13 +90,16 @@ def create_app(settings: Settings | None = None, *, content_root: Path = PROJECT
     if demo_engine is not None:
         app.include_router(demo_router(demo_engine, content_root), prefix="/api/v1")
         app.include_router(
-            local_tutor_router(TutorService(Retriever(demo_engine, content_root))), prefix="/api/v1"
+            local_tutor_router(TutorService(Retriever(demo_engine, content_root), provider)),
+            prefix="/api/v1",
         )
     accounts = Accounts(engine, secure_cookie=config.secure_cookies)
     app.include_router(account_router(accounts), prefix="/api/v1")
     app.include_router(learning_router(accounts, content_root), prefix="/api/v1")
     app.include_router(
-        tutor_router(TutorService(Retriever(engine, content_root)), accounts.require_user),
+        tutor_router(
+            TutorService(Retriever(engine, content_root), provider), accounts.require_user
+        ),
         prefix="/api/v1",
     )
     app.include_router(library_router(engine, content_root), prefix="/api/v1")

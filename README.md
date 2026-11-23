@@ -15,7 +15,13 @@ ollama list
 
 For a standalone CLI installation, run `ollama serve` in a separate terminal before pulling. The application and automated tests leave downloads to you. See the [model listing](https://ollama.com/library/qwen3:1.7b).
 
-Ollama integration is scheduled for S5. When available, the default provider will connect to the loopback endpoint in [.env.example](.env.example). Curated explanations will be available if Ollama is unavailable or `TUTOR_PROVIDER=curated` is configured. Model-free automated tests will use a mock, and real-model verification will be a separate command.
+The default provider uses the loopback endpoint in [.env.example](.env.example). Curated tutoring takes over if Ollama is unavailable, busy, or `TUTOR_PROVIDER=curated` is set. Automated tests use a mock. To verify the installed model with a small test passage, run:
+
+```sh
+python scripts/check_ollama.py --provider-only
+```
+
+Once the reviewed lesson index is populated, run `python scripts/check_ollama.py` for the reviewed-corpus check. The provider uses a 4,096-token context, up to 384 output tokens, one inference slot and a 30-second deadline.
 
 ## Local backend
 

@@ -29,7 +29,10 @@ def run() -> None:
         root = Path(directory)
         bank = make_s1_content(make_foundation(root / "bank"))
         settings = Settings(
-            app_db=root / "app.sqlite", demo_db=root / "demo.sqlite", demo_enabled=False
+            app_db=root / "app.sqlite",
+            demo_db=root / "demo.sqlite",
+            demo_enabled=False,
+            tutor_provider="curated",
         )
         app = create_app(settings, content_root=bank)
         admin = open_engine(settings.app_db, create=True)
