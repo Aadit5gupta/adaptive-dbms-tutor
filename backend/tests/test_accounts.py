@@ -222,3 +222,184 @@ def test_signed_in_assessment_and_progress_are_private(
         asyncio.run(run())
     finally:
         engine.dispose()
+
+
+def test_tutor_is_private_and_hints_affect_only_independent_evidence(
+    local_app: tuple[FastAPI, Settings],
+    s1: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.db.models import Mastery, TutorMessage
+    from app.providers.contracts import ProviderAnswer, TutorContext
+    from app.services.curriculum import publish_content
+    from app.services.source_import import index_reviewed_lessons
+
+    from scripts.validate_content import load_content
+
+    _, settings = local_app
+    contexts: list[TutorContext] = []
+
+    class MockTutor:
+        async def respond(self, context: TutorContext) -> ProviderAnswer:
+            contexts.append(context)
+            return ProviderAnswer(
+                "Use the definition to reason through the example.",
+                (context.passages[0].citation.id,),
+            )
+
+    monkeypatch.setattr("app.main.OllamaProvider", lambda *_: MockTutor())
+    app = create_app(settings.model_copy(update={"tutor_provider": "ollama"}), content_root=s1)
+    engine = open_engine(settings.app_db)
+    with Session(engine) as db, db.begin():
+        content = load_content(s1)
+        publish_content(db, content, s1)
+        index_reviewed_lessons(db, content)
+
+    async def run() -> None:
+        async with (
+            app.router.lifespan_context(app),
+            AsyncClient(transport=ASGITransport(app), base_url=BASE_URL, headers=ORIGIN) as a,
+            AsyncClient(transport=ASGITransport(app), base_url=BASE_URL, headers=ORIGIN) as b,
+        ):
+            assert (await a.post("/api/v1/auth/register", json=FIRST)).status_code == 201
+            assert (await b.post("/api/v1/auth/register", json=SECOND)).status_code == 201
+            await a.patch("/api/v1/me", json={"goal": "exam", "level": "beginner"})
+            answer = await a.post(
+                "/api/v1/tutor/ask", json={"query": "Explain keys", "topic_id": "relational.keys"}
+            )
+            reply = answer.json()
+            assert answer.status_code == 200 and reply["provider"] == "ollama"
+            thread = reply["conversation_id"]
+            followup = await a.post(
+                "/api/v1/tutor/ask",
+                json={"query": "Could you give another example?", "conversation_id": thread},
+            )
+            assert followup.json()["conversation_id"] == thread
+            assert contexts[-1].request.topic_id == "relational.keys"
+            assert contexts[-1].history[0].text == "Explain keys"
+            assert "Goal: exam." in contexts[-1].learner_context
+            assert "Experience: beginner." in contexts[-1].learner_context
+            assert FIRST["email"] not in contexts[-1].learner_context
+            assert (await b.get(f"/api/v1/tutor/conversations/{thread}")).status_code == 404
+            assert (
+                await b.post(
+                    "/api/v1/tutor/ask",
+                    json={"query": "Open other thread", "conversation_id": thread},
+                )
+            ).status_code == 404
+            assert len((await a.get(f"/api/v1/tutor/conversations/{thread}")).json()) == 4
+
+            practice = (
+                await a.post("/api/v1/practice/sessions", json={"topic": "relational.keys"})
+            ).json()
+            item = practice["items"][0]["item_id"]
+            hint = {"query": "What should I check?", "item_id": item}
+            assert (await b.post("/api/v1/tutor/hint", json=hint)).status_code == 404
+            assert (
+                await a.post("/api/v1/tutor/hint", json={**hint, "hint_level": 2})
+            ).status_code == 409
+            basic = (await a.post("/api/v1/tutor/hint", json=hint)).json()
+            assert basic["provider"] == "curated" and basic["citations"] == []
+            advanced = (
+                await a.post(
+                    "/api/v1/tutor/hint",
+                    json={**hint, "hint_level": 2, "conversation_id": basic["conversation_id"]},
+                )
+            ).json()
+            assert advanced["provider"] == "ollama"
+            assert "open assessment" in contexts[-1].learner_context
+            prepared = "/api/v1/practice/sessions/" + practice["session_id"] + "/answer"
+            grade = await a.post(
+                prepared,
+                json={"item_id": item, "option_index": 0},
+                headers={**ORIGIN, "Idempotency-Key": item},
+            )
+            assert grade.json()["correct"]
+            with Session(engine) as db:
+                trace = db.scalar(select(Mastery))
+                assert trace is not None and trace.distinct_question_count == 0
+            assert (await a.post("/api/v1/tutor/hint", json=hint)).status_code == 404
+            exported = (await a.get("/api/v1/me/export")).json()["tutor_conversations"]
+            assert any(record["id"] == thread for record in exported)
+            assert (await b.get("/api/v1/me/export")).json()["tutor_conversations"] == []
+            assert (await a.delete("/api/v1/me")).status_code == 200
+            with Session(engine) as db:
+                assert list(db.scalars(select(TutorMessage))) == []
+
+    try:
+        asyncio.run(run())
+    finally:
+        engine.dispose()
+
+
+def test_sql_tutor_uses_safe_grade_category_without_leaking_query(
+    local_app: tuple[FastAPI, Settings],
+    s1: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.providers.contracts import ProviderAnswer, TutorContext
+    from app.services.curriculum import publish_content
+    from app.services.source_import import index_reviewed_lessons
+    from app.services.sql_grading import Grade
+
+    from scripts.validate_content import load_content
+
+    class MockTutor:
+        async def respond(self, context: TutorContext) -> ProviderAnswer:
+            assert "returned a different result" in context.learner_context
+            assert "raw query marker" not in context.learner_context
+            assert context.request.topic_id == "sql.joins"
+            return ProviderAnswer(
+                "Compare which rows get selected.", (context.passages[0].citation.id,)
+            )
+
+    _, settings = local_app
+    monkeypatch.setattr("app.main.OllamaProvider", lambda *_: MockTutor())
+    monkeypatch.setattr("app.api.learning.worker_supported", lambda: True)
+    monkeypatch.setattr(
+        "app.services.assessment.grade_sql",
+        lambda *_: Grade(
+            correct=False,
+            feedback_code="result_mismatch",
+            checked_fixtures=1,
+        ),
+    )
+    app = create_app(settings.model_copy(update={"tutor_provider": "ollama"}), content_root=s1)
+    engine = open_engine(settings.app_db)
+    with Session(engine) as db, db.begin():
+        content = load_content(s1)
+        publish_content(db, content, s1)
+        index_reviewed_lessons(db, content)
+
+    async def run() -> None:
+        async with AsyncClient(
+            transport=ASGITransport(app), base_url=BASE_URL, headers=ORIGIN
+        ) as client:
+            assert (await client.post("/api/v1/auth/register", json=FIRST)).status_code == 201
+            exercise = "/api/v1/sql/exercises/sql_fixture"
+            started = (await client.post(exercise + "/sessions")).json()
+            graded = await client.post(
+                exercise + "/submit",
+                json={
+                    "session_id": started["session_id"],
+                    "item_id": started["items"][0]["item_id"],
+                    "query": "SELECT 'raw query marker'",
+                },
+                headers={**ORIGIN, "Idempotency-Key": "sql-attempt"},
+            )
+            assert graded.status_code == 200
+            reply = await client.post(
+                "/api/v1/tutor/explain",
+                json={
+                    "query": "How can I improve this result?",
+                    "mode": "sql_feedback",
+                    "attempt_id": graded.json()["attempt_id"],
+                },
+            )
+            assert reply.status_code == 200 and reply.json()["provider"] == "ollama"
+            assert "raw query marker" not in reply.text
+
+    try:
+        asyncio.run(run())
+    finally:
+        engine.dispose()

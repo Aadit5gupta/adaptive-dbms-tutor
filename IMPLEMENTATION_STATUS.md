@@ -87,8 +87,8 @@
 
 | Task | Status | Tests and push | Date/commit |
 |---|---|---|---|
-| S5.1 Bounded Ollama provider and real-model smoke | done_tested | Added local Ollama adapter, settings, mock HTTP tests, fallback and smoke CLI. Pytest 111 passed with Ruff/mypy/strict validation. Real `qwen3:1.7b` returned a correct cited LEFT JOIN explanation using test-only evidence. Reviewed-corpus check exited 1 awaiting approved passages. | 2026-11-23 / `S5.1` |
-| S5.2 Private follow-ups, progressive hints and SQL context | todo | | |
+| S5.1 Bounded Ollama provider and real-model smoke | done_tested | Added local Ollama adapter, settings, mock HTTP tests, fallback and smoke CLI. Pytest 111 passed with Ruff/mypy/strict validation. Real `qwen3:1.7b` returned a correct cited LEFT JOIN explanation using test-only evidence. Reviewed-corpus check exited 1 awaiting approved passages. Pushed to `origin/main`. | 2026-11-23 / `ab871f8` |
+| S5.2 Private follow-ups, progressive hints and SQL context | done_tested | Added conversation migration, owned threads, contextual tutoring, progressive hint eligibility, safe SQL feedback, user export/delete and chat interface. Pytest 113, Vitest 2, Chrome E2E 4 passed, plus Ruff, mypy, content, migration, lint, typecheck and build. | 2026-11-23 / `S5.2` |
 | S5.3 Evaluation, privacy hardening and boundary verification | todo | | |
 
 **Allowed task statuses:** `todo | in_progress | done_tested | blocked`. Mark `done_tested` only with executed commands, observed results and date. A passing stage is never inferred from completed scaffolding. If human review/licensing blocks a gate, label it **blocked**, continue eligible engineering work and disclose limitations honestly.

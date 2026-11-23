@@ -65,7 +65,9 @@ def create_app(settings: Settings | None = None, *, content_root: Path = PROJECT
                 content={"detail": "The request origin is not allowed.", "code": "invalid_origin"},
             )
         response = await call_next(request)
-        if request.url.path.startswith(("/api/v1/me", "/api/v1/auth")):
+        if request.url.path.startswith(
+            ("/api/v1/me", "/api/v1/auth", "/api/v1/tutor", "/api/v1/demo")
+        ):
             response.headers["Cache-Control"] = "no-store"
         return response
 
@@ -90,7 +92,9 @@ def create_app(settings: Settings | None = None, *, content_root: Path = PROJECT
     if demo_engine is not None:
         app.include_router(demo_router(demo_engine, content_root), prefix="/api/v1")
         app.include_router(
-            local_tutor_router(TutorService(Retriever(demo_engine, content_root), provider)),
+            local_tutor_router(
+                TutorService(Retriever(demo_engine, content_root), provider), demo_engine
+            ),
             prefix="/api/v1",
         )
     accounts = Accounts(engine, secure_cookie=config.secure_cookies)
@@ -98,7 +102,7 @@ def create_app(settings: Settings | None = None, *, content_root: Path = PROJECT
     app.include_router(learning_router(accounts, content_root), prefix="/api/v1")
     app.include_router(
         tutor_router(
-            TutorService(Retriever(engine, content_root), provider), accounts.require_user
+            TutorService(Retriever(engine, content_root), provider), engine, accounts.require_user
         ),
         prefix="/api/v1",
     )

@@ -105,7 +105,7 @@ function Workbench({ exercise }: { exercise: SQLExercise }) {
       {schema.data?.map((table) => <div className="mt-4" key={table.name}><ResultTable result={table.data} label={table.name} /></div>)}
       <Failure error={schema.error} retry={() => void schema.refetch()} />
     </section>
-    {asking && <TutorPanel topic={exercise.topic_id} />}
+    {asking && submit.data && <TutorPanel topic={exercise.topic_id} sqlAttempt={submit.data.attempt_id} />}
   </div>
 }
 

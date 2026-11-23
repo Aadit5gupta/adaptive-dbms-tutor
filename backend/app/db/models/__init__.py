@@ -146,6 +146,7 @@ class SessionItem(Base):
     position: Mapped[int]
     status: Mapped[str]
     revealing_hint_used: Mapped[bool] = mapped_column(default=False)
+    highest_hint_level: Mapped[int] = mapped_column(default=0, server_default="0")
     remediation_code: Mapped[str | None] = mapped_column(ForeignKey("misconceptions.code"))
 
 
@@ -315,3 +316,27 @@ class Profile(Base):
     goal: Mapped[str | None]
     level: Mapped[str | None]
     daily_minutes: Mapped[int | None]
+
+
+class TutorConversation(Base):
+    __tablename__ = "tutor_conversations"
+
+    id: Mapped[str] = mapped_column(primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    topic_id: Mapped[str | None]
+    revision: Mapped[int]
+    created_at: Mapped[int]
+
+
+class TutorMessage(Base):
+    __tablename__ = "tutor_messages"
+    __table_args__ = (CheckConstraint("role IN ('user', 'assistant')"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    conversation_id: Mapped[str] = mapped_column(
+        ForeignKey("tutor_conversations.id", ondelete="CASCADE"), index=True
+    )
+    role: Mapped[str]
+    content: Mapped[str]
+    reply_json: Mapped[str | None]
+    created_at: Mapped[int]

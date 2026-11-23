@@ -16,6 +16,8 @@ from app.db.models import (
     PolicyDecision,
     Profile,
     Recommendation,
+    TutorConversation,
+    TutorMessage,
     User,
     UserMisconception,
 )
@@ -94,6 +96,29 @@ def account_router(accounts: Accounts) -> APIRouter:
                 result[model.__tablename__] = [
                     {key: getattr(row, key) for key in keys} for row in records
                 ]
+            result["tutor_conversations"] = [
+                {
+                    "id": thread.id,
+                    "topic_id": thread.topic_id,
+                    "created_at": thread.created_at,
+                    "messages": [
+                        {
+                            "role": turn.role,
+                            "text": turn.content,
+                            "created_at": turn.created_at,
+                            "reply": turn.reply_json,
+                        }
+                        for turn in db.scalars(
+                            select(TutorMessage)
+                            .where(TutorMessage.conversation_id == thread.id)
+                            .order_by(TutorMessage.id)
+                        )
+                    ],
+                }
+                for thread in db.scalars(
+                    select(TutorConversation).where(TutorConversation.user_id == user_id)
+                )
+            ]
             return result
 
     @router.delete("/me")

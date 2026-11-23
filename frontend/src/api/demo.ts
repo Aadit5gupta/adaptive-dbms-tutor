@@ -28,6 +28,7 @@ export interface Lesson {
 }
 
 export interface AnswerResult {
+  attempt_id: string
   correct: boolean
   explanation: string
   mastery: { before: number; after: number; confidence: string } | null

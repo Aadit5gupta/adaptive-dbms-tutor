@@ -123,7 +123,8 @@ def test_attempt_uniqueness_and_item_version(migrated: Settings) -> None:
             for number in (1, 2):
                 db.execute(
                     text("""
-                    INSERT INTO assessment_session_items VALUES (:item, 's', 'question@1', :pos,
+                    INSERT INTO assessment_session_items
+                        (id, session_id, question_version_id, position, status, revealing_hint_used, remediation_code) VALUES (:item, 's', 'question@1', :pos,
                         'open', 0, NULL)
                     """),
                     {"item": f"i{number}", "pos": number},

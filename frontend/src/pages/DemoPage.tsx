@@ -174,7 +174,7 @@ function LearnerPanel({ learner }: { learner: Learner }) {
             </>}
           </section>
         )}
-        {lessonOpen && ref && <TutorPanel topic={state.topic} demo />}
+        {lessonOpen && ref && <TutorPanel topic={state.topic} demoLearner={learner} />}
       </div>
       <aside className="grid content-start gap-4">
         <section className={card}>

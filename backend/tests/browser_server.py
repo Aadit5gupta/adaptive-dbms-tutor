@@ -54,7 +54,7 @@ def run() -> None:
                         seed_learners(session)
             app.include_router(demo_router(engine, bank), prefix="/api/v1")
             app.include_router(
-                local_tutor_router(TutorService(Retriever(engine, bank))), prefix="/api/v1"
+                local_tutor_router(TutorService(Retriever(engine, bank)), engine), prefix="/api/v1"
             )
             uvicorn.run(app, host="127.0.0.1", port=8000, proxy_headers=False)
         finally:

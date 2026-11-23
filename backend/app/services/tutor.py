@@ -45,9 +45,20 @@ class TutorService:
         history: tuple[Turn, ...] = (),
         learner_context: str = "",
     ) -> TutorReply:
+        if request.mode == "hint" and request.item_id is not None and request.hint_level == 1:
+            return TutorReply(
+                answer="Restate what the result needs to include. Which property or rule should you check first?",
+                citations=[],
+                mode="hint",
+                provider="curated",
+                degraded=False,
+                status="ok",
+                topic_id=request.topic_id,
+            )
         hits = await self.evidence(request)
         if not hits:
             return TutorReply(
+                topic_id=request.topic_id,
                 answer="I could not find reviewed material for this question. Try naming a specific DBMS topic or check the Library.",
                 citations=[],
                 mode=request.mode,
@@ -63,6 +74,7 @@ class TutorService:
             learner_context=learner_context[:400],
         )
         citations = {hit.citation.id: hit.citation for hit in context.passages}
+        use_model = self.provider is not None
         if self.provider is not None:
             try:
                 candidate = await self.provider.respond(context)
@@ -76,6 +88,7 @@ class TutorService:
                     and not MODEL_CITATION.search(answer)
                 ):
                     return TutorReply(
+                        topic_id=request.topic_id or context.passages[0].topic_id,
                         answer=answer,
                         citations=[citations[ref] for ref in ids],
                         mode=request.mode,
@@ -88,10 +101,11 @@ class TutorService:
 
         curated = await self.curated.respond(context)
         return TutorReply(
+            topic_id=request.topic_id or context.passages[0].topic_id,
             answer=curated.text,
             citations=[citations[ref] for ref in curated.passage_ids],
             mode=request.mode,
             provider="curated",
-            degraded=self.provider is not None,
-            status="ai_unavailable" if self.provider is not None else "ok",
+            degraded=use_model,
+            status="ai_unavailable" if use_model else "ok",
         )
