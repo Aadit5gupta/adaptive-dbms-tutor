@@ -16,6 +16,7 @@ from sqlalchemy import func, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
+from content.schemas.models import Pool
 from scripts.validate_content import ContentError
 
 from .content_fixtures import save
@@ -39,7 +40,7 @@ def assessment_db(tmp_path: Path, s1: Path, monkeypatch: pytest.MonkeyPatch) -> 
 def test_allocation_withholds_key_and_sql_specs(assessment_db: Engine) -> None:
     with Session(assessment_db) as db, db.begin():
         view = allocate_mcqs(db, "learner", "practice", limit=20)
-        assert len(view.items) == 8
+        assert len(view.items) == 6
         for item in view.items:
             assert set(item.model_dump()) == {
                 "item_id",
@@ -148,3 +149,49 @@ def test_draft_content_stays_out_of_published_pool(assessment_db: Engine, s1: Pa
     with Session(assessment_db) as db, db.begin():
         publish_from_disk(db, s1)
         assert db.get(QuestionVersion, "unverified_question@1") is None
+
+
+def test_independent_evidence_stays_with_the_correct_learner(assessment_db: Engine) -> None:
+    from app.db.models import UserMisconception
+
+    answers: list[tuple[str, Pool]] = [
+        ("learner", "diagnostic"),
+        ("other", "practice"),
+        ("learner", "practice"),
+    ]
+    for user, pool in answers:
+        with Session(assessment_db) as db, db.begin():
+            view = allocate_mcqs(db, user, pool, subtopic="relational.keys")
+        submit_mcq(
+            assessment_db,
+            user,
+            view.session_id,
+            f"answer-{pool}",
+            AnswerInput(item_id=view.items[0].item_id, option_index=1),
+        )
+    with Session(assessment_db) as db:
+        a = db.get(UserMisconception, ("learner", "KEYS-02"))
+        b = db.get(UserMisconception, ("other", "KEYS-02"))
+        assert a is not None and a.state == "active"
+        assert b is not None and b.state == "possible"
+
+    with Session(assessment_db) as db, db.begin():
+        checkpoint = allocate_mcqs(
+            db,
+            "learner",
+            "checkpoint",
+            limit=2,
+            misconception_code="KEYS-02",
+            reserved_refs=("keys_checkpoint_0@1", "keys_checkpoint_1@1"),
+        )
+    for item in checkpoint.items:
+        submit_mcq(
+            assessment_db,
+            "learner",
+            checkpoint.session_id,
+            item.item_id,
+            AnswerInput(item_id=item.item_id, option_index=0),
+        )
+    with Session(assessment_db) as db:
+        resolved = db.get(UserMisconception, ("learner", "KEYS-02"))
+        assert resolved is not None and resolved.state == "resolved"

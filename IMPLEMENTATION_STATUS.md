@@ -40,8 +40,8 @@
 |---|---|---|---|
 | S1.1 versioned migrations and dedicated demo identities | done_tested | Added ORM models, `0002_learning`, demo identity guard, persistence tests and API notes. Pytest 31 passed, Ruff/mypy/strict validator passed, Alembic upgrade/check/current passed. Push pending workflow scope. | 2026-11-23 / `1e3df90` |
 | S1.2 question allocation, answer withholding, deterministic grader | done_tested | Added approved-content publisher, assessment DTOs, version-locked MCQ allocation and deterministic idempotent submission service. Pytest 36 passed, Ruff/mypy/strict content validator passed. Browser/API routing follows in S1.7. Push pending workflow scope. | 2026-11-23 / `df69e34` |
-| S1.3 mastery + independent evidence boundary tests | done_tested | Added pure mastery/confidence and UTC review timing plus boundary, independence and held-out tests. Pytest 47 passed, Ruff/mypy/strict content validation passed. Push pending workflow scope. | 2026-11-23 / `S1.3` |
-| S1.4 definition/learner misconception states + checkpoints | todo | | |
+| S1.3 mastery + independent evidence boundary tests | done_tested | Added pure mastery/confidence and UTC review timing plus boundary, independence and held-out tests. Pytest 47 passed, Ruff/mypy/strict content validation passed. Push pending workflow scope. | 2026-11-23 / `e2c3a97` |
+| S1.4 definition/learner misconception states + checkpoints | done_tested | Added misconception signal/evidence service and atomic MCQ integration. Pytest 51 passed, including separation of learner evidence and unseen checkpoint transitions. Ruff/mypy/strict content validator passed. Push pending workflow scope. | 2026-11-23 / `S1.4` |
 | S1.5 SQL sandbox + hidden-fixture result grading | todo | | |
 | S1.6 atomic, idempotent attempt and minimal explainable policy | todo | | |
 | S1.7 minimal browser learning loop and protected seeded demo CLI | todo | | |

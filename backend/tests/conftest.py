@@ -27,7 +27,10 @@ def s1(foundation: Path) -> Path:
     ):
         detectors = [f"{slug}_detector_{i}" for i in range(2)]
         checkpoints = [f"{slug}_checkpoint_{i}" for i in range(2)]
-        questions.extend(mcq(id_, topic, code=code) for id_ in detectors)
+        questions.extend(
+            mcq(id_, topic, pool=pool, code=code)
+            for id_, pool in zip(detectors, ("diagnostic", "practice"), strict=True)
+        )
         questions.extend(mcq(id_, topic, pool="checkpoint") for id_ in checkpoints)
         lessons.append(
             {

@@ -17,6 +17,7 @@ from app.db.models import (
     SessionItem,
 )
 from app.schemas.assessment import AnswerInput, AnswerResult, ItemView, SessionView
+from app.services.misconceptions import update_misconception
 from content.schemas.models import Pool
 
 
@@ -168,22 +169,23 @@ def submit_mcq(
         result = AnswerResult(
             attempt_id=uuid4().hex, correct=option.is_correct, explanation=version.explanation
         )
-        db.add(
-            Attempt(
-                id=result.attempt_id,
-                user_id=user_id,
-                session_item_id=item.id,
-                question_version_id=version.id,
-                idempotency_key=key,
-                request_fingerprint=fingerprint,
-                result_json=result.model_dump_json(),
-                selected_option_index=answer.option_index,
-                correct=result.correct,
-                hint_used=item.revealing_hint_used,
-                context=session.kind,
-                created_at=now,
-            )
+        attempt = Attempt(
+            id=result.attempt_id,
+            user_id=user_id,
+            session_item_id=item.id,
+            question_version_id=version.id,
+            idempotency_key=key,
+            request_fingerprint=fingerprint,
+            result_json=result.model_dump_json(),
+            selected_option_index=answer.option_index,
+            correct=result.correct,
+            hint_used=item.revealing_hint_used,
+            context=session.kind,
+            created_at=now,
         )
+        db.add(attempt)
+        db.flush()
+        update_misconception(db, attempt, item, version, option)
         item.status = "answered"
         db.flush()
         remaining = db.scalar(
