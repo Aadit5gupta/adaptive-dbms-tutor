@@ -35,6 +35,8 @@
 | D08 | 2026-11-23 | Mandatory Ollama tutoring with `qwen3:1.7b`, FTS5 BM25 retrieval, and curated fallback | Owner update supersedes the optional LLM language in the supplied v1.2 spec and S5 status | Optional model and paid inference | S3 grounding and S5 real-model demonstration required; deterministic assessment retains authority |
 | D09 | 2026-11-23 | Initialize Git inside the extracted specification directory | Keeps the original archive and parent folder outside the repository | Tracking surrounding files | Use the extracted directory for all commands |
 
+| D10 | 2026-11-23 | Enable the SQL worker on tested Apple Silicon macOS | macOS rejected RLIMIT_AS; SQLite hard heap cap plus tested CPU, file and descriptor limits still apply | Unverified platform support | Other platforms use worker-unavailable state |
+
 ## Deviations and blockers
 
 | Date | Stage/task | Problem / deviation | Impact | Fallback | Owner action required |

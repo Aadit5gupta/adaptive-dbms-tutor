@@ -4,7 +4,6 @@ import argparse
 import json
 import sqlite3
 import sys
-from collections import Counter
 from contextlib import closing
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -27,6 +26,7 @@ from content.schemas.models import (
     SQLQuestion,
 )
 from content.schemas.rights import Catalog, Clearance
+from content.sql_results import ResultRows, equivalent
 
 Question = Annotated[MCQ | SQLQuestion, Field(discriminator="type")]
 QUESTIONS = TypeAdapter(list[Question])
@@ -172,25 +172,13 @@ def check_sql_reference(root: Path, question: SQLQuestion) -> None:
                 cursor = db.execute(question.reference_query)
                 actual = cursor.fetchmany(1_001)
                 columns = [column[0] for column in cursor.description or ()]
-            if question.compare.column_names_matter:
-                if not isinstance(rows, dict) or rows.get("columns") != columns:
-                    raise ValueError("reference query does not match expected columns")
-                rows = rows.get("rows")
-            if not isinstance(rows, list) or len(rows) > 1_000:
-                raise ValueError("expected results must be a list of at most 1000 rows")
-            if not all(isinstance(row, list) for row in rows):
-                raise ValueError("expected results must consist of row arrays")
-            target = [tuple(row) for row in rows]
-            comparable = actual
-            if not question.compare.duplicate_sensitive:
-                comparable = list(dict.fromkeys(comparable))
-                target = list(dict.fromkeys(target))
-            matches = (
-                comparable == target
-                if question.compare.order_sensitive
-                else Counter(comparable) == Counter(target)
+            actual_result = ResultRows.model_validate({"columns": columns, "rows": actual})
+            expected_result = ResultRows.model_validate(
+                rows if isinstance(rows, dict) else {"columns": [], "rows": rows}
             )
-            if len(actual) > 1_000 or not matches:
+            if len(actual) > 1_000 or len(expected_result.rows) > 1_000:
+                raise ValueError("expected and reference results must contain at most 1000 rows")
+            if not equivalent(actual_result, expected_result, question.compare):
                 raise ValueError("reference query does not match expected results")
         except (OSError, sqlite3.Error, ValueError, TypeError) as error:
             raise ContentError(f"{question.ref}: {expected.fixture}: {error}") from error

@@ -43,7 +43,8 @@ def sql_snapshot(root: Path, question: SQLQuestion) -> tuple[str, str]:
         result.fixture: json.loads((root / result.expected_result_file).read_text(encoding="utf-8"))
         for result in question.expected_results
     }
-    return json.dumps(fixtures, sort_keys=True), json.dumps(results, sort_keys=True)
+    spec = {"fixtures": fixtures, "minimum_sqlite_version": question.min_sqlite_version}
+    return json.dumps(spec, sort_keys=True), json.dumps(results, sort_keys=True)
 
 
 def publish_question(db: Session, item: MCQ | SQLQuestion, root: Path) -> None:
