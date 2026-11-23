@@ -64,6 +64,7 @@ The workspace frontend and backend were started on loopback. The frontend, proxi
 | Authored CLI replay | `scripts/seed_demo.py` and `scripts/verify_demo.py` passed. The replay verified the two learner hypotheses, checkpoint resolution and SQL grading on a disposable copy. |
 | Real Ollama against the indexed corpus | `scripts/check_ollama.py` returned a correct LEFT JOIN explanation from `qwen3:1.7b`, with the original lesson and its Runestone chapter citation. The live demo API also produced two cited Ollama answers, explained NULL extension in the follow-up, and persisted all four turns. |
 | Local source inventory | The lessons import indexed six original passages. The live Library showed zero of five books indexed. Strict validation found zero approved publisher sections. |
+| Hosted regression | GitHub Actions passed on `2905a27`, including the S4 learner gate and a fresh Alembic migration. The SQL worker and real-model checks ran on the Mac. [GitHub Actions](https://github.com/Aadit5gupta/adaptive-dbms-tutor/actions/runs/45167065757) |
 | Retrieval smoke | All six expected lessons ranked first in the six draft-labeled queries. Hit@4 and MRR were both 1.0 on this small smoke set. |
 
 The earlier sections record the engineering baseline before publication. Human-only content coverage and publisher section clearance remain open. [Educational evidence](educational-review.md) · [Rights review](section-rights-review.md)
