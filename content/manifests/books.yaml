@@ -1,0 +1,114 @@
+# Machine-readable source-rights metadata for MASTER_PLAN.md v1.2
+# All entries initially link-only. Human section approvals must be independently recorded.
+schema_version: 2
+book_license_verification_date: '2026-11-22'
+notice: Publisher-level license evidence ONLY; no section is cleared to index by this manifest until human-approved
+  section_clearances are added. Index counts must be derived from successfully committed searchable chunks.
+books:
+- id: bccampus_db_design_2e
+  title: Database Design – 2nd Edition
+  authors:
+  - Adrienne Watt
+  - Nelson Eng
+  source_url: https://opentextbc.ca/dbdesign01/
+  license: CC BY 4.0 (except where otherwise noted)
+  license_url: https://creativecommons.org/licenses/by/4.0/
+  license_evidence_url: https://opentextbc.ca/dbdesign01/
+  accessed_on: '2026-11-22'
+  section_exceptions:
+  - section_url: https://opentextbc.ca/dbdesign01/chapter/chapter-10-er-modelling/
+    issue: Chapter attribution credits Relational Design Theory by Nguyen Kim Anh under CC BY 3.0; inspect
+      derivative obligations and figures before importing this section.
+    other_license_url: https://creativecommons.org/licenses/by/3.0/
+    status: blocked_pending_review
+    accessed_on: '2026-11-22'
+  - section_url: https://opentextbc.ca/dbdesign01/chapter/chapter-11-functional-dependencies/
+    issue: 'Attributions: chapter derivative of Wikipedia Armstrong axioms under CC BY-SA 3.0; mixed-source
+      attribution. Separate review before indexing.'
+    other_license_url: https://creativecommons.org/licenses/by-sa/3.0/
+    status: blocked_pending_review
+    accessed_on: '2026-11-22'
+  - section_url: https://opentextbc.ca/dbdesign01/
+    issue: Cover image credited to photographer under CC BY-SA 2.0; exclude cover from imports by default.
+    status: excluded_image
+    accessed_on: '2026-11-22'
+  section_clearances: []
+  notes: Priority text-only source after each section independently audited. Book notice is not a blanket approval.
+    Default link-only policy is per uncleared section, NOT a dynamic indexing count.
+  default_import_policy: link_only
+- id: runestone_practical_db
+  title: A Practical Introduction to Databases
+  authors:
+  - Christopher Painter-Wakefield
+  source_url: https://runestone.academy/ns/books/published/practical_db/index.html
+  license: CC BY-SA 4.0
+  license_url: https://creativecommons.org/licenses/by-sa/4.0/
+  license_evidence_url: https://runestone.academy/ns/books/published/practical_db/index.html
+  accessed_on: '2026-11-22'
+  section_exceptions:
+  - section_url: https://runestone.academy/ns/books/published/practical_db/index.html
+    issue: Cover photo credited to Unsplash photographer; exclude cover and inspect third-party datasets before
+      importing.
+    status: excluded_image
+    accessed_on: '2026-11-22'
+  section_clearances: []
+  notes: Priority text-only candidate; review each section and dataset attribution before ingestion. Default
+    link-only policy is per uncleared section, NOT a dynamic indexing count.
+  default_import_policy: link_only
+- id: shea_pop_culture_sql
+  title: SQL and Database Management Through Pop Culture
+  authors:
+  - Brendan Shea
+  source_url: https://brendanpshea.github.io/database_sql/
+  license: CC BY-NC 4.0 (homepage statement)
+  license_url: https://creativecommons.org/licenses/by-nc/4.0/
+  license_evidence_url: https://brendanpshea.github.io/database_sql/
+  accessed_on: '2026-11-22'
+  section_exceptions:
+  - section_url: https://brendanpshea.github.io/database_sql/
+    issue: Inspect third-party pop-culture visuals, brand imagery, notebooks and datasets separately before
+      reuse. No asset-level audit completed.
+    status: blocked_pending_review
+    accessed_on: '2026-11-22'
+  section_clearances: []
+  notes: Noncommercial content. Future commercial use requires rights re-check/permission or replacement. Default
+    link-only policy is per uncleared section, NOT a dynamic indexing count.
+  default_import_policy: link_only
+- id: openstax_foundations_is
+  title: Foundations of Information Systems
+  authors:
+  - OpenStax / Rice University and credited contributors
+  source_url: https://openstax.org/books/foundations-information-systems/pages/1-introduction
+  license: CC BY-NC-SA 4.0
+  license_url: https://creativecommons.org/licenses/by-nc-sa/4.0/
+  license_evidence_url: https://openstax.org/books/foundations-information-systems/pages/preface
+  accessed_on: '2026-11-22'
+  section_exceptions:
+  - section_url: https://openstax.org/books/foundations-information-systems/pages/preface
+    issue: Preface specifies art/image attributions in captions and different third-party credits; exclude
+      art by default, review each relevant section.
+    status: blocked_pending_review
+    accessed_on: '2026-11-22'
+  section_clearances: []
+  notes: Only database-related portions; NC and share-alike obligations apply. No commercial publication without
+    permission. Default link-only policy is per uncleared section, NOT a dynamic indexing count.
+  default_import_policy: link_only
+- id: datafield_db_fundamentals
+  title: Database Fundamentals
+  authors:
+  - DataField.Dev
+  source_url: https://datafield.dev/sql/
+  license: null
+  license_url: null
+  license_evidence_url: https://datafield.dev/sql/
+  accessed_on: '2026-11-22'
+  section_exceptions:
+  - section_url: https://datafield.dev/sql/
+    issue: No blanket permission for local copying/indexing verified from inspected textbook page; obtain author
+      permission or explicit license.
+    status: blocked_pending_permission
+    accessed_on: '2026-11-22'
+  section_clearances: []
+  notes: Link-only. Public/free reading is not authorization to create a redistributed local text index. Default
+    link-only policy is per uncleared section, NOT a dynamic indexing count.
+  default_import_policy: link_only
