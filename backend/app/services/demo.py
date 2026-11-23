@@ -3,7 +3,7 @@
 from typing import Literal
 
 from pydantic import BaseModel
-from sqlalchemy import delete, select
+from sqlalchemy import case, delete, select
 from sqlalchemy.orm import Session
 
 from app.core.demo import DEMO_APPLICATION_ID, DEMO_LEARNERS, seed_demo_users
@@ -101,7 +101,11 @@ def first_sql_exercise(db: Session) -> str | None:
             SQLExerciseVersion,
             SQLExerciseVersion.question_version_id == QuestionVersion.id,
         )
-        .order_by(QuestionVersion.question_id)
+        .where(QuestionVersion.pool == "practice")
+        .order_by(
+            case((QuestionVersion.question_id == "sql_join_001", 0), else_=1),
+            QuestionVersion.question_id,
+        )
         .limit(1)
     )
 

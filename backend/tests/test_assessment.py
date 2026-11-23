@@ -372,3 +372,23 @@ def test_publishing_preserves_reserved_pool_and_disables_removed_rules(
         pytest.raises(ContentError, match="pool of a published"),
     ):
         publish_from_disk(db, s1)
+
+
+def test_demo_selects_the_documented_count_exercise(assessment_db: Engine, s1: Path) -> None:
+    from app.services.demo import first_sql_exercise
+
+    path = s1 / "content/questions/test.yaml"
+    questions = yaml.safe_load(path.read_text())
+    sample = next(question for question in questions if question["type"] == "sql")
+    save(
+        s1,
+        "content/questions/test.yaml",
+        [
+            *questions,
+            {**sample, "id": "aaa_sql_alternative"},
+            {**sample, "id": "sql_join_001"},
+        ],
+    )
+    with Session(assessment_db) as db, db.begin():
+        publish_from_disk(db, s1)
+        assert first_sql_exercise(db) == "sql_join_001"

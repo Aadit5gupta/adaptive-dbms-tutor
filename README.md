@@ -1,8 +1,17 @@
 # Adaptive DBMS Tutor
 
-Adaptive DBMS Tutor is a local-first DBMS and SQL learning project. Its deterministic assessment engine will track mastery and misconception evidence. A local tutor will use SQLite FTS5 with BM25 ranking to retrieve human-reviewed lessons and individually cleared book sections.
+Adaptive DBMS Tutor is a local-first DBMS and SQL learning platform. Deterministic grading drives mastery, misconception evidence and recommendations. The tutor uses SQLite FTS5, BM25 and the local Ollama model to explain reviewed material.
 
-See the [master plan](MASTER_PLAN.md), [implementation status](IMPLEMENTATION_STATUS.md), and [decision log](DECISIONS.md) for current setup and verified milestones.
+The app runs on Apple Silicon macOS. The initial learning bank contains 30 draft MCQs, six draft lessons, six draft SQL exercises and three disabled misconception definitions. The Library shows five catalog entries and zero indexed books. Human sign-off enables the learner content.
+
+- [Implementation status](IMPLEMENTATION_STATUS.md)
+- [Architecture and schema](docs/architecture.md)
+- [API contracts](docs/api.md)
+- [Learner demo and review steps](docs/demo.md)
+- [Test results](docs/test-report.md)
+- [Evaluation commands](experiments/README.md)
+- [Viva notes](docs/viva.md)
+- [Master plan](MASTER_PLAN.md) and [decision log](DECISIONS.md)
 
 ## Ollama setup on macOS
 
@@ -32,7 +41,8 @@ uv sync --project backend --python 3.12 --locked --extra dev
 source backend/.venv/bin/activate
 cp -n .env.example .env
 python -m alembic -c backend/alembic.ini upgrade head
-python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
+python scripts/import_books.py lessons
+python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --no-proxy-headers --no-access-log
 ```
 
 Check readiness at `http://127.0.0.1:8000/api/v1/health` and view the API contract at `http://127.0.0.1:8000/docs`. Paths in `.env` are relative to the repository root. The app and demo databases must use distinct paths.
@@ -69,7 +79,7 @@ Use the backend virtual environment from the previous setup. The scripts operate
 python scripts/reset_demo.py
 python scripts/seed_demo.py
 python scripts/verify_demo.py
-DBMS_DEMO_ENABLED=true python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --no-proxy-headers
+DBMS_DEMO_ENABLED=true python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --no-proxy-headers --no-access-log
 ```
 
 Run Vite in the second terminal and open `http://127.0.0.1:5173/demo`. The learning activities and real-content replay become available after the human review gate passes. See the [authoring and sign-off guide](docs/content_authoring_guide.md).
