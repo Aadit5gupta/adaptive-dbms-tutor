@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-[#f5f7f3] font-sans text-stone-900 antialiased;
+  }
+
+  h1 {
+    @apply text-4xl font-semibold tracking-tight md:text-5xl;
+  }
+
+  :is(a, button):focus-visible {
+    @apply outline-2 outline-offset-4 outline-green-800;
+  }
+}

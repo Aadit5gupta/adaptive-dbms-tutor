@@ -38,3 +38,21 @@ ruff check --config backend/pyproject.toml backend content scripts
 MYPYPATH=backend mypy --config-file backend/pyproject.toml backend/app backend/tests content scripts
 python scripts/validate_content.py --strict
 ```
+
+## Local frontend
+
+Install Node.js 22.12 or newer. With the backend running, open a second terminal in this directory:
+
+```sh
+npm --prefix frontend ci
+npm --prefix frontend run dev
+```
+
+Open `http://127.0.0.1:5173`. Vite proxies `/api` to the local backend on port 8000.
+
+```sh
+npm --prefix frontend run lint
+npm --prefix frontend run typecheck
+npm --prefix frontend test
+npm --prefix frontend run build
+```
