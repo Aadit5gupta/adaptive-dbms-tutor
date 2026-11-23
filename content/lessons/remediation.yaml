@@ -1,48 +1,60 @@
 - id: lesson_fk_multiplicity
   version: 1
   subtopic_id: relational.keys
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   title: One parent, many child rows
   source:
     kind: authored
-    factual_reference_url: https://www.sqlite.org/foreignkeys.html
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/07-constraints/constraints.html
   body_markdown: |
-    A foreign key checks that a non-null reference points to an existing parent.
-    The parent key identifies a single parent row. Several child rows can point
-    to that same parent.
+    An enforced, single-column foreign key requires every non-null reference to
+    have a matching parent. Several child rows can point to the same parent.
 
-    | support_ticket.id | support_ticket.account_id |
+    | maintenance_job.id | maintenance_job.machine_id |
     | --- | --- |
     | 401 | 7 |
     | 402 | 7 |
 
-    If account 7 exists, both tickets can reference it. A separate UNIQUE
-    constraint on support_ticket.account_id would instead allow at most one
-    ticket with a particular non-null account ID. Ask whether a rule checks
-    existence in another table or repetition within the current table.
+    If machine 7 exists, both jobs can reference it. An explicit UNIQUE
+    constraint on maintenance_job.machine_id would limit each non-null machine ID
+    to one job. Ask whether a rule checks existence in another table or
+    repetition within the current table.
 
     **Practice:** Try the reserved foreign-key checkpoints after this lesson.
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
 - id: lesson_join_unmatched
   version: 1
   subtopic_id: sql.joins
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   title: Keep unmatched rows with LEFT JOIN
   source:
     kind: authored
-    factual_reference_url: https://www.sqlite.org/lang_select.html
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/04-multiple-tables/multiple-tables.html
   body_markdown: |
-    Suppose you need a list of all teams, including teams that have played
-    no games. Start with teams on the left of a LEFT JOIN.
+    Suppose a library report needs every branch, even branches without loans
+    today. Put the branches on the left of a LEFT JOIN to the qualifying loans.
 
-    | team | matching game |
+    | branch | matching loan |
     | --- | --- |
-    | Cedar | 12 |
-    | Maple | NULL |
+    | North | 12 |
+    | South | NULL |
 
-    The missing game cells are NULL for Maple. An INNER JOIN keeps only teams
-    with a matching game. If you group by team, COUNT(game.id) gives Maple zero,
-    while COUNT(*) counts the single output row that LEFT JOIN preserved.
+    The missing loan columns are NULL for South. An INNER JOIN returns only
+    matched pairs. Grouping by the branch key, COUNT(loan.id) gives South zero
+    because its loan ID is NULL. COUNT(*) gives one because it counts the
+    preserved output row.
 
     **Practice:** Try the reserved JOIN checkpoints after this lesson.
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context

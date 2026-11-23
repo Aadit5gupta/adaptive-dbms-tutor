@@ -18,18 +18,24 @@ from app.db.models import (
     Topic,
     TopicPrerequisite,
 )
-from content.schemas.models import MCQ, SQLQuestion, Versioned
+from content.schemas.models import MCQ, Reviewed, SQLQuestion, Versioned
 from scripts.validate_content import ROOT, Content, ContentError, load_content
 
 
+def review_snapshot(item: Reviewed) -> set[str]:
+    # Preserve exact hashes of human content published before AI metadata was added.
+    return {"ai_review"} if item.ai_review is None else set()
+
+
 def version_fields(item: Versioned, content_hash: str) -> dict[str, str | int]:
-    assert item.verified_by is not None and item.verified_on is not None
+    reviewer = item.ai_review.primary_reviewer if item.ai_review else item.verified_by
+    assert reviewer is not None and item.verified_on is not None
     return {
         "id": item.ref,
         "version": item.version,
         "source_ref": item.source.model_dump_json(),
         "review_status": item.review_status,
-        "reviewed_by": item.verified_by,
+        "reviewed_by": reviewer,
         "reviewed_at": item.verified_on.isoformat(),
         "content_hash": content_hash,
     }
@@ -50,7 +56,11 @@ def sql_snapshot(root: Path, question: SQLQuestion) -> tuple[str, str]:
 
 def publish_question(db: Session, item: MCQ | SQLQuestion, root: Path) -> None:
     snapshot = sql_snapshot(root, item) if isinstance(item, SQLQuestion) else ("", "")
-    digest = sha256(json.dumps([item.model_dump(mode="json"), *snapshot], sort_keys=True).encode())
+    digest = sha256(
+        json.dumps(
+            [item.model_dump(mode="json", exclude=review_snapshot(item)), *snapshot], sort_keys=True
+        ).encode()
+    )
     existing = db.get(QuestionVersion, item.ref)
     if existing is not None:
         if existing.content_hash != digest.hexdigest():
@@ -120,7 +130,7 @@ def publish_content(db: Session, content: Content, root: Path = ROOT) -> None:
     for item in content.lessons.values():
         if not item.reviewed:
             continue
-        digest = sha256(item.model_dump_json().encode()).hexdigest()
+        digest = sha256(item.model_dump_json(exclude=review_snapshot(item)).encode()).hexdigest()
         existing = db.get(LessonVersion, item.ref)
         if existing is not None:
             if existing.content_hash != digest:
@@ -157,7 +167,7 @@ def publish_content(db: Session, content: Content, root: Path = ROOT) -> None:
     )
     for rule in content.rules.values():
         if rule.enabled:
-            snapshot = rule.model_dump_json()
+            snapshot = rule.model_dump_json(exclude=review_snapshot(rule))
             db.merge(
                 Misconception(
                     code=rule.code,

@@ -36,6 +36,7 @@ export interface LessonDetail {
   title: string
   body: string
   source_url: string
+  review_status: 'ai_verified' | 'author_verified' | 'independent_verified'
   topic_id: string
 }
 

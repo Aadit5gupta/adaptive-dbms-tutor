@@ -25,6 +25,7 @@ export interface Lesson {
   title: string
   body: string
   source_url: string
+  review_status: 'ai_verified' | 'author_verified' | 'independent_verified'
 }
 
 export interface AnswerResult {

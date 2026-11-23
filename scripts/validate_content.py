@@ -17,6 +17,7 @@ if __package__ in ("", None):
     sys.path.insert(0, str(ROOT))
 
 from content.schemas.models import (
+    HUMAN_STATUSES,
     MCQ,
     Domain,
     Lesson,
@@ -69,6 +70,8 @@ class Content:
     lessons: dict[str, Lesson]
     rules: dict[str, Misconception]
     counts: Counts
+    human_counts: Counts
+    ai_counts: Counts
 
 
 def read_yaml(path: Path) -> Any:
@@ -126,11 +129,26 @@ def check_graph(domains: list[Domain], edges: list[Prerequisite]) -> set[str]:
 
 
 def require_topic_and_source(
-    record: Reviewed, topics: set[str], clearances: dict[str, Clearance], label: str
+    record: Reviewed,
+    topics: set[str],
+    catalog: Catalog,
+    clearances: dict[str, Clearance],
+    label: str,
 ) -> None:
     if record.subtopic_id not in topics:
         raise ContentError(f"{label}: unknown subtopic {record.subtopic_id}")
     source = record.source
+    if record.review_status == "ai_verified":
+        url = source.factual_reference_url
+        if not any(
+            url.scheme == book.source_url.scheme
+            and url.host == book.source_url.host
+            and url.port == book.source_url.port
+            and url.path not in (None, "/", book.source_url.path)
+            and (url.path or "").startswith((book.source_url.path or "/").rsplit("/", 1)[0] + "/")
+            for book in catalog.books
+        ):
+            raise ContentError(f"{label}: AI verification requires an exact catalog chapter URL")
     if source.source_section_clearance_id:
         clearance = clearances.get(source.source_section_clearance_id)
         if (
@@ -193,7 +211,9 @@ def check_rule(
     if lesson is None or lesson.subtopic_id != rule.subtopic_id:
         raise ContentError(f"{rule.code}: missing remediation lesson in the rule's subtopic")
     if rule.enabled and (not rule.reviewed or not lesson.reviewed):
-        raise ContentError(f"{rule.code}: enabled rule and remediation lesson require human review")
+        raise ContentError(
+            f"{rule.code}: enabled rule and remediation lesson require publication-eligible review"
+        )
 
     ids: set[str] = set()
     for ref in rule.detector_question_refs:
@@ -254,7 +274,9 @@ def load_content(root: Path = ROOT) -> Content:
     identities: dict[str, tuple[str, str, str]] = {}
     for path in sorted((content / "questions").glob("*.yaml")):
         for question in read_records(path, QUESTIONS):
-            require_topic_and_source(question, topics, clearances, f"{path}: {question.ref}")
+            require_topic_and_source(
+                question, topics, catalog, clearances, f"{path}: {question.ref}"
+            )
             if question.ref in questions:
                 raise ContentError(f"{path}: duplicate question version {question.ref}")
             identity = (question.type, question.subtopic_id, question.pool)
@@ -270,7 +292,7 @@ def load_content(root: Path = ROOT) -> Content:
     lesson_topics: dict[str, str] = {}
     for path in sorted((content / "lessons").glob("*.yaml")):
         for lesson in read_records(path, LESSONS):
-            require_topic_and_source(lesson, topics, clearances, f"{path}: {lesson.ref}")
+            require_topic_and_source(lesson, topics, catalog, clearances, f"{path}: {lesson.ref}")
             if lesson.ref in lessons:
                 raise ContentError(f"{path}: duplicate lesson version {lesson.ref}")
             if lesson_topics.setdefault(lesson.id, lesson.subtopic_id) != lesson.subtopic_id:
@@ -281,7 +303,7 @@ def load_content(root: Path = ROOT) -> Content:
     rules: dict[str, Misconception] = {}
     reserved: set[str] = set()
     for rule in read_records(rule_file, RULES) if rule_file.exists() else ():
-        require_topic_and_source(rule, topics, clearances, rule.code)
+        require_topic_and_source(rule, topics, catalog, clearances, rule.code)
         if rule.code in rules:
             raise ContentError(f"{rule_file}: duplicate code {rule.code}")
         checkpoints = check_rule(rule, questions, lessons)
@@ -306,25 +328,66 @@ def load_content(root: Path = ROOT) -> Content:
                         )
                     detectors.add(question.id)
 
-    counts = Counts(
-        reviewed_mcqs=len({q.id for q in questions.values() if isinstance(q, MCQ) and q.reviewed}),
-        ordinary_practice_mcqs=len(
-            {
-                q.id
-                for q in questions.values()
-                if isinstance(q, MCQ)
-                and q.reviewed
-                and q.pool == "practice"
-                and q.id not in detectors
-            }
-        ),
-        reviewed_lessons=len({lesson.id for lesson in lessons.values() if lesson.reviewed}),
-        checked_sql_tasks=len(
-            {q.id for q in questions.values() if isinstance(q, SQLQuestion) and q.reviewed}
-        ),
-        enabled_patterns=sum(rule.enabled for rule in rules.values()),
+    def count(statuses: set[str], *, human_dependencies: bool = False) -> Counts:
+        return Counts(
+            reviewed_mcqs=len(
+                {
+                    q.id
+                    for q in questions.values()
+                    if isinstance(q, MCQ) and q.review_status in statuses
+                }
+            ),
+            ordinary_practice_mcqs=len(
+                {
+                    q.id
+                    for q in questions.values()
+                    if isinstance(q, MCQ)
+                    and q.review_status in statuses
+                    and q.pool == "practice"
+                    and q.id not in detectors
+                }
+            ),
+            reviewed_lessons=len(
+                {lesson.id for lesson in lessons.values() if lesson.review_status in statuses}
+            ),
+            checked_sql_tasks=len(
+                {
+                    q.id
+                    for q in questions.values()
+                    if isinstance(q, SQLQuestion) and q.review_status in statuses
+                }
+            ),
+            enabled_patterns=sum(
+                rule.enabled
+                and rule.review_status in statuses
+                and (
+                    not human_dependencies
+                    or (
+                        lessons[rule.remediation_lesson_ref].review_status in HUMAN_STATUSES
+                        and all(
+                            questions[ref].review_status in HUMAN_STATUSES
+                            for ref in (
+                                *rule.detector_question_refs,
+                                *rule.checkpoint_question_refs,
+                            )
+                        )
+                    )
+                )
+                for rule in rules.values()
+            ),
+        )
+
+    return Content(
+        catalog,
+        domains,
+        prerequisites,
+        questions,
+        lessons,
+        rules,
+        count(HUMAN_STATUSES | {"ai_verified"}),
+        count(HUMAN_STATUSES, human_dependencies=True),
+        count({"ai_verified"}),
     )
-    return Content(catalog, domains, prerequisites, questions, lessons, rules, counts)
 
 
 def check_stage(counts: Counts, stage: Stage) -> None:
@@ -343,6 +406,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--strict", action="store_true", help="check all structural contracts")
     parser.add_argument("--stage", choices=("S1", "S4"))
+    parser.add_argument(
+        "--review-policy",
+        choices=("human", "learner"),
+        default="human",
+        help="stage counts: human-only (default) or publication-eligible learner content",
+    )
     args = parser.parse_args()
     try:
         content = load_content()
@@ -350,8 +419,19 @@ def main() -> int:
             f"catalog_books={len(content.catalog.books)}, cleared_sections={len(content.catalog.approved_clearances)}"
         )
         print(", ".join(f"{key}={value}" for key, value in asdict(content.counts).items()))
+        for label, cohort in (
+            ("ai_verified", content.ai_counts),
+            ("human_verified", content.human_counts),
+        ):
+            print(
+                f"{label}: " + ", ".join(f"{key}={value}" for key, value in asdict(cohort).items())
+            )
         if args.stage:
-            check_stage(content.counts, args.stage)
+            print(f"stage review policy: {args.review_policy}")
+            check_stage(
+                content.human_counts if args.review_policy == "human" else content.counts,
+                args.stage,
+            )
     except ContentError as error:
         print(error, file=sys.stderr)
         return 1

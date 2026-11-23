@@ -51,3 +51,19 @@ Cloned private GitHub revision `5df42ea` into a new temporary directory on 23 No
 The clone's reset and seed commands ran against its dedicated demo database. The authored demo replay, S4 content gate and approved-corpus Ollama check exited 1 at the pending-review gates. The separate real-model explanation and follow-up passed again on the same Mac.
 
 The workspace frontend and backend were started on loopback. The frontend, proxied health request, library catalog and both demo identities responded successfully. Hosted Actions passed for the clean-clone revision. [GitHub Actions run](https://github.com/Aadit5gupta/adaptive-dbms-tutor/actions/runs/45136868018)
+
+## Post-build educational verification · 23 November 2026
+
+| Check | Observed result |
+|---|---|
+| Review of original bank | Separate-context AI review confirmed 30 MCQ keys, six lessons and three distinct misconception patterns. All 45 existing items, including the six SQL exercises, passed after targeted revisions. |
+| Independent SQL execution | SQLite 3.54.1 on Apple Silicon macOS. Independently derived rows matched all 18 stored results. Reference and alternate queries passed all 36 restricted-worker runs. Nine incorrect variants disagreed with an expected result at least once. |
+| Backend regression | `bash scripts/check_backend.sh backend/.venv/bin` passed 130 pytest cases, Ruff, strict mypy and structural content validation. This covered a migration with existing immutable human-reviewed content, linked options and an FTS passage. Alembic detected no schema drift at `0007_ai_review`. |
+| Content gates | S1 and S4 passed with `--review-policy learner`. Both human-only gates exited 1 with zero items in the human cohort. The learner bank has 30 MCQs including 17 ordinary practice questions, six lessons, six checked SQL tasks and three fully covered patterns. |
+| Frontend regression | ESLint, TypeScript, production build and two Vitest tests passed. Four synthetic Chrome cases passed. The separate authored Chrome case passed for both learners, including evidence, remediation, checkpoints, persisted progress, attributed curated follow-up, SQL preview and submission. |
+| Authored CLI replay | `scripts/seed_demo.py` and `scripts/verify_demo.py` passed. The replay verified the two learner hypotheses, checkpoint resolution and SQL grading on a disposable copy. |
+| Real Ollama against the indexed corpus | `scripts/check_ollama.py` returned a correct LEFT JOIN explanation from `qwen3:1.7b`, with the original lesson and its Runestone chapter citation. The live demo API also produced two cited Ollama answers, explained NULL extension in the follow-up, and persisted all four turns. |
+| Local source inventory | The lessons import indexed six original passages. The live Library showed zero of five books indexed. Strict validation found zero approved publisher sections. |
+| Retrieval smoke | All six expected lessons ranked first in the six draft-labeled queries. Hit@4 and MRR were both 1.0 on this small smoke set. |
+
+The earlier sections record the engineering baseline before publication. Human-only content coverage and publisher section clearance remain open. [Educational evidence](educational-review.md) · [Rights review](section-rights-review.md)

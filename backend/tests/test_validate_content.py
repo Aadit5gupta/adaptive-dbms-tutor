@@ -117,3 +117,64 @@ def test_prerequisite_cycle_fails(foundation: Path) -> None:
     )
     with pytest.raises(ContentError, match="cycle"):
         load_content(foundation)
+
+
+def test_ai_content_keeps_human_gate_distinct(s1: Path) -> None:
+    assert load_content(s1).human_counts.reviewed_mcqs == 12
+    records = yaml.safe_load((s1 / "content/questions/test.yaml").read_text())
+    records[0].update(
+        review_status="ai_verified",
+        ai_assisted=True,
+        verified_by=None,
+        ai_review={"primary_reviewer": "ai:first", "independent_reviewer": "ai:second"},
+        source={
+            "kind": "authored",
+            "factual_reference_url": (
+                "https://brendanpshea.github.io/database_sql/database_ch02_select_scifi.html"
+            ),
+        },
+    )
+    save(s1, "content/questions/test.yaml", records)
+    content = load_content(s1)
+    assert content.ai_counts.reviewed_mcqs == 1
+    assert content.human_counts.reviewed_mcqs == 11
+    check_stage(content.counts, "S1")
+    with pytest.raises(ContentError, match="S1"):
+        check_stage(content.human_counts, "S1")
+
+
+def test_ai_provenance_cannot_claim_human_signoff(foundation: Path) -> None:
+    from pydantic import ValidationError
+
+    from content.schemas.models import MCQ
+
+    record = mcq("test_ai", "sql.select")
+    record.update(
+        review_status="ai_verified",
+        ai_assisted=True,
+        ai_review={"primary_reviewer": "ai:first", "independent_reviewer": "ai:second"},
+    )
+    with pytest.raises(ValidationError, match="cannot claim a human"):
+        MCQ.model_validate(record)
+    record["verified_by"] = None
+    incomplete = {
+        **record,
+        "ai_review": {"primary_reviewer": "ai:one", "independent_reviewer": "ai:one"},
+    }
+    with pytest.raises(ValidationError, match="separate-context"):
+        MCQ.model_validate(incomplete)
+
+    save(foundation, "content/questions/test.yaml", [record])
+    with pytest.raises(ContentError, match="exact catalog chapter URL"):
+        load_content(foundation)
+
+
+def test_human_status_rejects_an_ai_identity() -> None:
+    from pydantic import ValidationError
+
+    from content.schemas.models import MCQ
+
+    record = mcq("test_human", "sql.select")
+    record["verified_by"] = "ai:reviewer"
+    with pytest.raises(ValidationError, match="human reviewer identity"):
+        MCQ.model_validate(record)

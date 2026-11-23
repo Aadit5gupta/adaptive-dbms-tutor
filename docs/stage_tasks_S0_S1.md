@@ -2,6 +2,8 @@
 
 **Source of truth:** `../MASTER_PLAN.md` v1.2. This is an *execution checklist*, not an alternative design. Follow the canonical enums/ref formats in the master plan and `content_authoring_guide.md`. Each task is small enough for a test-backed commit. Use `S0.1`, `S0.2`, ... for commit subjects. Do not declare S1 complete without an actual browser journey, human-approved content and adversarial SQL tests.
 
+The original engineering sequence below retains historical human gate references. Post-build learner activation uses the explicit learner gate in [the authoring guide](content_authoring_guide.md).
+
 ## S0 — Working foundation and content contracts
 
 ### S0.1 — Repo and docs integrity
@@ -16,7 +18,7 @@
 
 **Files:** `content/schemas/`, `content/curriculum/topics.yaml`, `scripts/validate_content.py`, `backend/tests/test_validate_content.py`, test-only fixtures.
 
-**Build:** Define 7 curriculum domains + stable subtopic IDs; questions with immutable `id@version` refs, canonical `pool` enum, one correct option, source/review metadata; lessons, SQL tasks, misconception definitions. Define review statuses `draft|author_verified|independent_verified`, definition boolean `enabled`, per-user state separately. Implement `--strict` and `--stage S1`/`--stage S4` CLI validations. Treat `detector` as a **role**, never a question pool. Include prerequisite cycle check and no checkpoint/held-out leakage. Include explicit tests of same ID with two versions vs duplicate identical versions.
+**Build:** Define 7 curriculum domains + stable subtopic IDs; questions with immutable `id@version` refs, canonical `pool` enum, one correct option, source/review metadata; lessons, SQL tasks, misconception definitions. Define review statuses `draft|ai_verified|author_verified|independent_verified`, definition boolean `enabled`, per-user state separately. Implement `--strict` and `--stage S1`/`--stage S4` CLI validations. Treat `detector` as a **role**, never a question pool. Include prerequisite cycle check and no checkpoint/held-out leakage. Include explicit tests of same ID with two versions vs duplicate identical versions.
 
 **Tests:** every invalid fixture fails with actionable path/message; 0 approved definitions may pass structural strict but must **fail `--stage S1`**; supported complete S1 fixture passes. **Accept:** test-only fixtures do not seed production.
 
@@ -76,7 +78,7 @@
 
 **Files:** loader/assessment service, Pydantic DTOs, API/tests.
 
-**Build:** only human-reviewed eligible versions load into production/demo learning pool, server allocates questions, answer withheld, single submit per session item, first grade recorded. Detector role comes from a wrong-option mapping; checkpoint allocation restricted to learner-unseen reserved pool; pre/post pools never exposed as practice.
+**Build:** only publication-eligible versions load into production/demo learning pool, server allocates questions, answer withheld, single submit per session item, first grade recorded. Detector role comes from a wrong-option mapping; checkpoint allocation restricted to learner-unseen reserved pool; pre/post pools never exposed as practice.
 
 **Tests:** incorrect vs correct grading, key/distractor leakage, duplicate attempts across sessions, SQL content not parsed as MCQ, two published versions preserve original attempts. **Accept:** no hidden key in pre-submit DTO.
 

@@ -1,5 +1,5 @@
 - code: KEYS-02
-  enabled: false
+  enabled: true
   name: Assumes repeated foreign-key values are invalid
   explanation: The learner may be applying the parent key's uniqueness requirement to rows in the child table.
   evidence_rule:
@@ -14,13 +14,19 @@
   remediation_lesson_ref: lesson_fk_multiplicity@1
   retrieval_query: foreign key repeated child reference unique
   subtopic_id: relational.keys
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   source:
     kind: authored
-    factual_reference_url: https://www.sqlite.org/foreignkeys.html
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/07-constraints/constraints.html
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
 - code: SQL-JOIN-01
-  enabled: false
+  enabled: true
   name: Assumes INNER JOIN preserves unmatched rows
   explanation: The learner may expect an unmatched left row to remain after an inner join.
   evidence_rule:
@@ -35,16 +41,22 @@
   remediation_lesson_ref: lesson_join_unmatched@1
   retrieval_query: left join inner join unmatched rows null
   subtopic_id: sql.joins
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   source:
     kind: authored
-    factual_reference_url: https://www.sqlite.org/lang_select.html
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/04-multiple-tables/multiple-tables.html
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
 - code: NORM-03
-  enabled: false
+  enabled: true
   name: Confuses partial and transitive dependencies
-  explanation: The learner may confuse a determinant that is part of a composite key with a dependency carried by
-    a non-key field.
+  explanation: The learner may confuse a determinant that is part of a composite key with a dependency carried
+    by a non-key field.
   evidence_rule:
     min_distinct_logical_questions: 2
     ignore_after_revealing_hint: true
@@ -57,8 +69,14 @@
   - q_lean_norm_checkpoint_depot@1
   retrieval_query: partial dependency proper subset composite key transitive dependency chain
   subtopic_id: normalization.normal_forms
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   source:
     kind: authored
-    factual_reference_url: https://opentextbc.ca/dbdesign01/chapter/chapter-12-normalization/
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/03-normalization/normalization.html
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context

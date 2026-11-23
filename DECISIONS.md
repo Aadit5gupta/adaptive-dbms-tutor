@@ -37,6 +37,8 @@
 
 | D10 | 2026-11-23 | Enable the SQL worker on tested Apple Silicon macOS | macOS rejected RLIMIT_AS; SQLite hard heap cap plus tested CPU, file and descriptor limits still apply | Unverified platform support | Other platforms use worker-unavailable state |
 
+| D11 | 2026-11-23 | Allow two-pass `ai_verified` originals in local learning and preserve human-only gates | Owner authorized post-build activation. Exact chapter evidence, separate-context review and independent SQL checks support the initial bank | Treating AI review as human sign-off or clearing book text during factual review | Learner gates use explicit `--review-policy learner`. Human pilot review and section-rights approvals retain their existing requirements. |
+
 ## Deviations and blockers
 
 | Date | Stage/task | Problem / deviation | Impact | Fallback | Owner action required |
@@ -44,6 +46,6 @@
 | 2026-11-23 | S0.1 / S5 | Ollama CLI unavailable at bootstrap | Real-model acceptance remained pending | Owner installed Ollama and `ollama list` confirmed `qwen3:1.7b` on 23 November 2026 | Run the opt-in real-model check after S5 integration |
 
 | 2026-11-23 | S0.6 and later pushes | GitHub rejects workflow creation with current CLI OAuth token | Initially delayed commits and CI | `workflow` scope confirmed and queued commits pushed successfully on 23 November 2026 | Resolved |
-| 2026-11-23 | S1.8 | Initial lessons, questions and SQL output artifacts await human verification | S1 content gate cannot pass | Continue engineering with labeled synthetic test fixtures | Review and explicitly verify the draft content |
+| 2026-11-23 | S1.8 | Initial lessons, questions and SQL output artifacts await human verification | Historical human-only S1 gate remained open | D11 adds a learner-policy route after separate-context verification | Human review remains pending for the human-only gate |
 
 Never invent the owner's approval, manual review, license clearance or human pilot enrollment.

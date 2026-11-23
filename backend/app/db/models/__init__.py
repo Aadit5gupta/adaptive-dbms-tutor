@@ -48,7 +48,9 @@ class LessonVersion(Base):
         UniqueConstraint("lesson_id", "version", name="lesson_logical_version"),
         CheckConstraint("version > 0"),
         CheckConstraint("id = lesson_id || '@' || version"),
-        CheckConstraint("review_status IN ('author_verified', 'independent_verified')"),
+        CheckConstraint(
+            "review_status IN ('ai_verified', 'author_verified', 'independent_verified')"
+        ),
     )
 
     id: Mapped[str] = mapped_column(primary_key=True)
@@ -79,7 +81,9 @@ class QuestionVersion(Base):
         CheckConstraint("version > 0"),
         CheckConstraint("id = question_id || '@' || version"),
         CheckConstraint("pool IN ('diagnostic', 'practice', 'checkpoint', 'pre_test_a', 'post_test_b')"),
-        CheckConstraint("review_status IN ('author_verified', 'independent_verified')"),
+        CheckConstraint(
+            "review_status IN ('ai_verified', 'author_verified', 'independent_verified')"
+        ),
     )
 
     id: Mapped[str] = mapped_column(primary_key=True)

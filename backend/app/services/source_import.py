@@ -51,6 +51,11 @@ def index_reviewed_lessons(db: Session, content: Content) -> int:
     for item in latest.values():
         if db.get(LessonVersion, item.ref) is None:
             raise ValueError(f"{item.ref}: publish the reviewed version before indexing")
+        review = (
+            "AI-verified original lesson"
+            if item.review_status == "ai_verified"
+            else "Human-reviewed lesson"
+        )
         text = item.body_markdown
         digest = sha256(text.encode("utf-8")).hexdigest()
         for number, body in enumerate(chunk_text(text), 1):
@@ -64,7 +69,7 @@ def index_reviewed_lessons(db: Session, content: Content) -> int:
                     title=item.title,
                     body=body,
                     source_url=str(item.source.factual_reference_url),
-                    attribution=f"Lesson: {item.title} ({item.author})",
+                    attribution=f"{review} by {item.author}",
                     source_hash=digest,
                 )
                 .on_conflict_do_nothing(index_elements=["passage_key"])

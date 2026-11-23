@@ -79,7 +79,7 @@ export function TutorPanel({ topic, demoLearner, itemId, sqlAttempt }: TutorPane
                 {reply.citations.map((citation) => (
                   <li key={citation.id}>
                     <a href={citation.url} className="font-medium text-green-900 underline">{citation.title}</a>
-                    <span className="text-stone-600"> · {citation.kind === 'lesson' ? 'Reviewed lesson reference' : citation.attribution}</span>
+                    <span className="text-stone-600"> · {citation.attribution}</span>
                   </li>
                 ))}
               </ul>}

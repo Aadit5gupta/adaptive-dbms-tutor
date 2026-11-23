@@ -22,6 +22,7 @@ class LessonDetail(LessonLink):
     topic_id: str
     body: str
     source_url: str
+    review_status: str
 
 
 class TopicView(BaseModel):
@@ -114,6 +115,7 @@ def lesson_detail(db: Session, ref: str) -> LessonDetail:
         title=version.title,
         body=version.body_markdown,
         source_url=str(source.factual_reference_url),
+        review_status=version.review_status,
     )
 
 

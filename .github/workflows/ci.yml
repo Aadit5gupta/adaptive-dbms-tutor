@@ -23,6 +23,8 @@ jobs:
       - run: uv sync --project backend --locked --extra dev
       - name: Unit tests, lint, types and content
         run: bash scripts/check_backend.sh backend/.venv/bin
+      - name: Reviewed learner content gate
+        run: backend/.venv/bin/python scripts/validate_content.py --strict --stage S4 --review-policy learner
       - name: Fresh application migration
         env:
           DBMS_APP_DB: ${{ runner.temp }}/adaptive-dbms-ci-app.sqlite

@@ -3,8 +3,8 @@
   type: mcq
   pool: diagnostic
   difficulty: easy
-  stem: Tickets.account_id references Accounts.id. The column has no UNIQUE constraint. Account 9 exists. Which
-    insertion respects this foreign key?
+  stem: Tickets.account_id is an enforced foreign key to Accounts.id. It has no uniqueness constraint. Account
+    9 exists and account 10 does not. Which insertion satisfies the foreign key?
   explanation: Both tickets can reference account 9. The foreign key checks for a parent; it does not prohibit
     repeating the child value.
   options:
@@ -15,46 +15,58 @@
     misconception_code: KEYS-02
   - text: A ticket referencing nonexistent account 10.
     correct: false
-  - text: A ticket whose account reference is erased by the database.
+  - text: Two new tickets that both reference account 10.
     correct: false
   subtopic_id: relational.keys
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   source:
     kind: authored
-    factual_reference_url: https://www.sqlite.org/foreignkeys.html
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/07-constraints/constraints.html
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
 - id: q_keys_detector_members
   version: 1
   type: mcq
   pool: practice
   difficulty: easy
-  stem: Members.club_id references Clubs.id. A new member tries to join club 22, which already has a member.
-    What follows from the foreign key alone?
-  explanation: The new row can use club ID 22. A separate constraint would be required to disallow repeated
-    non-null club IDs.
+  stem: Members.club_id references Clubs.id. Clubs 22 and 23 exist. Two different members already have club_id
+    22. What does the foreign key tell you about these rows?
+  explanation: The constraint requires a matching club for each non-null reference. Repetition in Members is allowed
+    unless a separate constraint forbids it.
   options:
-  - text: The new row must replace the existing member.
+  - text: Any positive club ID is valid even if no matching club exists.
     correct: false
-  - text: The club ID must be changed to match the new member's own ID.
+  - text: The constraint is satisfied only when the club ID also equals the member ID.
     correct: false
-  - text: The foreign key permits the same existing club ID in both rows.
+  - text: Both references to club 22 are valid. A non-null reference to a missing club would be invalid.
     correct: true
-  - text: The new row is rejected because a foreign-key value must appear only once in Members.
+  - text: Those two member rows violate the foreign key because club 22 appears twice in Members.
     correct: false
     misconception_code: KEYS-02
   subtopic_id: relational.keys
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   source:
     kind: authored
-    factual_reference_url: https://www.sqlite.org/foreignkeys.html
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/07-constraints/constraints.html
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
 - id: q_keys_checkpoint_rooms
   version: 1
   type: mcq
   pool: checkpoint
   difficulty: easy
-  stem: Bookings.room_id references Rooms.id. Which additional constraint would limit each non-null room ID
-    to at most one Bookings row?
+  stem: Bookings.room_id references Rooms.id. Which additional constraint would limit each non-null room ID to
+    at most one Bookings row?
   explanation: A UNIQUE constraint on the child column makes repeated non-null room IDs invalid.
   options:
   - text: NOT NULL on Bookings.room_id.
@@ -66,42 +78,55 @@
   - text: NOT NULL on Rooms.id.
     correct: false
   subtopic_id: relational.keys
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   source:
     kind: authored
-    factual_reference_url: https://www.sqlite.org/foreignkeys.html
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/07-constraints/constraints.html
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
 - id: q_keys_checkpoint_badges
   version: 1
   type: mcq
   pool: checkpoint
   difficulty: easy
-  stem: Badge.issue_office references Office.id, with no other constraint on issue_office. Office 2 exists.
-    Which pair of issue_office values can appear in two different badges?
-  explanation: Both badges can reference office 2. A value that does not exist in Office.id fails the foreign
-    key.
+  stem: Badge.issue_office is a nullable, enforced foreign key to Office.id with no uniqueness constraint on the
+    child column. One badge already references office 2. Office 2 exists and office 7 does not. Three new badges have distinct IDs
+    and issue_office values 2, NULL, and 7. If inserted individually, which are accepted?
+  explanation: A nullable single-column foreign key accepts NULL. A second reference to office 2 is also valid
+    because the parent exists and the child column has no uniqueness constraint.
   options:
-  - text: 2 and nonexistent office 7.
+  - text: All three are accepted.
     correct: false
-  - text: Nonexistent office 8 and 2.
+  - text: Only the badge with NULL is accepted.
     correct: false
-  - text: Nonexistent office 7 twice.
+  - text: Only the badge referencing office 2 is accepted.
     correct: false
-  - text: 2 and 2.
+  - text: The badges with NULL and office 2 are accepted.
     correct: true
   subtopic_id: relational.keys
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   source:
     kind: authored
-    factual_reference_url: https://www.sqlite.org/foreignkeys.html
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/07-constraints/constraints.html
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
 - id: q_join_detector_routes
   version: 1
   type: mcq
   pool: diagnostic
   difficulty: easy
-  stem: A transit report needs every route, including routes with no scheduled departures. Routes is the left
-    table. Which join meets the requirement?
+  stem: A report must list every route even if Departures is empty. When departure data exists, show only departures
+    that match the route ID. Routes is the left table. Which join guarantees this?
   explanation: A LEFT JOIN preserves route rows that have no matching departure.
   options:
   - text: INNER JOIN Departures on the route ID.
@@ -114,18 +139,24 @@
   - text: INNER JOIN Departures on equal departure times.
     correct: false
   subtopic_id: sql.joins
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   source:
     kind: authored
-    factual_reference_url: https://www.sqlite.org/lang_select.html
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/04-multiple-tables/multiple-tables.html
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
 - id: q_join_detector_orders
   version: 1
   type: mcq
   pool: practice
   difficulty: easy
-  stem: An INNER JOIN connects Customers to Orders by customer ID. Imani has no orders. How many rows in the
-    join result are attributable to Imani?
+  stem: An INNER JOIN connects Customers to Orders by customer ID. Imani has no orders. How many rows in the join
+    result are attributable to Imani?
   explanation: A row appears only for a matched customer/order pair. An INNER JOIN produces zero rows for Imani.
   options:
   - text: One row with null order columns.
@@ -138,11 +169,17 @@
   - text: One row with a generated order ID.
     correct: false
   subtopic_id: sql.joins
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   source:
     kind: authored
-    factual_reference_url: https://www.sqlite.org/lang_select.html
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/04-multiple-tables/multiple-tables.html
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
 - id: q_join_checkpoint_households
   version: 1
   type: mcq
@@ -161,41 +198,54 @@
   - text: A row with the meter ID copied from the household ID.
     correct: false
   subtopic_id: sql.joins
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   source:
     kind: authored
-    factual_reference_url: https://www.sqlite.org/lang_select.html
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/04-multiple-tables/multiple-tables.html
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
 - id: q_join_checkpoint_teams
   version: 1
   type: mcq
   pool: checkpoint
   difficulty: easy
-  stem: A LEFT JOIN from Teams to Games finds two matching games for Cedar and none for Maple. How many output
-    rows represent each team?
-  explanation: Cedar appears once per matching game; Maple contributes one row with NULL game fields.
+  stem: A LEFT JOIN from Teams to Games finds two matching games for Cedar and none for Maple. After grouping
+    by team ID, what values does COUNT(Games.game_id) return? Games.game_id is non-null for stored games.
+  explanation: Cedar has two matched game IDs. Maple has one preserved row whose game ID is NULL, and COUNT(Games.game_id)
+    skips NULL.
   options:
   - text: Cedar 1, Maple 0.
     correct: false
-  - text: Cedar 2, Maple 0.
-    correct: false
-  - text: Cedar 1, Maple 1.
-    correct: false
   - text: Cedar 2, Maple 1.
+    correct: false
+  - text: Cedar 2, no Maple group.
+    correct: false
+  - text: Cedar 2, Maple 0.
     correct: true
   subtopic_id: sql.joins
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   source:
     kind: authored
-    factual_reference_url: https://www.sqlite.org/lang_select.html
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/04-multiple-tables/multiple-tables.html
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
 - id: q_practice_keys_missing
   version: 1
   type: mcq
   pool: practice
   difficulty: easy
-  stem: Invoices.customer_id references Customers.id and foreign-key enforcement is enabled. An invoice uses
-    a non-null customer ID absent from Customers. What happens when the constraint is checked?
+  stem: Invoices.customer_id references Customers.id and foreign-key enforcement is enabled. An invoice uses a
+    non-null customer ID absent from Customers. What happens when the constraint is checked?
   explanation: A non-null foreign key must match a parent key. This invoice fails the constraint.
   options:
   - text: A customer is inserted automatically.
@@ -207,11 +257,17 @@
   - text: The invoice is accepted if its own primary key is distinct.
     correct: false
   subtopic_id: relational.keys
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   source:
     kind: authored
-    factual_reference_url: https://www.sqlite.org/foreignkeys.html
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/07-constraints/constraints.html
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
 - id: q_practice_select_where
   version: 1
   type: mcq
@@ -229,11 +285,17 @@
   - text: 3, 5, and 7.
     correct: false
   subtopic_id: sql.select
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   source:
     kind: authored
-    factual_reference_url: https://www.sqlite.org/lang_select.html
+    factual_reference_url: https://brendanpshea.github.io/database_sql/database_ch02_select_scifi.html
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
 - id: q_practice_select_columns
   version: 1
   type: mcq
@@ -251,11 +313,17 @@
   - text: name only.
     correct: false
   subtopic_id: sql.select
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   source:
     kind: authored
-    factual_reference_url: https://www.sqlite.org/lang_select.html
+    factual_reference_url: https://brendanpshea.github.io/database_sql/database_ch02_select_scifi.html
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
 - id: q_practice_count_null
   version: 1
   type: mcq
@@ -273,8 +341,14 @@
   - text: '2.'
     correct: true
   subtopic_id: sql.aggregation
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   source:
     kind: authored
-    factual_reference_url: https://www.sqlite.org/lang_aggfunc.html
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/09-grouping-and-aggregation/grouping-and-aggregation.html
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context

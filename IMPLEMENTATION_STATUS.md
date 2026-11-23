@@ -2,7 +2,7 @@
 
 **Authority:** `MASTER_PLAN.md` v1.2. This is a factual report; initial statuses below are NOT claims of tested code.
 
-- **Current stage:** S6 engineering and verification complete; final acceptance blocked by human review and source clearance
+- **Current stage:** S6 engineering complete and the local learner bank activated. Human-only gates and publisher indexing remain open.
 - **Passing commits:** use `git log --oneline --grep='^S[0-6]\.'` (a commit cannot embed its own hash)
 - **Last updated by implementation agent:** 2026-11-23
 - **Environment/OS/tested versions:** see bootstrap CLI checks in `DECISIONS.md`
@@ -10,16 +10,15 @@
 
 ## Content (derive counts from validator output, never estimate)
 
-| Measure | Current confirmed | S1 exit | Lean MVP S4 exit |
-|---|---:|---:|---:|
-| Human-reviewed MCQs (`author_verified` or better) | 0 | ≥12 including ≥4 ordinary practice | ≥30 |
-| Complete enabled misconception definitions | 0 | ≥2 | ≥3 |
-| Human-reviewed lessons | 0 | ≥2 | ≥6 |
-| SQL exercises with independently checked expected results on all fixtures | 0 | ≥1 | ≥6 |
-| Indexed books in searchable FTS (not just licensed) | 0 | 0 acceptable (authored lesson fallback) | target 2; report actual count |
-| Five catalog entries | 5 | 5 | 5 |
+| Measure | Learner policy | AI-verified | Human-reviewed | S1 minimum | S4 minimum |
+|---|---:|---:|---:|---:|---:|
+| MCQs | 30 | 30 | 0 | 12 | 30 |
+| Ordinary practice MCQs | 17 | 17 | 0 | 4 | 4 |
+| Lessons | 6 | 6 | 0 | 2 | 6 |
+| SQL exercises independently checked across all fixtures | 6 | 6 | 0 | 1 | 6 |
+| Enabled misconception definitions with full coverage | 3 | 3 | 0 | 2 | 3 |
 
-**Important:** the structural `--strict` check can pass with zero enabled misconceptions; the **S1 stage gate** must explicitly fail until its content minima pass. Unreviewed AI-drafted content never counts.
+Six original lessons are searchable in both local databases. The Library reports **0 of 5 books indexed** and the manifest contains zero approved publisher sections. S1 and S4 pass with `--review-policy learner`. Both default human-only gates exit 1 with zero qualifying records.
 
 ## S0 — Source of truth, content schema, bootstrap
 
@@ -97,6 +96,7 @@
 |---|---|---|---|
 | S6.1 Architecture, schema, demo and viva | done_tested | Added architecture and ER diagrams, schema dictionary, exact demo walkthrough, README updates and pinned the demo's documented JOIN exercise. Pytest 117, Ruff/mypy/content validation and 22 local links passed. Pushed to `origin/main`; CI passed. | 2026-11-23 / `5df42ea` |
 | S6.2 Fresh-clone and hosted verification | done_tested | Verified GitHub clone `5df42ea`, fresh dependencies and database, 117 backend tests, 2 Vitest tests and 4 Chrome tests, lint, types, build and real Ollama. Hosted CI passed. Live workspace frontend, API, catalog and demo identities responded. Observed review-gate failures documented. | 2026-11-23 / `S6.2` |
-| Final acceptance | blocked | Reviewed-corpus demo, learner content and source clearance require human sign-off. The test-only A/B flow and real Ollama provider have been demonstrated. | 2026-11-23 |
+| S6.3 Original learner content verification and activation | done_tested | Verified and published 45 original items using two AI review passes. Updated the content schemas, migration, publication, retrieval attribution, fixtures, review documents and authored Chrome demo. Both learner gates, 130 backend tests, two Vitest tests, five Chrome scenarios, CLI replay, schema checks and real indexed-corpus Ollama passed. | 2026-11-23 / see `git log --oneline --grep='^S6.3:'` |
+| Human review and publisher indexing | blocked | Human-only gates and independent human pilot sign-off require actual human review. Publisher ingestion requires per-section rights review and approved hashes. OpenStax and DataField additionally require permission evidence for this corpus. | 2026-11-23 |
 
 **Allowed task statuses:** `todo | in_progress | done_tested | blocked`. Mark `done_tested` only with executed commands, observed results and date. A passing stage is never inferred from completed scaffolding. If human review/licensing blocks a gate, label it **blocked**, continue eligible engineering work and disclose limitations honestly.

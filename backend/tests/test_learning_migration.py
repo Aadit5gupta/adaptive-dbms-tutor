@@ -143,3 +143,68 @@ def test_attempt_uniqueness_and_item_version(migrated: Settings) -> None:
                 )
     finally:
         engine.dispose()
+
+
+def test_ai_review_upgrade_preserves_existing_versions_and_links(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("DBMS_APP_DB", str(tmp_path / "existing.sqlite"))
+    monkeypatch.setenv("DBMS_DEMO_DB", str(tmp_path / "demo.sqlite"))
+    config = Config(str(ALEMBIC_INI))
+    command.upgrade(config, "0006_tutor_threads")
+    engine = open_engine(Settings().app_db)
+    try:
+        with engine.begin() as db:
+            db.exec_driver_sql("INSERT INTO topics VALUES ('sql.select', 'sql', 'SELECT', 0)")
+            db.exec_driver_sql("INSERT INTO questions VALUES ('question', 'sql.select', 'mcq')")
+            db.exec_driver_sql(
+                "INSERT INTO question_options VALUES ('question@1', 0, 'Choice', 1, NULL)"
+            )
+            db.execute(text(PUBLISH), {"ref": "question@1", "version": 1})
+            db.exec_driver_sql("INSERT INTO lessons VALUES ('lesson', 'sql.select')")
+            db.exec_driver_sql("""
+                INSERT INTO lesson_versions VALUES (
+                    'lesson@1', 'lesson', 1, 'Title', 'Body', 'author_verified',
+                    'https://example.invalid', 'Synthetic reviewer', '2026-11-23', 'hash'
+                )
+            """)
+            db.exec_driver_sql("""
+                INSERT INTO source_passages (
+                    passage_key, kind, lesson_ref, topic_id, title, body, source_url, attribution, source_hash
+                ) VALUES (
+                    'passage', 'lesson', 'lesson@1', 'sql.select', 'Title', 'Legacy body',
+                    'https://example.invalid', 'Synthetic test author', 'hash'
+                )
+            """)
+
+        command.upgrade(config, "head")
+        with engine.begin() as db:
+            assert db.exec_driver_sql("PRAGMA foreign_key_check").all() == []
+            assert db.scalar(text("SELECT body FROM question_options")) == "Choice"
+            assert db.scalar(text("SELECT review_status FROM lesson_versions")) == "author_verified"
+            assert (
+                db.scalar(
+                    text("""
+                SELECT rowid FROM source_passages_fts WHERE source_passages_fts MATCH 'legacy'
+            """)
+                )
+                == 1
+            )
+            db.execute(
+                text(PUBLISH.replace("author_verified", "ai_verified")),
+                {"ref": "question@2", "version": 2},
+            )
+
+        for statement in (
+            "UPDATE lesson_versions SET title = 'Changed' WHERE id = 'lesson@1'",
+            "INSERT INTO question_options VALUES ('question@2', 1, 'Extra', 0, NULL)",
+        ):
+            with pytest.raises(IntegrityError, match="immutable"), engine.begin() as db:
+                db.exec_driver_sql(statement)
+        with pytest.raises(IntegrityError, match="CHECK"), engine.begin() as db:
+            db.execute(
+                text(PUBLISH.replace("author_verified", "draft")),
+                {"ref": "question@3", "version": 3},
+            )
+    finally:
+        engine.dispose()

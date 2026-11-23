@@ -60,6 +60,7 @@ class LessonView(BaseModel):
     title: str
     body: str
     source_url: str
+    review_status: str
 
 
 def require_learner(db: Session, learner: Learner) -> str:
@@ -213,7 +214,10 @@ def recommended_lesson(db: Session, learner: Learner) -> LessonView:
 
     source = Source.model_validate_json(lesson.source_ref)
     return LessonView(
-        title=lesson.title, body=lesson.body_markdown, source_url=str(source.factual_reference_url)
+        title=lesson.title,
+        body=lesson.body_markdown,
+        source_url=str(source.factual_reference_url),
+        review_status=lesson.review_status,
     )
 
 

@@ -37,15 +37,32 @@ class Source(Record):
         return self
 
 
+AIReviewer = Annotated[str, StringConstraints(pattern=r"^ai:[a-z][a-z0-9_-]*$")]
+ReviewStatus = Literal["draft", "ai_verified", "author_verified", "independent_verified"]
+HUMAN_STATUSES = {"author_verified", "independent_verified"}
+
+
+class AIReview(Record):
+    primary_reviewer: AIReviewer
+    independent_reviewer: AIReviewer
+
+    @model_validator(mode="after")
+    def distinct_passes(self) -> "AIReview":
+        if self.primary_reviewer == self.independent_reviewer:
+            raise ValueError("AI verification requires a separate-context reviewer")
+        return self
+
+
 class Reviewed(Record):
     subtopic_id: TopicId
-    review_status: Literal["draft", "author_verified", "independent_verified"]
+    review_status: ReviewStatus
     source: Source
     author: Text | None = None
     verified_by: Text | None = None
     verified_on: date | None = None
     second_review: bool = False
     ai_assisted: bool
+    ai_review: AIReview | None = None
 
     @property
     def reviewed(self) -> bool:
@@ -53,9 +70,28 @@ class Reviewed(Record):
 
     @model_validator(mode="after")
     def require_review(self) -> "Reviewed":
+        if self.review_status == "ai_verified":
+            if (
+                not self.author
+                or not self.verified_on
+                or not self.ai_assisted
+                or not self.ai_review
+            ):
+                raise ValueError(
+                    "AI verification requires authorship, date, and two AI reviewer passes"
+                )
+            if self.verified_by or self.second_review:
+                raise ValueError("AI verification cannot claim a human reviewer or second review")
+            if self.source.kind != "authored" or self.source.source_section_clearance_id:
+                raise ValueError("AI verification is limited to original authored material")
+            return self
+        if self.ai_review is not None:
+            raise ValueError("ai_review metadata requires ai_verified status")
         if self.reviewed:
             if not all((self.author, self.verified_by, self.verified_on)):
                 raise ValueError("reviewed records require author, verified_by and verified_on")
+            if self.verified_by and self.verified_by.lower().startswith("ai:"):
+                raise ValueError("human review requires a human reviewer identity")
             if "second_review" not in self.model_fields_set:
                 raise ValueError("reviewed records require explicit second_review")
             if self.second_review != (self.review_status == "independent_verified"):

@@ -1,5 +1,6 @@
-"""Local server for browser E2E, using isolated synthetic test data."""
+"""Local server for browser E2E, using isolated test databases."""
 
+import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -19,7 +20,7 @@ from app.services.source_import import index_reviewed_lessons
 from app.services.tutor import TutorService
 
 from scripts.demo_support import demo_write
-from scripts.validate_content import load_content
+from scripts.validate_content import ROOT, load_content
 
 from .content_fixtures import make_foundation, make_s1_content
 
@@ -27,7 +28,11 @@ from .content_fixtures import make_foundation, make_s1_content
 def run() -> None:
     with TemporaryDirectory(prefix="dbms-browser-test-") as directory:
         root = Path(directory)
-        bank = make_s1_content(make_foundation(root / "bank"))
+        bank = (
+            ROOT
+            if os.environ.get("DBMS_TEST_AUTHORED") == "1"
+            else (make_s1_content(make_foundation(root / "bank")))
+        )
         settings = Settings(
             app_db=root / "app.sqlite",
             demo_db=root / "demo.sqlite",

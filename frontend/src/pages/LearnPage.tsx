@@ -57,6 +57,7 @@ export function LessonPage() {
     <div className="mt-4"><PageHeading title={lesson.data.title} /></div>
     <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(18rem,1fr)]">
       <article className={card}>
+        {lesson.data.review_status === 'ai_verified' && <p className="mb-4 text-sm text-stone-600">AI-verified original lesson</p>}
         <div className="lesson-markdown overflow-x-auto">
           <ReactMarkdown remarkPlugins={[remarkGfm]} skipHtml>{lesson.data.body}</ReactMarkdown>
         </div>

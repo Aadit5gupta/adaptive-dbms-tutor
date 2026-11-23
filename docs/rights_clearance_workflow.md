@@ -40,7 +40,7 @@ section_clearances:
     attribution_text: '<ready-to-display title/author/source/license/changes>'
 ```
 
-Set `exceptions_resolved` only after resolving documented exceptions. For DataField, a separate approval must include `permission_evidence_url`. Import verification hashes the exact UTF-8 bytes selected for indexing.
+Set `exceptions_resolved` only after resolving documented exceptions. For DataField and OpenStax, a separate approval must include `permission_evidence_url`. Import verification hashes the exact UTF-8 bytes selected for indexing.
 
 8. Run `python scripts/validate_content.py --strict` and section-rights tests. The import script must reject missing clearance, hash mismatch, unresolved exceptions, wrong source IDs and accidentally imported images. Do not override this for demos.
 9. Run an idempotent offline import into FTS with section/page provenance. Confirm query hits and displayed license/attribution. Count imported sections only after searchable chunks are committed. Keep raw publisher source files out of Git unless expressly permitted and needed.
@@ -56,7 +56,7 @@ Set `exceptions_resolved` only after resolving documented exceptions. For DataFi
 | OpenStax *Foundations of Information Systems* | Preface states CC BY-NC-SA 4.0; check special attribution/figure licenses and page-by-page required notices if reusing book text. |
 | DataField *Database Fundamentals* | No unambiguous blanket redistribution/indexing permission established in the inspected source. **Keep link-only** until written permission or a valid license explicitly permits use. |
 
-Evidence links and access dates are in `content/manifests/books.yaml`. This is a **partial audit**: it does not assert that all other sections lack exceptions.
+See the [section rights review package](section-rights-review.md) for exact chapter evidence and proposed exclusions. The manifest tracks existing exceptions and any actual clearances. This is a **partial audit**: it does not assert that all other sections lack exceptions.
 
 ## 4. Machine-verifiable gates
 
@@ -68,7 +68,7 @@ Evidence links and access dates are in `content/manifests/books.yaml`. This is a
 - Each approved imported text hash must match its clearance and stored chunk provenance. No clearance → no import. Approval without import → `indexed_books` remains unchanged.
 - Reviewer identity and dates must be real; Codex must never fill in fake human approvals.
 
-If two fully indexed books cannot be legally cleared by the evaluation deadline, ship a truthful catalog and genuinely original author-reviewed lessons. Explain the limitation rather than faking indexed content. With zero indexed books, do not claim the retrieval system supplies book-grounded passages.
+If two fully indexed books cannot be legally cleared by the evaluation deadline, ship a truthful catalog and eligible original human-reviewed or AI-verified lessons. Explain the limitation rather than faking indexed content. With zero indexed books, do not claim the retrieval system supplies book-grounded passages.
 
 ## Local import commands
 

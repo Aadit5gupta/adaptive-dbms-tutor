@@ -2,7 +2,7 @@
 
 Adaptive DBMS Tutor is a local-first DBMS and SQL learning platform. Deterministic grading drives mastery, misconception evidence and recommendations. The tutor uses SQLite FTS5, BM25 and the local Ollama model to explain reviewed material.
 
-The app runs on Apple Silicon macOS. The initial learning bank contains 30 draft MCQs, six draft lessons, six draft SQL exercises and three disabled misconception definitions. The Library shows five catalog entries and zero indexed books. Human sign-off enables the learner content.
+The app runs on Apple Silicon macOS. The learner bank includes 30 AI-verified MCQs, six original lessons, six SQL exercises and three enabled misconception definitions. Six original lessons support tutoring. The Library shows five catalog entries and zero indexed books. [Educational review](docs/educational-review.md) · [Section rights review](docs/section-rights-review.md)
 
 - [Implementation status](IMPLEMENTATION_STATUS.md)
 - [Architecture and schema](docs/architecture.md)
@@ -82,12 +82,13 @@ python scripts/verify_demo.py
 DBMS_DEMO_ENABLED=true python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --no-proxy-headers --no-access-log
 ```
 
-Run Vite in the second terminal and open `http://127.0.0.1:5173/demo`. The learning activities and real-content replay become available after the human review gate passes. See the [authoring and sign-off guide](docs/content_authoring_guide.md).
+Run Vite in the second terminal and open `http://127.0.0.1:5173/demo`. The replay uses the learner content gate. The default human-only content gate remains available for reporting human review coverage. See the [authoring and sign-off guide](docs/content_authoring_guide.md).
 
-The automated browser test uses isolated synthetic fixtures and real browser interactions. On this Mac, it uses the existing Google Chrome installation.
+The automated browser tests use isolated databases. Run the synthetic suite or the original learner bank in the existing Google Chrome installation.
 
 ```sh
 DBMS_TEST_CHROME=1 npm --prefix frontend run test:e2e
+DBMS_TEST_AUTHORED=1 DBMS_TEST_CHROME=1 npm --prefix frontend run test:e2e -- authored-demo.spec.ts
 ```
 
 SQL execution support and limits are documented in the [SQL worker notes](docs/sql-worker.md).

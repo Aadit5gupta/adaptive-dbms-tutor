@@ -128,6 +128,10 @@ class Catalog(Record):
             raise ValueError(f"{clearance.id}: section URL is outside book host")
         if clearance.exceptions_found.casefold() != "none" and not clearance.exceptions_resolved:
             raise ValueError(f"{clearance.id}: section exceptions must be resolved")
+        if clearance.reviewer.lower().startswith("ai:"):
+            raise ValueError(f"{clearance.id}: section clearance requires a human reviewer")
+        if book.id == "openstax_foundations_is" and not clearance.permission_evidence_url:
+            raise ValueError("OpenStax tutor ingestion requires documented written permission")
         if book.id == "datafield_db_fundamentals" and not clearance.permission_evidence_url:
             raise ValueError("DataField remains link-only without documented permission")
         if book.id == "bccampus_db_design_2e":

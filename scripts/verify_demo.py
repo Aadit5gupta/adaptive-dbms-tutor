@@ -127,6 +127,7 @@ def replay(path: Path, content_root: Path) -> None:
 
 def main() -> int:
     try:
+        # The browser serves the explicit learner policy, including AI verification.
         check_stage(load_content().counts, "S1")
         with demo_engine() as engine, TemporaryDirectory(prefix="dbms-demo-verify-") as directory:
             if engine is None:
@@ -141,7 +142,7 @@ def main() -> int:
     except ValueError as error:
         print(f"Demo verification blocked: {error}")
         return 1
-    print("Verified two learners, independent hypotheses, checkpoint resolution and SQL grading.")
+    print("Verified learner-policy content for two learners, independent hypotheses, checkpoint resolution and SQL grading.")
     return 0
 
 

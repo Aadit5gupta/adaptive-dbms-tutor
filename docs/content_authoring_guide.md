@@ -1,4 +1,4 @@
-# DBMS Mentor — human content authoring and review guide
+# DBMS Mentor — content authoring and review guide
 
 **Authority:** `../MASTER_PLAN.md` v1.2 §§3, 6, 8. This guide supplies examples of the **canonical data contract** and reviewer checklist. The actual content schemas implemented in S0.2 must match these names and enums. Examples below are **drafts**, not approved educational material; never copy a placeholder reviewer name/date into verified content.
 
@@ -6,11 +6,33 @@
 
 | `review_status` | What it means | Available to learners? |
 |---|---|---|
-| `draft` | Generated, incomplete, or not yet manually verified | **No** |
+| `draft` | Generated, incomplete, or awaiting verification | **No** |
+| `ai_verified` | Two separate-context AI passes verified original material with exact chapter evidence | **Yes**, for local learner activities and authored-lesson retrieval |
 | `author_verified` | Human owner manually checked answer, distractors, explanation, source, ambiguity and relevant SQL outputs | **Yes**, if rights/content dependencies are satisfied |
 | `independent_verified` | Independent second human reviewed the material | **Yes** |
 
-`enabled` is a **separate boolean** on misconception *definitions*, not a review status. Learner-specific misconception state is `possible|active|improving|resolved`, stored per learner. An AI may draft content and offer checks but may never set approval status or invent a human review. All approved content records require real `author`, `verified_by`, `verified_on`, `second_review`, `ai_assisted`, and documented source/provenance. When no second human reviewed it, `second_review: false` must be explicit.
+`enabled` is a separate boolean on misconception definitions. Learner-specific state is `possible|active|improving|resolved`. Human review requires a human identity in `verified_by` and an explicit `second_review` value. Higher-stakes pilot assessment requires independent human review.
+
+For original material, the primary AI pass checks factual claims against a published chapter, solves the item, tests distractors and checks source provenance. A reviewer using a separate context solves it again and checks ambiguity, misconception mappings and checkpoint independence. SQL review computes the expected rows independently and runs reference and alternate correct queries against every fixture. Record the disposition, date and two distinct AI identifiers. Leave unresolved items in `draft`. The runtime tutor has no publication authority.
+
+An original AI-verified item uses this review metadata. Replace the illustrative date and reviewers with the actual review record.
+
+```yaml
+review_status: ai_verified
+author: Adaptive DBMS Tutor (AI-assisted)
+verified_on: '2026-11-23'
+second_review: false
+ai_assisted: true
+ai_review:
+  primary_reviewer: ai:codex_primary
+  independent_reviewer: ai:codex_separate_context
+source:
+  kind: authored
+  factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/07-constraints/constraints.html
+  reproduced_book_text: false
+```
+
+Leave `verified_by` absent for `ai_verified`. Chapter URLs are factual links. To include publisher content in the index, follow the [rights clearance workflow](rights_clearance_workflow.md).
 
 ## B. Question identity and pools
 
@@ -135,20 +157,20 @@ second_review: false
 ai_assisted: true
 ```
 
-**These fixture paths are proposed outputs for Codex to create, not files that already exist.** Hidden fixtures must not be accessible from learner API responses or the frontend bundle. Correctness is not just “reference SQL executed without error”: a human must independently specify expected rows/duplicate counts (or a separately reviewed reference implementation), and test correct alternative SQL formulations on all fixtures. Include unmatched rows, duplicate rows, zero matches, `NULL`, and counting pitfalls. During validation, run the reference query against each fixture and compare it with the independently verified expected result. `Run` uses visible data only, while `Submit` grades on hidden data. No hint about JOIN type should automatically become a confirmed misconception.
+**These fixture paths are proposed outputs for Codex to create, not files that already exist.** Hidden fixtures must not be accessible from learner API responses or the frontend bundle. Correctness is not just “reference SQL executed without error”: the review must independently specify expected rows and duplicate counts or use a separately reviewed implementation. Test correct alternate SQL on all fixtures. Include unmatched rows, duplicate rows, zero matches, `NULL`, and counting pitfalls. During validation, run the reference query against each fixture and compare it with the independently verified expected result. `Run` uses visible data only, while `Submit` grades on hidden data. No hint about JOIN type should automatically become a confirmed misconception.
 
 ## F. Lessons
 
-A lesson version has `id`, `version`, `subtopic_id`, `review_status`, `title`, `source`, `author`, `verified_by`, `verified_on`, `second_review`, `ai_assisted` and Markdown body. The body contains: clear explanation, one small example with tables/rows, one **contrast** addressing the misconception, and a link or action for approved checkpoint practice. Reproduced or closely adapted passages require matching section rights clearance; independently authored educational explanations still cite fact-check sources without pretending a locally indexed passage exists.
+A lesson version has `id`, `version`, `subtopic_id`, `title`, Markdown body and the review/source metadata for its status. The lesson index keeps the immutable lesson reference, exact chapter link and AI or human attribution in separate lesson passages. The body contains: clear explanation, one small example with tables/rows, one **contrast** addressing the misconception, and a link or action for approved checkpoint practice. Reproduced or closely adapted passages require matching section rights clearance; independently authored educational explanations still cite fact-check sources without pretending a locally indexed passage exists.
 
 ## G. Validation modes and realistic budget
 
 - `python scripts/validate_content.py --strict`: complete referential/schema integrity for all content; all enabled definitions have full detector/lesson/checkpoint coverage; **zero enabled definitions is permitted at S0**.
-- `python scripts/validate_content.py --strict --stage S1`: additionally demands ≥2 fully covered enabled definitions, ≥12 reviewed MCQs (≥4 ordinary), ≥2 reviewed lessons, ≥1 SQL task validated on all fixtures. Failure is a true build gate for declaring S1 complete.
-- `python scripts/validate_content.py --strict --stage S4`: demands the lean-MVP thresholds in the master plan; stage-specific gate should not silently downgrade targets.
+- `python scripts/validate_content.py --strict --stage S1 --review-policy learner` requires ≥2 covered definitions, ≥12 reviewed MCQs including ≥4 ordinary practice items, ≥2 lessons and ≥1 checked SQL task.
+- Use `--stage S4 --review-policy learner` for ≥30 MCQs including ≥4 ordinary practice items, ≥6 lessons, ≥6 checked SQL tasks and ≥3 covered definitions. Either stage defaults to the same thresholds with human-only review when no review policy is specified.
 - The S1 minimum is **not** enough for the seven-domain diagnostic: show uncovered domains as unassessed. Content for the S4 product should be prioritized by user utility and correctness rather than artificial counts.
 
-A reasonable **planning** pace is around 5–8 manually verified questions per week for one reviewer, but record real throughput rather than claiming that pace as a fact. Codex can draft batches, derive edge cases and format files to accelerate reviews, never approve itself.
+A reasonable **planning** pace is around 5–8 manually verified questions per week for one reviewer, but record real throughput rather than claiming that pace as a fact. Track AI verification and human sign-off separately.
 
 ## H. Human sign-off checklist (per item)
 

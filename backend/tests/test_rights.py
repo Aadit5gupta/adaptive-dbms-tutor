@@ -92,3 +92,25 @@ def test_invalid_approval_does_not_index(manifest: dict[str, Any]) -> None:
     manifest["books"][0]["section_clearances"] = [approval]
     with pytest.raises(ValidationError, match="exceptions must be resolved"):
         Catalog.model_validate(manifest)
+
+
+def test_openstax_tutor_ingestion_requires_written_permission(manifest: dict[str, Any]) -> None:
+    book = next(book for book in manifest["books"] if book["id"] == "openstax_foundations_is")
+    section = next(
+        exception["section_url"]
+        for exception in book["section_exceptions"]
+        if exception["status"] == "blocked_pending_permission"
+    )
+    approval = clearance(section)
+    approval.update(exceptions_found="Publisher AI-use notice", exceptions_resolved=True)
+    book["section_clearances"] = [approval]
+    with pytest.raises(ValidationError, match="OpenStax tutor ingestion requires"):
+        Catalog.model_validate(manifest)
+
+
+def test_ai_cannot_serve_as_rights_reviewer(manifest: dict[str, Any]) -> None:
+    approval = clearance("https://opentextbc.ca/dbdesign01/chapter/test/")
+    approval["reviewer"] = "ai:reviewer"
+    manifest["books"][0]["section_clearances"] = [approval]
+    with pytest.raises(ValidationError, match="requires a human reviewer"):
+        Catalog.model_validate(manifest)

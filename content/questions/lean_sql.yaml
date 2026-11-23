@@ -4,13 +4,13 @@
   pool: practice
   subtopic_id: sql.ordering
   difficulty: easy
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   dialect: sqlite
   min_sqlite_version: '3.35'
-  prompt: 'Return customer IDs and names in descending order of customer ID.
-
-    Tables: customers(id, name) and orders(id, customer_id).'
+  prompt: |-
+    Return customer IDs and names in descending order of customer ID.
+    Tables: customers(id, name) and orders(id, customer_id).
   visible_fixture: content/sql_fixtures/shop_visible.sql
   hidden_fixtures:
   - content/sql_fixtures/shop_hidden_a.sql
@@ -29,20 +29,26 @@
     expected_result_file: tests/fixtures/expected/sorted_customers_shop_hidden_b.json
   source:
     kind: authored
-    factual_reference_url: https://www.sqlite.org/lang_select.html
+    factual_reference_url: https://brendanpshea.github.io/database_sql/database_ch02_select_scifi.html
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
 - id: sql_matched_customers
   version: 1
   type: sql
   pool: practice
   subtopic_id: sql.joins
   difficulty: medium
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   dialect: sqlite
   min_sqlite_version: '3.35'
-  prompt: 'Return the ID and name of each customer with at least one order. Return each customer once.
-
-    Tables: customers(id, name) and orders(id, customer_id).'
+  prompt: |-
+    Return the ID and name of each customer with at least one order. Return each customer once.
+    Tables: customers(id, name) and orders(id, customer_id).
   visible_fixture: content/sql_fixtures/shop_visible.sql
   hidden_fixtures:
   - content/sql_fixtures/shop_hidden_a.sql
@@ -62,20 +68,26 @@
     expected_result_file: tests/fixtures/expected/matched_customers_shop_hidden_b.json
   source:
     kind: authored
-    factual_reference_url: https://www.sqlite.org/lang_select.html
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/08-subqueries/subqueries.html
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
 - id: sql_unassigned_orders
   version: 1
   type: sql
   pool: practice
   subtopic_id: sql.null
   difficulty: easy
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   dialect: sqlite
   min_sqlite_version: '3.35'
-  prompt: 'Return the order IDs for orders whose customer assignment is missing.
-
-    Tables: customers(id, name) and orders(id, customer_id).'
+  prompt: |-
+    Return the order IDs for orders whose customer assignment is missing.
+    Tables: customers(id, name) and orders(id, customer_id).
   visible_fixture: content/sql_fixtures/shop_visible.sql
   hidden_fixtures:
   - content/sql_fixtures/shop_hidden_a.sql
@@ -94,26 +106,32 @@
     expected_result_file: tests/fixtures/expected/unassigned_orders_shop_hidden_b.json
   source:
     kind: authored
-    factual_reference_url: https://www.sqlite.org/lang_select.html
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/03-expressions/expressions.html
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
 - id: sql_customers_without_orders
   version: 1
   type: sql
   pool: practice
   subtopic_id: sql.joins
   difficulty: easy
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   dialect: sqlite
   min_sqlite_version: '3.35'
-  prompt: 'Return the ID and name of each customer who has placed no orders.
-
-    Tables: customers(id, name) and orders(id, customer_id).'
+  prompt: |-
+    Return the ID and name of each customer who has placed no orders.
+    Tables: customers(id, name) and orders(id, customer_id).
   visible_fixture: content/sql_fixtures/shop_visible.sql
   hidden_fixtures:
   - content/sql_fixtures/shop_hidden_a.sql
   - content/sql_fixtures/shop_hidden_b.sql
-  reference_query: SELECT c.id, c.name FROM customers c LEFT JOIN orders o ON o.customer_id = c.id WHERE o.id IS
-    NULL
+  reference_query: SELECT c.id, c.name FROM customers c LEFT JOIN orders o ON o.customer_id = c.id WHERE o.id
+    IS NULL
   compare:
     order_sensitive: false
     duplicate_sensitive: true
@@ -127,27 +145,32 @@
     expected_result_file: tests/fixtures/expected/customers_without_orders_shop_hidden_b.json
   source:
     kind: authored
-    factual_reference_url: https://www.sqlite.org/lang_select.html
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/04-multiple-tables/multiple-tables.html
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
 - id: sql_repeat_customers
   version: 1
   type: sql
   pool: practice
   subtopic_id: sql.aggregation
   difficulty: medium
-  review_status: draft
+  review_status: ai_verified
   ai_assisted: true
   dialect: sqlite
   min_sqlite_version: '3.35'
-  prompt: 'Return customer IDs and order counts for customers with at least two orders. Exclude orders without a
-    customer.
-
-    Tables: customers(id, name) and orders(id, customer_id).'
+  prompt: |-
+    Return customer IDs and order counts for customers with at least two orders. Exclude orders without a customer.
+    Tables: customers(id, name) and orders(id, customer_id).
   visible_fixture: content/sql_fixtures/shop_visible.sql
   hidden_fixtures:
   - content/sql_fixtures/shop_hidden_a.sql
   - content/sql_fixtures/shop_hidden_b.sql
-  reference_query: SELECT customer_id, COUNT(*) FROM orders WHERE customer_id IS NOT NULL GROUP BY customer_id HAVING
-    COUNT(*) >= 2
+  reference_query: SELECT customer_id, COUNT(*) FROM orders WHERE customer_id IS NOT NULL GROUP BY customer_id
+    HAVING COUNT(*) >= 2
   compare:
     order_sensitive: false
     duplicate_sensitive: true
@@ -161,4 +184,10 @@
     expected_result_file: tests/fixtures/expected/repeat_customers_shop_hidden_b.json
   source:
     kind: authored
-    factual_reference_url: https://www.sqlite.org/lang_select.html
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/09-grouping-and-aggregation/grouping-and-aggregation.html
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-23'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context

@@ -16,6 +16,16 @@ books:
   license_evidence_url: https://opentextbc.ca/dbdesign01/
   accessed_on: '2026-11-22'
   section_exceptions:
+  - section_url: https://opentextbc.ca/dbdesign01/chapter/chapter-7-the-relational-data-model/
+    issue: Chapter attribution identifies a CC BY 3.0 derivative of Relational Design Theory by Nguyen Kim Anh.
+    other_license_url: https://creativecommons.org/licenses/by/3.0/
+    status: blocked_pending_review
+    accessed_on: '2026-11-23'
+  - section_url: https://opentextbc.ca/dbdesign01/chapter/chapter-8-entity-relationship-model/
+    issue: Chapter attribution identifies a CC BY 3.0 derivative of Data Modeling Using Entity-Relationship Model by Nguyen Kim Anh.
+    other_license_url: https://creativecommons.org/licenses/by/3.0/
+    status: blocked_pending_review
+    accessed_on: '2026-11-23'
   - section_url: https://opentextbc.ca/dbdesign01/chapter/chapter-10-er-modelling/
     issue: Chapter attribution credits Relational Design Theory by Nguyen Kim Anh under CC BY 3.0; inspect
       derivative obligations and figures before importing this section.
@@ -84,14 +94,19 @@ books:
   license_evidence_url: https://openstax.org/books/foundations-information-systems/pages/preface
   accessed_on: '2026-11-22'
   section_exceptions:
+  - section_url: https://openstax.org/books/foundations-information-systems/pages/3-1-data-types-database-management-systems-and-tools-for-managing-data
+    issue: Section notice requests prior written permission for ingestion into generative AI offerings. Review applicability
+      and record written authorization before use as tutor context.
+    status: blocked_pending_permission
+    accessed_on: '2026-11-23'
   - section_url: https://openstax.org/books/foundations-information-systems/pages/preface
     issue: Preface specifies art/image attributions in captions and different third-party credits; exclude
       art by default, review each relevant section.
     status: blocked_pending_review
     accessed_on: '2026-11-22'
   section_clearances: []
-  notes: Only database-related portions; NC and share-alike obligations apply. No commercial publication without
-    permission. Default link-only policy is per uncleared section, NOT a dynamic indexing count.
+  notes: Only database-related portions. The publisher requests written permission for AI ingestion in its preface.
+    Review the notice and NC and share-alike terms before considering a tutor import. Default link-only policy is per uncleared section, NOT a dynamic indexing count.
   default_import_policy: link_only
 - id: datafield_db_fundamentals
   title: Database Fundamentals
