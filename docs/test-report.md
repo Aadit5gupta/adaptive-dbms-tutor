@@ -16,3 +16,10 @@
 At S0 exit the full local suite passed again. Strict validation checked the draft JOIN reference against three fixtures. GitHub rejected workflow creation because the active CLI token lacks `workflow` scope.
 
 S1 introduces the learner A/B demo. S5 requires a separately invoked real Ollama integration check.
+
+## S1 engineering boundary
+
+- Backend suite passed 84 tests on macOS arm64. Ruff, strict mypy, structural content validation and Alembic migration checks passed.
+- Frontend lint, typecheck, build and two Vitest tests passed. Headless Chrome Playwright passed two tests with synthetic fixture content, including the A/B learner flow, refresh, checkpoint resolution, real SQL preview/submission and cross-origin mutation rejection.
+- Reset and seed ran against the dedicated local demo database. The real-content replay and S1 stage gate exited 1 because the authored materials await human review. The synthetic replay passed in the backend test suite.
+- GitHub Actions remains pending the CLI workflow scope. Apple Silicon macOS is the tested SQL worker platform.

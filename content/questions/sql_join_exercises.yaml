@@ -8,7 +8,9 @@
   ai_assisted: true
   dialect: sqlite
   min_sqlite_version: "3.35"
-  prompt: Return the ID, name, and order count for every customer, including customers with zero orders.
+  prompt: |
+    Return the ID, name, and order count for every customer, including customers with zero orders.
+    Tables: customers(id, name) and orders(id, customer_id). Match orders.customer_id to customers.id.
   visible_fixture: content/sql_fixtures/shop_visible.sql
   hidden_fixtures:
     - content/sql_fixtures/shop_hidden_a.sql

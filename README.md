@@ -54,3 +54,24 @@ npm --prefix frontend run build
 ```
 
 The [test report](docs/test-report.md) records verified results.
+
+## Learner A/B demo
+
+Use the backend virtual environment from the previous setup. The scripts operate on the marked `data/demo.sqlite` database. Reset removes the two synthetic learner records and their progress.
+
+```sh
+python scripts/reset_demo.py
+python scripts/seed_demo.py
+python scripts/verify_demo.py
+DBMS_DEMO_ENABLED=true python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --no-proxy-headers
+```
+
+Run Vite in the second terminal and open `http://127.0.0.1:5173/demo`. The learning activities and real-content replay become available after the human review gate passes. See the [authoring and sign-off guide](docs/content_authoring_guide.md).
+
+The automated browser test uses isolated synthetic fixtures and real browser interactions. On this Mac, it uses the existing Google Chrome installation.
+
+```sh
+DBMS_TEST_CHROME=1 npm --prefix frontend run test:e2e
+```
+
+SQL execution support and limits are documented in the [SQL worker notes](docs/sql-worker.md).

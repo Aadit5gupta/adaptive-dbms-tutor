@@ -17,6 +17,7 @@ class Settings(BaseSettings):
 
     app_db: Path = Path("data/app.sqlite")
     demo_db: Path = Path("data/demo.sqlite")
+    demo_enabled: bool = False
 
     @model_validator(mode="after")
     def separate_database_paths(self) -> "Settings":

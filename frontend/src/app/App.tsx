@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import {
-  BookOpen, ChartNoAxesCombined, Database, House, LibraryBig, PenLine, Terminal,
+  BookOpen, ChartNoAxesCombined, Database, House, LibraryBig, PenLine, Terminal, Users,
 } from 'lucide-react'
 import { NavLink, Route, Routes } from 'react-router'
 
 import { fetchHealth } from '../api/health'
+import { DemoPage } from '../pages/DemoPage'
 import { FoundationPage } from '../pages/FoundationPage'
 
 const pages = [
@@ -58,6 +59,11 @@ export function App() {
               <Icon size={18} aria-hidden="true" />{title}
             </NavLink>
           ))}
+          <NavLink to="/demo" className={({ isActive }) =>
+            `flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium ${isActive ? 'bg-green-100 text-green-950' : 'text-stone-600 hover:bg-stone-100'}`
+          }>
+            <Users size={18} aria-hidden="true" />Learner demo
+          </NavLink>
         </nav>
       </aside>
       <div>
@@ -69,6 +75,7 @@ export function App() {
             {pages.map(({ path, title, description }) => (
               <Route key={path} path={path} element={<FoundationPage title={title} description={description} />} />
             ))}
+            <Route path="/demo" element={<DemoPage />} />
             <Route path="*" element={<><h1>Page missing</h1><NavLink className="mt-6 inline-block underline" to="/">Return to dashboard</NavLink></>} />
           </Routes>
         </main>
