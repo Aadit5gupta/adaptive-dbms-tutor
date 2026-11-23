@@ -1,0 +1,52 @@
+name: Tutor checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+        with:
+          python-version: "3.12"
+          enable-cache: false
+      - run: uv sync --project backend --locked --extra dev
+      - name: Unit tests, lint, types and content
+        run: bash scripts/check_backend.sh backend/.venv/bin
+      - name: Fresh application migration
+        env:
+          DBMS_APP_DB: ${{ runner.temp }}/adaptive-dbms-ci-app.sqlite
+          DBMS_DEMO_DB: ${{ runner.temp }}/adaptive-dbms-ci-demo.sqlite
+        run: |
+          backend/.venv/bin/alembic -c backend/alembic.ini upgrade head
+          backend/.venv/bin/alembic -c backend/alembic.ini current
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build

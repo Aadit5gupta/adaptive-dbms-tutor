@@ -22,9 +22,8 @@ Ollama integration is scheduled for S5. When available, the default provider wil
 Install Python 3.11 or newer and [uv](https://docs.astral.sh/uv/). From this directory:
 
 ```sh
-uv venv --python 3.12
-source .venv/bin/activate
-uv pip install -r backend/pyproject.toml --extra dev
+uv sync --project backend --python 3.12 --locked --extra dev
+source backend/.venv/bin/activate
 cp -n .env.example .env
 python -m alembic -c backend/alembic.ini upgrade head
 python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
@@ -33,10 +32,7 @@ python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
 Check readiness at `http://127.0.0.1:8000/api/v1/health` and view the API contract at `http://127.0.0.1:8000/docs`. Paths in `.env` are relative to the repository root. The app and demo databases must use distinct paths.
 
 ```sh
-python -m pytest -c backend/pyproject.toml
-ruff check --config backend/pyproject.toml backend content scripts
-MYPYPATH=backend mypy --config-file backend/pyproject.toml backend/app backend/tests content scripts
-python scripts/validate_content.py --strict
+bash scripts/check_backend.sh
 ```
 
 ## Local frontend
@@ -56,3 +52,5 @@ npm --prefix frontend run typecheck
 npm --prefix frontend test
 npm --prefix frontend run build
 ```
+
+The [test report](docs/test-report.md) records verified results.
