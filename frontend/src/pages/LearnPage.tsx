@@ -6,7 +6,7 @@ import type { LessonDetail } from '../api/learning'
 import { card, Failure, PageHeading, Pending, primary, secondary, textLink } from '../components/layout'
 import { LessonBody } from '../components/LessonBody'
 import { TutorPanel } from '../components/TutorPanel'
-import { useCurriculum } from './DashboardPage'
+import { topicDiagnosticPath, useCurriculum } from './DashboardPage'
 
 export function LearnPage() {
   const curriculum = useCurriculum()
@@ -26,7 +26,7 @@ export function LearnPage() {
               <div className="mt-3 flex flex-wrap gap-3">
                 {topic.lessons.map((lesson) => <Link key={lesson.ref} className={textLink} to={`/learn/${lesson.ref}`}>{lesson.title}</Link>)}
                 {topic.practice && <Link className={textLink} to={`/practice?topic=${topic.id}`}>Practice</Link>}
-                {topic.diagnostic && <Link className={textLink} to={`/practice?mode=diagnostic&topic=${topic.id}`}>Check understanding</Link>}
+                {topic.diagnostic && <Link className={textLink} to={topicDiagnosticPath(topic.id)}>Check understanding</Link>}
                 {topic.lessons.length === 0 && !topic.practice && !topic.diagnostic && <p className="text-sm text-stone-600">Reviewed material pending.</p>}
               </div>
             </section>)}

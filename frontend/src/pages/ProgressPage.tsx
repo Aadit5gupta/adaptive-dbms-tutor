@@ -5,7 +5,7 @@ import { request } from '../api/client'
 import type { Hypothesis } from '../api/learning'
 import { card, Failure, PageHeading, Pending, textLink } from '../components/layout'
 import { MisconceptionStatus } from '../components/MisconceptionStatus'
-import { actionLink, useCurriculum, useProgress } from './DashboardPage'
+import { actionLink, topicDiagnosticPath, useCurriculum, useProgress } from './DashboardPage'
 
 export function ProgressPage() {
   const progress = useProgress()
@@ -13,6 +13,7 @@ export function ProgressPage() {
   const hypotheses = useQuery({ queryKey: ['hypotheses'], queryFn: ({ signal }) => request<Hypothesis[]>('/misconceptions', { signal }) })
   const titles = new Map(course.data?.map((domain) => [domain.id, domain.title]))
   const next = progress.data?.recommendation
+  const diagnosticTopics = new Set(course.data?.flatMap((domain) => domain.topics).filter((topic) => topic.diagnostic).map((topic) => topic.id))
   const topicTitles = new Map(progress.data?.topics.map((topic) => [topic.topic, topic.title]))
   return <>
     <PageHeading title="Progress">See which topics have evidence, when revision is due, and how your latest attempts changed your score.</PageHeading>
@@ -43,6 +44,10 @@ export function ProgressPage() {
               <p className="mt-2 text-sm text-stone-600">No misconception patterns detected yet.</p>}
             {hypotheses.data?.map((row) => <article key={row.code} className="mt-3">
               <MisconceptionStatus hypothesis={row} />
+              {row.state === 'possible' && diagnosticTopics.has(row.topic_id) &&
+                <Link to={topicDiagnosticPath(row.topic_id)} className={`mt-2 inline-block text-sm ${textLink}`}>
+                  Check this topic in Diagnostic
+                </Link>}
               {next?.action_type === 'MISCONCEPTION_REMEDIATION' && next.misconception_code === row.code &&
                 <Link to={actionLink(next)} className={`mt-2 inline-block text-sm ${textLink}`}>Open remediation lesson</Link>}
             </article>)}

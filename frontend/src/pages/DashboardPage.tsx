@@ -14,11 +14,15 @@ export function useProgress() {
   return useQuery({ queryKey: ['progress'], queryFn: ({ signal }) => request<Progress>('/progress', { signal }), retry: false })
 }
 
+export function topicDiagnosticPath(topic: string) {
+  return `/practice?${new URLSearchParams({ mode: 'diagnostic', topic })}`
+}
+
 export function actionLink(action: Recommendation) {
   const topic = encodeURIComponent(action.subtopic_id)
   if (action.lesson_ref) return `/learn/${action.lesson_ref}${action.action_type === 'MISCONCEPTION_REMEDIATION' ? '?checkpoints=1' : ''}`
   if (action.action_type === 'SQL_PRACTICE') return `/sql?topic=${topic}`
-  if (action.action_type === 'DIAGNOSTIC') return `/practice?mode=diagnostic&topic=${topic}`
+  if (action.action_type === 'DIAGNOSTIC') return topicDiagnosticPath(action.subtopic_id)
   if (action.action_type === 'MIXED_REVIEW') return `/practice?mode=review&topic=${topic}`
   if (action.action_type.startsWith('PRACTICE')) return `/practice?topic=${topic}&difficulty=${action.difficulty ?? 'easy'}`
   return '/learn'

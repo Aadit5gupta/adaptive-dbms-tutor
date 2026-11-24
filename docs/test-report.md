@@ -130,3 +130,9 @@ Pytest 148, Vitest 2, Ruff, mypy, frontend lint, typecheck, production build and
 Pytest 148, Vitest 2, Ruff, mypy, frontend lint, typecheck and build passed. Strict validation and S4 learner validation passed. The account regression verified that the first and second evidence-bearing answers return their actual misconception states, preserve idempotent submission, and expose no state across accounts. The authored A/B CLI replay also passed.
 
 Four standard and six authored Chrome scenarios passed. The new browser test registered a regular account, saw the empty misconception section, gave two independent foreign-key detector responses, saw the possible and active states, opened the recommended lesson, completed both checkpoints and confirmed the resolved state in Progress. The test never opened Learner Demo.
+
+## Practice transition and diagnostic navigation, 25 November 2026
+
+Chrome reproduced two question forms visible together after practice submission. The form and hint controls previously shared a sibling key. The corrected question card has one key and uses one pending status during grading. With a deliberately delayed submission, Chrome verified zero visible forms while pending and exactly one after the next question appeared.
+
+The Chrome scenario now starts with a practice signal, follows the new Progress link to the targeted diagnostic, verifies the expected Tickets question and completes remediation and both checkpoints. It also checks the message shown when the targeted question has been attempted and the link to general Diagnostic is available. Four standard and six authored Chrome scenarios passed. Pytest 148, Vitest 2, lint, type checking, production build, strict content validation and the authored A/B CLI replay passed.

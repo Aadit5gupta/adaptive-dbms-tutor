@@ -55,6 +55,8 @@
 
 | D19 | 2026-11-25 | Show signed-in misconception transitions in feedback and Progress | The previous Progress view mixed hypotheses with revision and left an empty list unexplained | Giving the frontend its own evidence thresholds or forcing remediation before practice can continue | Deterministic grading returns the updated snapshot. The UI shows the existing states and links to the server-selected lesson. |
 
+| D20 | 2026-11-25 | Replace the question and its hint controls together and link a possible misconception to its topic diagnostic | Chrome reproduced the previous question remaining beside the next one; Practice and Diagnostic navigation was also easy to confuse | Rendering cached forms while their assessment session advances | One stable key identifies the whole question card. The signed-in UI shows one submission status and links to the scoped diagnostic with a general-diagnostic option when it has no fresh item. |
+
 ## Deviations and blockers
 
 | Date | Stage/task | Problem / deviation | Impact | Fallback | Owner action required |

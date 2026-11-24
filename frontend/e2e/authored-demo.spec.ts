@@ -257,20 +257,38 @@ test('signed-in learner sees and resolves a misconception outside demo mode', as
   await expect(page.getByText('No misconception patterns detected yet.')).toBeVisible()
 
   await nav.getByRole('link', { name: 'Practice' }).click()
-  await page.getByRole('link', { name: 'Diagnostic', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Diagnostic', exact: true })).toBeVisible()
-  await page.getByRole('combobox', { name: 'Topic' }).selectOption('relational.keys')
-  await page.getByRole('button', { name: 'Start or resume diagnostic' }).click()
-  await answer(page, /Only one ticket can reference account 9/)
-  await expect(page.getByText('Possible misconception', { exact: true })).toBeVisible()
-  await expect(page.getByText('1 independent signal', { exact: true })).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Open remediation lesson' })).toHaveCount(0)
-
-  await nav.getByRole('link', { name: 'Practice' }).click()
   await expect(page.getByRole('heading', { name: 'Practice', exact: true })).toBeVisible()
   await page.getByRole('combobox', { name: 'Topic' }).selectOption('relational.keys')
   await page.getByRole('button', { name: 'Start or resume practice' }).click()
-  await answer(page, /violate the foreign key because club 22 appears twice/)
+
+  let releaseAnswer = () => {}
+  const answerReady = new Promise<void>((resolve) => { releaseAnswer = resolve })
+  await page.route('**/api/v1/practice/sessions/*/answer', async (route) => {
+    await answerReady
+    await route.continue()
+  }, { times: 1 })
+  try {
+    await answer(page, /violate the foreign key because club 22 appears twice/)
+    await expect(page.getByText('Checking your answer…', { exact: true })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /Members.club_id references/ })).toBeHidden()
+    await expect(page.getByRole('button', { name: 'Submit answer' })).toBeHidden()
+  } finally {
+    releaseAnswer()
+  }
+  await expect(page.getByText('Possible misconception', { exact: true })).toBeVisible()
+  await expect(page.getByText('1 independent signal', { exact: true })).toBeVisible()
+  await expect(page.getByText('Question 2 of 5')).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Members.club_id references/ })).toBeHidden()
+  await expect(page.getByRole('heading', { name: /Inventory has a unique/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Submit answer' })).toHaveCount(1)
+  await expect(page.getByRole('link', { name: 'Open remediation lesson' })).toHaveCount(0)
+  await expect(page.getByRole('link', { name: 'Check this topic in Diagnostic' })).toBeVisible()
+  await page.getByRole('link', { name: 'View misconception progress' }).click()
+  await page.getByRole('link', { name: 'Check this topic in Diagnostic' }).click()
+  await expect(page.getByRole('heading', { name: 'Diagnostic', exact: true })).toBeVisible()
+  await expect(page.getByRole('combobox', { name: 'Topic' })).toHaveValue('relational.keys')
+  await page.getByRole('button', { name: 'Start or resume diagnostic' }).click()
+  await answer(page, /Only one ticket can reference account 9/)
   await expect(page.getByText('Active misconception', { exact: true })).toBeVisible()
   await expect(page.getByText('2 independent signals', { exact: true })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Open remediation lesson' })).toBeVisible()
@@ -292,4 +310,12 @@ test('signed-in learner sees and resolves a misconception outside demo mode', as
   await nav.getByRole('link', { name: 'Progress' }).click()
   await expect(page.getByText('Misconception resolved', { exact: true })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Open remediation lesson' })).toHaveCount(0)
+
+  await nav.getByRole('link', { name: 'Practice' }).click()
+  await page.getByRole('link', { name: 'Diagnostic', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Diagnostic', exact: true })).toBeVisible()
+  await page.getByRole('combobox', { name: 'Topic' }).selectOption('relational.keys')
+  await page.getByRole('button', { name: 'Start or resume diagnostic' }).click()
+  await expect(page.getByText(/This topic has no fresh diagnostic questions/)).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Open general diagnostic' })).toBeVisible()
 })

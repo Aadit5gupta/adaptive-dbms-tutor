@@ -2,13 +2,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 
-import { request } from '../api/client'
+import { ApiError, request } from '../api/client'
 import type { Item } from '../api/demo'
 import { mutate, type AssessmentResult, type Session } from '../api/learning'
 import { card, Empty, Failure, field, PageHeading, Pending, primary, secondary, textLink } from '../components/layout'
 import { AssessmentHints } from '../components/AssessmentHints'
 import { MisconceptionStatus } from '../components/MisconceptionStatus'
-import { actionLink, useCurriculum } from './DashboardPage'
+import { actionLink, topicDiagnosticPath, useCurriculum } from './DashboardPage'
 
 type Mode = 'practice' | 'diagnostic' | 'checkpoint' | 'review'
 const modeNames: Record<Mode, string> = {
@@ -27,21 +27,26 @@ function QuestionForm({ item, submit, busy }: { item: Item; submit: (choice: num
           <span>{option}</span>
         </label>)}
       </fieldset>
-      <button className={`mt-5 ${primary}`} disabled={choice === null || busy}>{busy ? 'Checking…' : 'Submit answer'}</button>
+      <button className={`mt-5 ${primary}`} disabled={choice === null || busy}>Submit answer</button>
     </form>
   )
 }
 
 export function PracticePage() {
+  const [params] = useSearchParams()
+  const value = params.get('mode')
+  const mode: Mode = value === 'diagnostic' || value === 'checkpoint' || value === 'review' ? value : 'practice'
+  const topic = params.get('topic') ?? ''
+  return <StudyActivity key={`${mode}:${topic}`} mode={mode} selectedTopic={topic} />
+}
+
+function StudyActivity({ mode, selectedTopic }: { mode: Mode; selectedTopic: string }) {
   const [params, setParams] = useSearchParams()
   const client = useQueryClient()
-  const modeParameter = params.get('mode')
-  const mode: Mode = modeParameter === 'diagnostic' || modeParameter === 'checkpoint' || modeParameter === 'review' ? modeParameter : 'practice'
   const sessionId = params.get('session')
-  const selectedTopic = params.get('topic') ?? ''
   const curriculum = useCurriculum()
-  const topics = curriculum.data?.flatMap((domain) => domain.topics).filter((topic) =>
-    mode === 'diagnostic' ? topic.diagnostic : topic.practice) ?? []
+  const courseTopics = curriculum.data?.flatMap((domain) => domain.topics) ?? []
+  const topics = courseTopics.filter((topic) => mode === 'diagnostic' ? topic.diagnostic : topic.practice)
   const session = useQuery({
     queryKey: ['practice', sessionId],
     queryFn: ({ signal }) => request<Session>(`/practice/sessions/${encodeURIComponent(sessionId ?? '')}`, { signal }),
@@ -81,6 +86,13 @@ export function PracticePage() {
   const item = session.data?.items[0]
   const next = answer.data?.next_action
   const misconception = answer.data?.misconception
+  const diagnosticTopic = mode !== 'diagnostic' && misconception?.state === 'possible'
+    ? courseTopics.find((topic) => topic.id === misconception.topic_id && topic.diagnostic)
+    : undefined
+  const checking = answer.isPending
+  const waitingForNext = answer.isSuccess && item?.item_id === answer.variables.item.item_id
+  const noTargetedDiagnostic = mode === 'diagnostic' && Boolean(selectedTopic) &&
+    start.error instanceof ApiError && start.error.status === 404
   return <>
     <PageHeading title={modeNames[mode]}>
       {mode === 'diagnostic' ? 'Check your understanding with reviewed questions. Topics without evidence stay unassessed.'
@@ -92,21 +104,31 @@ export function PracticePage() {
       <p className="mt-2 leading-7 text-stone-700">{answer.data.explanation}</p>
       {misconception && <div className="mt-4 border-t border-stone-200 pt-3">
         <MisconceptionStatus hypothesis={misconception} />
-        <Link to="/progress#misconceptions" className={`mt-2 inline-block text-sm ${textLink}`}>View misconception progress</Link>
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+          <Link to="/progress#misconceptions" className={textLink}>View misconception progress</Link>
+          {diagnosticTopic && <Link to={topicDiagnosticPath(diagnosticTopic.id)} className={textLink}>
+            Check this topic in Diagnostic
+          </Link>}
+        </div>
       </div>}
       {next?.action_type === 'MISCONCEPTION_REMEDIATION' && <Link to={actionLink(next)}
         className={`mt-3 ${primary}`}>Open remediation lesson</Link>}
     </section>}
-    <Failure error={start.error ?? session.error ?? answer.error}
+    <Failure error={(noTargetedDiagnostic ? null : start.error) ?? session.error ?? answer.error}
       retry={session.isError ? () => void session.refetch() : undefined} />
+    {noTargetedDiagnostic && <Empty action={{ label: 'Open general diagnostic', to: '/practice?mode=diagnostic' }}>
+      This topic has no fresh diagnostic questions available here. A question may already be in your general diagnostic, or you may have answered it earlier.
+    </Empty>}
     {sessionId && session.isPending && <Pending>Loading your question…</Pending>}
-    {session.data && item && <section className={`${card} mt-5 max-w-2xl`}>
+    {checking && <Pending>Checking your answer…</Pending>}
+    {waitingForNext && !session.isError && <Pending>Loading the next question…</Pending>}
+    {session.data && item && <section key={item.item_id} hidden={checking || waitingForNext} className={`${card} mt-5 max-w-2xl`}>
       <p className="mb-3 text-sm font-medium text-stone-600">Question {session.data.total - session.data.remaining + 1} of {session.data.total}</p>
-      <QuestionForm key={item.item_id} item={item} busy={answer.isPending} submit={(choice) => answer.mutate({ item, choice })} />
+      <QuestionForm item={item} busy={answer.isPending} submit={(choice) => answer.mutate({ item, choice })} />
       {(mode === 'practice' || mode === 'review') &&
-        <AssessmentHints key={item.item_id} itemId={item.item_id} busy={answer.isPending} />}
+        <AssessmentHints itemId={item.item_id} busy={answer.isPending} />}
     </section>}
-    {session.data && !item && <section className={`${card} mt-5 max-w-2xl`}>
+    {session.data && !item && !checking && <section className={`${card} mt-5 max-w-2xl`}>
       <h2 className="font-semibold">Session complete</h2>
       <div className="mt-4 flex flex-wrap gap-2">
         <Link to="/" className={primary}>See your next step</Link>

@@ -67,6 +67,7 @@ export interface Progress {
 export interface Hypothesis {
   code: string
   title: string
+  topic_id: string
   state: 'possible' | 'active' | 'improving' | 'resolved'
   evidence_count: number
 }
