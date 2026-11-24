@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel
-from sqlalchemy import Float, column, func, literal_column, or_, select, table, text, tuple_
+from sqlalchemy import Float, String, column, func, literal_column, or_, select, table, text, tuple_
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
@@ -71,9 +71,12 @@ FTS = table("source_passages_fts", column("rowid"))
 VOCAB = table("source_passages_fts_vocab", column("doc"))
 
 
+SourceKind = Literal["book", "lesson"]
+
+
 class Citation(BaseModel):
     id: str
-    kind: Literal["book", "lesson"]
+    kind: SourceKind
     title: str
     url: str
     attribution: str
@@ -86,6 +89,7 @@ class PassageHit(BaseModel):
     topic_id: str
     text: str
     rank: float
+    excerpt: str = ""
 
 
 def safe_terms(query: str) -> str:
@@ -153,7 +157,14 @@ class Retriever:
         self.engine = engine
         self.root = root
 
-    def search(self, query: str, topic_ids: tuple[str, ...] = (), k: int = 4) -> list[PassageHit]:
+    def search(
+        self,
+        query: str,
+        topic_ids: tuple[str, ...] = (),
+        k: int = 4,
+        *,
+        kind: SourceKind | None = None,
+    ) -> list[PassageHit]:
         terms = safe_terms(query)
         limit = max(0, min(k, 6))
         if not terms or not limit:
@@ -161,8 +172,11 @@ class Retriever:
 
         catalog = load_catalog(self.root)
         rank = literal_column("bm25(source_passages_fts, 2.0, 1.0)", type_=Float()).label("rank")
+        excerpt = literal_column(
+            "snippet(source_passages_fts, 1, '', '', '…', 36)", type_=String()
+        )
         query_ = (
-            select(Passage, rank)
+            select(Passage, rank, excerpt)
             .join(FTS, FTS.c.rowid == Passage.id)
             .where(
                 text("source_passages_fts MATCH :terms"),
@@ -171,6 +185,8 @@ class Retriever:
             .order_by(rank, Passage.passage_key)
             .limit(limit)
         )
+        if kind is not None:
+            query_ = query_.where(Passage.kind == kind)
         with Session(self.engine) as db:
             scoped = (
                 list(
@@ -181,13 +197,14 @@ class Retriever:
             )
             broader = list(db.execute(query_, {"terms": terms})) if len(scoped) < limit else []
             hits: dict[str, PassageHit] = {}
-            for passage, value in [*scoped, *broader]:
+            for passage, value, preview in [*scoped, *broader]:
                 if passage.passage_key not in hits and value < 0:
                     hits[passage.passage_key] = PassageHit(
                         citation=to_citation(passage),
                         topic_id=passage.topic_id,
                         text=passage.body,
                         rank=float(-value),
+                        excerpt=preview,
                     )
             return list(hits.values())[:limit]
 

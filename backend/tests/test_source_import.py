@@ -12,7 +12,7 @@ from app.services.source_import import (
     index_bundled_book_excerpts,
     index_reviewed_lessons,
 )
-from sqlalchemy import select, text
+from sqlalchemy import select, text, update
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
@@ -254,3 +254,30 @@ def test_bundled_book_passages_are_idempotent_searchable_and_attributed(
         assert hit.citation.url == str(clearance.section_url)
         assert hit.citation.license_url == str(clearance.license_url)
         assert hit.citation.attribution == clearance.attribution_text
+
+
+def test_filtered_search_uses_matching_excerpt_without_changing_passage_text(
+    indexed_db: tuple[Engine, Content, Catalog], s1: Path
+) -> None:
+    from app.services.retrieval import Retriever
+
+    engine, content, _ = indexed_db
+    full_text = (
+        "Opening overview. " + ("Background information. " * 60) + "Discuss cascade deletion."
+    )
+    with Session(engine) as db, db.begin():
+        index_reviewed_lessons(db, content)
+        index_bundled_book_excerpts(db, content)
+        db.execute(update(Passage).where(Passage.lesson_ref == "keys@1").values(body=full_text))
+
+    retriever = Retriever(engine, s1)
+    lesson = retriever.search("cascade deletion", kind="lesson", k=1)[0]
+    assert lesson.citation.kind == "lesson"
+    assert lesson.text == full_text
+    assert "cascade deletion" in lesson.excerpt
+    assert "Opening overview" not in lesson.excerpt
+    assert len(lesson.excerpt) < len(lesson.text)
+
+    book = retriever.search("cascade deletion", kind="book", k=1)[0]
+    assert book.citation.kind == "book"
+    assert "ON DELETE CASCADE" in book.excerpt

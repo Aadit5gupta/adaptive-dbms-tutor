@@ -104,3 +104,9 @@ The final audit reran the existing tests and used installed Chrome against the n
 The two snippets were matched to the publisher HTML and checked against the published license notices. Strict validation and both S1/S4 learner gates passed with four indexable publisher scopes. Pytest 145, Vitest 2, Ruff, mypy, frontend lint, typecheck and build passed. All seven Chrome scenarios passed across the standard and authored suites. The authored Library showed 4 of 5 indexed and returned the Shea license and exact DataField section link.
 
 Both local imports reported 26 searchable passages and the authored Learner A/B CLI replay passed. The live Library returned one indexed section for each of the four books. Real Ollama cited the Shea excerpt when explaining SQLite index storage and the DataField excerpt when explaining transaction atomicity. OpenStax retained zero indexed sections.
+
+## Library and Tutor navigation, 25 November 2026
+
+Pytest 146, Vitest 2, Ruff, mypy, frontend lint, typecheck and production build passed. Strict validation and the S4 learner gate passed. The new backend regression verified that the filter finds the requested source kind, that the FTS excerpt includes a match late in a long passage, and that the full tutor passage stays available.
+
+Four standard and four authored Chrome scenarios passed. At 390 px, the new scenario filtered for textbooks, reloaded the same query, opened a topic-specific tutor with an editable draft, received a curated textbook citation and returned to the same search via Back. It then filtered for lessons and opened the signed-in lesson and its tutor. The real Ollama textbook citation and authored Learner A/B CLI replay also passed.

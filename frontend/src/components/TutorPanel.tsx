@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
+import { Link } from 'react-router'
 
 import { request } from '../api/client'
 import type { Learner } from '../api/demo'
@@ -20,11 +21,12 @@ interface TutorPanelProps {
   demoLearner?: Learner
   itemId?: string
   sqlAttempt?: string
+  initialQuestion?: string
 }
 
-export function TutorPanel({ topic, demoLearner, itemId, sqlAttempt }: TutorPanelProps) {
+export function TutorPanel({ topic, demoLearner, itemId, sqlAttempt, initialQuestion = '' }: TutorPanelProps) {
   const fixedMode = itemId ? 'hint' : sqlAttempt ? 'sql_feedback' : null
-  const [question, setQuestion] = useState('')
+  const [question, setQuestion] = useState(initialQuestion)
   const [mode, setMode] = useState<Mode>(fixedMode ?? 'ask')
   const [level, setLevel] = useState(1)
   const [maxLevel, setMaxLevel] = useState(itemId ? 1 : 3)
@@ -78,8 +80,12 @@ export function TutorPanel({ topic, demoLearner, itemId, sqlAttempt }: TutorPane
               {reply.citations.length > 0 && <ul className="mt-3 space-y-1 text-sm">
                 {reply.citations.map((citation) => (
                   <li key={citation.id}>
-                    <a href={citation.url} className="font-medium text-green-900 underline">{citation.title}</a>
+                    {citation.lesson_ref && !demoLearner
+                      ? <Link to={`/learn/${encodeURIComponent(citation.lesson_ref)}`}
+                        className="font-medium text-green-900 underline">{citation.title}</Link>
+                      : <a href={citation.url} className="font-medium text-green-900 underline">{citation.title}</a>}
                     <span className="text-stone-600"> · {citation.attribution}</span>
+                    {citation.lesson_ref && !demoLearner && <> · <a href={citation.url} className="text-green-900 underline">Chapter reference</a></>}
                     {citation.license_url && <> · <a href={citation.license_url} className="text-green-900 underline">License</a></>}
                   </li>
                 ))}

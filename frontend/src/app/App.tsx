@@ -3,13 +3,13 @@ import {
   BookOpen, ChartNoAxesCombined, Database, House, LibraryBig, MessageCircle, PenLine, Settings, Terminal, Users,
 } from 'lucide-react'
 import { lazy, Suspense } from 'react'
-import { NavLink, Route, Routes } from 'react-router'
+import { NavLink, Route, Routes, useLocation, useSearchParams } from 'react-router'
 
 import { fetchHealth } from '../api/health'
 import { RequireAccount } from '../components/account'
 import { PageHeading, Pending } from '../components/layout'
 import { TutorPanel } from '../components/TutorPanel'
-import { DashboardPage } from '../pages/DashboardPage'
+import { DashboardPage, useCurriculum } from '../pages/DashboardPage'
 import { LibraryPage } from '../pages/LibraryPage'
 import { PracticePage } from '../pages/PracticePage'
 import { ProgressPage } from '../pages/ProgressPage'
@@ -55,6 +55,27 @@ function BackendStatus() {
   )
 }
 
+function TutorPage() {
+  const [params] = useSearchParams()
+  const location = useLocation()
+  const curriculum = useCurriculum()
+  const requestedTopic = params.get('topic')
+  const topic = curriculum.data?.flatMap((domain) => domain.topics).find(({ id }) => id === requestedTopic)
+  const draft = location.state?.question
+  const question = typeof draft === 'string' ? draft.slice(0, 600) : ''
+
+  return <>
+    <PageHeading title="DBMS tutor">
+      {topic ? `Ask about ${topic.title}.` : 'Ask about a concept, work through an example, or request a hint.'}
+    </PageHeading>
+    <div className="mt-6 max-w-2xl">
+      {requestedTopic && curriculum.isPending
+        ? <Pending>Loading topic…</Pending>
+        : <TutorPanel key={location.key} topic={topic?.id} initialQuestion={question} />}
+    </div>
+  </>
+}
+
 export function App() {
   return (
     <div className="min-h-screen md:grid md:grid-cols-[15rem_1fr]">
@@ -88,10 +109,7 @@ export function App() {
             <Route path="/practice" element={<RequireAccount>{() => <PracticePage />}</RequireAccount>} />
             <Route path="/sql" element={<RequireAccount>{() => <Suspense fallback={<Pending />}><SqlPage /></Suspense>}</RequireAccount>} />
             <Route path="/progress" element={<RequireAccount>{() => <ProgressPage />}</RequireAccount>} />
-            <Route path="/tutor" element={<RequireAccount>{() => <>
-              <PageHeading title="DBMS tutor">Ask about a concept, work through an example, or request a hint.</PageHeading>
-              <div className="mt-6 max-w-2xl"><TutorPanel /></div>
-            </>}</RequireAccount>} />
+            <Route path="/tutor" element={<RequireAccount>{() => <TutorPage />}</RequireAccount>} />
             <Route path="/settings" element={<RequireAccount>{(account) => <SettingsPage account={account} />}</RequireAccount>} />
             <Route path="/library" element={<LibraryPage />} />
             <Route path="/demo" element={<Suspense fallback={<Pending />}><DemoPage /></Suspense>} />

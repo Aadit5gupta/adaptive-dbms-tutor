@@ -64,7 +64,7 @@ export function LessonPage() {
           <a className={textLink} href={lesson.data.source_url}>Lesson reference</a>
         </div>
       </article>
-      <TutorPanel topic={lesson.data.topic_id} />
+      <TutorPanel key={lesson.data.ref} topic={lesson.data.topic_id} />
     </div>
   </>
 }

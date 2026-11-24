@@ -1,6 +1,8 @@
+export type SourceKind = 'book' | 'lesson'
+
 export interface Citation {
   id: string
-  kind: 'book' | 'lesson'
+  kind: SourceKind
   title: string
   url: string
   attribution: string

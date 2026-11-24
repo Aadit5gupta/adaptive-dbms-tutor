@@ -47,6 +47,8 @@
 
 | D15 | 2026-11-25 | Add SHA-256-pinned Shea Chapter 8 and DataField Chapter 26 excerpts | The owner asked to resolve the remaining sources. Shea lists a noncommercial license and DataField Chapter 26 carries an explicit CC BY-SA 4.0 footer | Whole-book import and assuming the OpenStax notice is inapplicable | Four distinct book sources now have one searchable excerpt each. The Shea excerpt is for noncommercial use. OpenStax remains link-only pending written permission. |
 
+| D16 | 2026-11-25 | Use the existing FTS index for matched Library previews and filter by source before ranking | Book and lesson titles used to lead to similar external links, and leading excerpts could omit the match | A separate search service or client-side filtering of truncated results | Preserve the existing tutor passage and provenance pipeline. Library results distinguish in-app lessons from publisher excerpts and pass a topic with an editable question to Ask Tutor. |
+
 ## Deviations and blockers
 
 | Date | Stage/task | Problem / deviation | Impact | Fallback | Owner action required |

@@ -10,7 +10,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.services.assessment import AssessmentError
-from app.services.retrieval import Citation, Retriever, book_counts
+from app.services.retrieval import Citation, Retriever, SourceKind, book_counts
 from content.schemas.rights import SectionException
 from scripts.validate_content import ContentError, load_catalog
 
@@ -79,9 +79,10 @@ def library_router(engine: Engine, root: Path) -> APIRouter:
     def search(
         q: Annotated[str, Query(min_length=2, max_length=300)],
         topic: Annotated[str | None, Query(max_length=64)] = None,
+        kind: SourceKind | None = None,
     ) -> list[SearchView]:
         try:
-            hits = retriever.search(q, (topic,) if topic else (), k=6)
+            hits = retriever.search(q, (topic,) if topic else (), k=6, kind=kind)
         except (ContentError, SQLAlchemyError) as error:
             raise AssessmentError(
                 "Source search is unavailable.", "library_unavailable", 503
@@ -90,7 +91,7 @@ def library_router(engine: Engine, root: Path) -> APIRouter:
             SearchView(
                 citation=hit.citation,
                 topic_id=hit.topic_id,
-                excerpt=hit.text[:360] + ("…" if len(hit.text) > 360 else ""),
+                excerpt=hit.excerpt,
             )
             for hit in hits
         ]

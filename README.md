@@ -98,3 +98,6 @@ SQL execution support and limits are documented in the [SQL worker notes](docs/s
 After migration, publish the curriculum and index the original lessons and bundled licensed excerpts with `python scripts/import_books.py lessons`. Open the frontend and create a local account. Use Settings to save a learning goal and experience level, export your learning data or delete your account.
 
 The dashboard shows reviewed activity, coverage and the deterministic next recommendation. Practice and diagnostics resume on refresh. SQL Lab shows visible fixture rows and includes a SQLite-aware editor. Preview leaves your progress unchanged, and Submit grades against the published exercise's fixtures.
+
+
+In Library, choose **Original lessons** or **Textbooks** to narrow a search. Lesson titles open Learn so you can continue to practice or tutoring. Textbook results provide the chapter and license links, plus **Ask Tutor about this topic** to carry the search into an editable question.

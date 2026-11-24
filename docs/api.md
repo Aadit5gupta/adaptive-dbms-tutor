@@ -27,7 +27,7 @@ Mutations require an allowed loopback origin. Hidden fixtures and reference quer
 
 ## Source catalog and search
 
-`GET /library/books` returns the five source records, current clearances and counts derived from documents present in the full-text index. `GET /library/search?q=foreign%20key&topic=relational.keys` ranks up to six passages using SQLite BM25. Topic-scoped results come first. Results include the stored attribution, source URL, optional license URL and a bounded excerpt.
+`GET /library/books` returns the five source records, current clearances and counts derived from documents present in the full-text index. `GET /library/search?q=foreign%20key&topic=relational.keys` ranks up to six passages using SQLite BM25. Topic-scoped results come first. Optional `kind=book` or `kind=lesson` filters the index before ranking. Results include stored attribution, the source URL, the optional license URL, and an FTS5 excerpt centered on matching words.
 
 ## Curated tutor
 
