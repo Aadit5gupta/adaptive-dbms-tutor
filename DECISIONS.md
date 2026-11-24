@@ -51,6 +51,8 @@
 
 | D17 | 2026-11-25 | Separate one-click and typed clues in open practice items | The prepared hint ignored the required question text | Sending a learner's request and the open assessment to the LLM | Prepared hints advance through three levels. Typed requests match curated reasoning prompts for recognized wording on the authorized topic and fall back to the general hint. Existing level 2/3 evidence rules apply. |
 
+| D18 | 2026-11-25 | Give a single lesson more prompt space and use a cited curated reply for common normalization comparisons | The app sent only 600 of 907 bytes from the lesson, cutting off the second dependency chain. Even with both examples, the model used an imprecise definition once | Trusting a source citation as a correctness check | The prompt keeps its existing byte and token budgets. Common comparison and two-table follow-up prompts use the reviewed explanation when the actual lesson is retrieved. |
+
 ## Deviations and blockers
 
 | Date | Stage/task | Problem / deviation | Impact | Fallback | Owner action required |

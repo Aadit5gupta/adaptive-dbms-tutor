@@ -133,3 +133,31 @@ def test_sql_feedback_keeps_the_counting_rule_in_a_typical_lesson() -> None:
     data = json.loads(payload["messages"][1]["content"])
     assert rule in data["evidence"][0]["text"]
     assert "Exercise goal:" in data["learner"]
+
+
+def test_chapter_comparison_keeps_both_lesson_examples_in_model_context() -> None:
+    from app.providers.ollama import MAX_USER_PROMPT_BYTES, chat_payload
+    from app.services.source_import import chunk_text
+
+    from scripts.validate_content import load_content
+
+    lesson = load_content().lessons["lesson_dependency_chain@1"]
+    passage = PASSAGE.model_copy(
+        update={"text": chunk_text(lesson.body_markdown)[0], "topic_id": lesson.subtopic_id}
+    )
+    context = TutorContext(
+        TutorInput(
+            query="Can you explain partial and transitive dependencies using the same simple example?",
+            topic_id=lesson.subtopic_id,
+        ),
+        (passage,),
+        history=tuple(Turn("user", '"\\' * 180) for _ in range(6)),
+        learner_context="Experience: beginner. " * 40,
+    )
+    payload, _ = chat_payload(context, "qwen3:1.7b")
+    user_content = payload["messages"][1]["content"]
+    data = json.loads(user_content)
+    assert len(user_content.encode("utf-8")) <= MAX_USER_PROMPT_BYTES
+    assert len(data["recent_turns"]) < len(context.history)
+    assert "(`musician_id`, `festival_id`)" in data["evidence"][0]["text"]
+    assert "festival_id → venue_id → postal_code" in data["evidence"][0]["text"]

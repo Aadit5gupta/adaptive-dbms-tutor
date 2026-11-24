@@ -281,3 +281,49 @@ def test_filtered_search_uses_matching_excerpt_without_changing_passage_text(
     book = retriever.search("cascade deletion", kind="book", k=1)[0]
     assert book.citation.kind == "book"
     assert "ON DELETE CASCADE" in book.excerpt
+
+
+def test_normalization_comparison_uses_correct_examples_and_the_reviewed_source(
+    indexed_db: tuple[Engine, Content, Catalog], s1: Path
+) -> None:
+    import asyncio
+
+    from app.providers.contracts import ProviderAnswer, TutorContext
+    from app.schemas.tutor import TutorInput
+    from app.services.retrieval import Retriever
+    from app.services.tutor import TutorService
+
+    class MockProvider:
+        async def respond(self, context: TutorContext) -> ProviderAnswer:
+            return ProviderAnswer("Ordinary model reply.", (context.passages[0].citation.id,))
+
+    engine, _, _ = indexed_db
+    content = load_content()
+    with Session(engine) as db, db.begin():
+        publish_content(db, content)
+        index_reviewed_lessons(db, content)
+
+    service = TutorService(Retriever(engine, s1), MockProvider())
+    for question in (
+        "Can you explain partial and transitive dependencies using the same simple example?",
+        "The lesson uses two separate tables. What is the key of each table, and which dependency belongs to each one?",
+    ):
+        reply = asyncio.run(
+            service.answer(
+                TutorInput(query=question, topic_id="normalization.normal_forms", mode="explain")
+            )
+        )
+        assert reply.provider == "curated" and not reply.degraded
+        partial, transitive = reply.answer.split("\n\n")
+        assert "(musician_id, festival_id)" in partial
+        assert "email is already determined by musician_id alone" in partial
+        assert "festival_id is the entire key" in transitive
+        assert "festival_id → venue_id → postal_code" in transitive
+        assert [citation.lesson_ref for citation in reply.citations] == [
+            "lesson_dependency_chain@1"
+        ]
+
+    unrelated = asyncio.run(
+        service.answer(TutorInput(query="Why use LEFT JOIN?", topic_id="sql.joins", mode="explain"))
+    )
+    assert unrelated.provider == "ollama"

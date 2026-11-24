@@ -143,6 +143,15 @@ test('signed-in Learn covers every listed subtopic with reviewed content', async
   await page.getByRole('button', { name: 'Start or resume practice' }).click()
   await answer(page, '(wing_code, locker_number).')
   await expect(page.getByRole('heading', { name: 'Correct', exact: true })).toBeVisible()
+
+  await page.goto('/learn/lesson_dependency_chain@1')
+  await page.getByLabel('Your question').fill(
+    'Can you explain partial and transitive dependencies using the same simple example?',
+  )
+  await page.getByRole('button', { name: 'Ask tutor', exact: true }).click()
+  await expect(page.getByText('Curated tutor', { exact: true })).toBeVisible()
+  await expect(page.getByText(/email is already determined by musician_id alone/)).toBeVisible()
+  await expect(page.getByText(/festival_id → venue_id → postal_code. The venue is/)).toBeVisible()
 })
 
 

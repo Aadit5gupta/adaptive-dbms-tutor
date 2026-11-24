@@ -13,6 +13,21 @@ from scripts.validate_content import ContentError
 
 MODEL_CITATION = re.compile(r"https?://|\bwww\.|\[\s*\d+\s*\]", re.IGNORECASE)
 
+NORMALIZATION_EXAMPLE_QUERY = re.compile(
+    r"^(?:can you |could you |please )?"
+    r"(?:explain |compare |what is the difference between )"
+    r"(?:partial and transitive|transitive and partial) dependencies"
+    r"(?: (?:using|with) (?:the same |a |this )?(?:simple )?example)?[?.!]?$"
+)
+NORMALIZATION_EXAMPLE = (
+    "Partial dependency. In the musician–festival table, the key is the pair "
+    "(musician_id, festival_id). The email is already determined by musician_id alone, "
+    "which is a proper subset of that key.\n\n"
+    "Transitive dependency. In the festival table, festival_id is the entire key. "
+    "The chain is festival_id → venue_id → postal_code. The venue is the intermediate "
+    "step that determines the postal code."
+)
+
 
 # Assessment guidance is deliberately independent of generated text and stored answer keys.
 ASSESSMENT_HINTS = (
@@ -167,6 +182,25 @@ class TutorService:
                 topic_id=request.topic_id,
             )
         hits = await self.evidence(request)
+        question = " ".join(request.query.casefold().split())
+        if request.mode in ("ask", "explain", "simpler", "example") and (
+            NORMALIZATION_EXAMPLE_QUERY.fullmatch(question)
+            or ("lesson" in question and "key of each table" in question)
+        ):
+            source = next(
+                (hit for hit in hits if hit.citation.lesson_ref == "lesson_dependency_chain@1"),
+                None,
+            )
+            if source is not None:
+                return TutorReply(
+                    answer=NORMALIZATION_EXAMPLE,
+                    citations=[source.citation],
+                    mode=request.mode,
+                    provider="curated",
+                    status="ok",
+                    degraded=False,
+                    topic_id=source.topic_id,
+                )
         if explain_join_count:
             hits = [hit for hit in hits if hit.citation.lesson_ref == "lesson_join_unmatched@1"]
             if hits:

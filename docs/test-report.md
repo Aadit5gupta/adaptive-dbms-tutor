@@ -118,3 +118,9 @@ Pytest 146, Vitest 2, Ruff, mypy, frontend lint, typecheck, production build, st
 Four standard and five authored Chrome scenarios passed. At 390 px, a prepared hint worked with one click, the outgoing request had no question text, the optional typed clue responded to the foreign-key question, all three prepared levels could be opened in order, and the next practice item started with a fresh hint control.
 
 The authored Learner A/B CLI replay and real Ollama textbook citation also passed.
+
+## Normalization tutor accuracy, 25 November 2026
+
+The reported question retrieved the 907-byte original lesson but sent only its first 600 bytes to Ollama. The prompt ended inside the second example’s dependency chain. With fuller evidence, two real Ollama probes separated the examples, though the generated definition could still imply that the entire key fails to determine an attribute that depends on a subset. The repaired comparison and lesson follow-up use a curated answer with the real lesson citation.
+
+Pytest 148, Vitest 2, Ruff, mypy, frontend lint, typecheck, production build and strict validation passed. Chrome passed four standard and five authored scenarios, including asking the reported question from the lesson and checking the two distinct dependency explanations. The authored CLI replay and both real Ollama corpus smoke checks passed.
