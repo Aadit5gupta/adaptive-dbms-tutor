@@ -2,8 +2,8 @@
 # All entries initially link-only. Human section approvals must be independently recorded.
 schema_version: 2
 book_license_verification_date: '2026-11-22'
-notice: Publisher-level license evidence ONLY; no section is cleared to index by this manifest until human-approved
-  section_clearances are added. Index counts must be derived from successfully committed searchable chunks.
+notice: Each importable section needs a hash-matched clearance or a verified publisher-license record.
+  Index counts come from committed searchable chunks.
 books:
 - id: bccampus_db_design_2e
   title: Database Design – 2nd Edition
@@ -42,7 +42,19 @@ books:
     issue: Cover image credited to photographer under CC BY-SA 2.0; exclude cover from imports by default.
     status: excluded_image
     accessed_on: '2026-11-22'
-  section_clearances: []
+  section_clearances:
+  - id: bccampus_orphan_records
+    section_url: https://opentextbc.ca/dbdesign01/chapter/chapter-9-integrity-rules-and-constraints/
+    license_url: https://creativecommons.org/licenses/by/4.0/
+    rights_status: publisher_license_verified
+    scope: text_only
+    exceptions_found: none
+    accessed_on: '2026-11-25'
+    reviewer: ai:codex_primary
+    reviewed_on: '2026-11-25'
+    approved_content_hash: ff92f5fb161cdf949b98f02053ca676e6192b7d6e4bc293bc135184aa8ec052d
+    attribution_text: 'Database Design – 2nd Edition by Adrienne Watt and Nelson Eng, Chapter 9. © 2014, CC BY 4.0. Unmodified sentence excerpt. Download for free from the B.C. Open Collection (collection.bccampus.ca).'
+    bundled_topic_id: relational.keys
   notes: Priority text-only source after each section independently audited. Book notice is not a blanket approval.
     Default link-only policy is per uncleared section, NOT a dynamic indexing count.
   default_import_policy: link_only
@@ -61,7 +73,19 @@ books:
       importing.
     status: excluded_image
     accessed_on: '2026-11-22'
-  section_clearances: []
+  section_clearances:
+  - id: runestone_foreign_key_actions
+    section_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/07-constraints/constraints.html#enforcement-mechanisms
+    license_url: https://creativecommons.org/licenses/by-sa/4.0/
+    rights_status: publisher_license_verified
+    scope: text_only
+    exceptions_found: none
+    accessed_on: '2026-11-25'
+    reviewer: ai:codex_primary
+    reviewed_on: '2026-11-25'
+    approved_content_hash: b57300d209b0615d63689a87529163f4b680653a6491e8deb23f31317e7f616a
+    attribution_text: 'A Practical Introduction to Databases by Christopher Painter-Wakefield, §1.7.4.2. © 2022, CC BY-SA 4.0. Unmodified sentence excerpt.'
+    bundled_topic_id: relational.keys
   notes: Priority text-only candidate; review each section and dataset attribution before ingestion. Default
     link-only policy is per uncleared section, NOT a dynamic indexing count.
   default_import_policy: link_only

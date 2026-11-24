@@ -7,7 +7,11 @@ from app.core.db import open_engine
 from app.db.models import Passage
 from app.main import ALEMBIC_INI
 from app.services.curriculum import publish_content
-from app.services.source_import import import_book_section, index_reviewed_lessons
+from app.services.source_import import (
+    import_book_section,
+    index_bundled_book_excerpts,
+    index_reviewed_lessons,
+)
 from sqlalchemy import select, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
@@ -219,3 +223,29 @@ def test_retrieval_evaluator_requires_the_actual_ground_truth_in_fts(
     assert metrics["hit_rate"] == pytest.approx(2 / 3)
     assert metrics["mean_reciprocal_rank"] == pytest.approx(2 / 3)
     assert metrics["label_review_status"] == "draft"
+
+
+def test_bundled_book_passages_are_idempotent_searchable_and_attributed(
+    indexed_db: tuple[Engine, Content, Catalog], s1: Path
+) -> None:
+    from app.services.retrieval import Retriever, book_counts
+
+    engine, content, _ = indexed_db
+    with Session(engine) as db, db.begin():
+        assert index_bundled_book_excerpts(db, content) == 2
+        assert index_bundled_book_excerpts(db, content) == 2
+        assert book_counts(db, content.catalog) == {
+            "bccampus_db_design_2e": {"bccampus_orphan_records": 1},
+            "runestone_practical_db": {"runestone_foreign_key_actions": 1},
+        }
+    retriever = Retriever(engine, s1)
+    for query, section in (
+        ("orphan record", "bccampus_orphan_records"),
+        ("delete cascade", "runestone_foreign_key_actions"),
+    ):
+        hit = retriever.search(query, ("relational.keys",), k=1)[0]
+        clearance = content.catalog.approved_clearances[section]
+        assert hit.citation.kind == "book"
+        assert hit.citation.url == str(clearance.section_url)
+        assert hit.citation.license_url == str(clearance.license_url)
+        assert hit.citation.attribution == clearance.attribution_text

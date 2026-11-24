@@ -44,7 +44,10 @@ export function LibraryPage() {
           <article className={card} key={citation.id}>
             <a className={`${link} font-semibold`} href={citation.url}>{citation.title}</a>
             <p className="mt-3 leading-7 text-stone-700">{excerpt}</p>
-            <p className="mt-2 text-sm text-stone-600">{citation.attribution}</p>
+            <p className="mt-2 text-sm text-stone-600">
+              {citation.attribution}
+              {citation.license_url && <> · <a className={link} href={citation.license_url}>License</a></>}
+            </p>
           </article>
         ))}
       </section>}

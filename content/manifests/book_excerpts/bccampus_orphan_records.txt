@@ -1,0 +1,1 @@
+An orphan record is one whose foreign key FK value is not found in the corresponding entity – the entity where the PK is located.

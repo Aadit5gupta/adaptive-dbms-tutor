@@ -89,3 +89,12 @@ The final audit reran the existing tests and used installed Chrome against the n
 | `python scripts/import_books.py lessons` and `python scripts/import_books.py --demo lessons` | Both local databases published the new content. A catalog and scoped BM25 probe checked all 16 new lessons in each database. Each database has 22 original lesson passages and zero book passages. |
 | SQLite worked examples | The correlated EXISTS query returned the qualifying workshop once with three matching bookings. The indexed lookup produced the documented SEARCH plan. The decomposition projections rejoined to the example tuples. |
 | `python scripts/check_ollama.py` and targeted weak-entity probes | Real `qwen3:1.7b` cited the original LEFT JOIN lesson in the standard check and the new weak-entity lesson in both targeted probes. The first weak-entity reply misstated where duplicate locker numbers can occur, despite naming the correct composite key. The concrete two-wing prompt correctly explained that each wing can have a locker 7 and identified both by the wing code and locker number. |
+
+## Licensed book retrieval, 25 November 2026
+
+| Check | Actual result |
+|---|---|
+| Backend and frontend | 145 pytest tests, two Vitest tests, Ruff, mypy, frontend lint, typecheck and build passed. New regressions verify exact publisher scope, license, verifier, hash, idempotent FTS import and genuine source metadata. |
+| Learner content and demo | Strict validation and S1/S4 learner gates passed with two indexable publisher records. The authored CLI replay passed. Four standard and three authored Chrome tests passed. Chrome showed 2 of 5 indexed in the authored Library and verified the Runestone search result, exact section link and license link. |
+| Local import and search | Application and dedicated demo imports each reported 24 searchable passages. The live Library returned one passage each from Runestone and BCcampus. Searching for orphan records returned the BCcampus reference first. |
+| Real Ollama | `python scripts/check_ollama.py --book` correctly explained that deleting the parent machine under ON DELETE CASCADE deletes both referencing jobs and cited the Runestone book excerpt. The original-lesson LEFT JOIN check also passed. |

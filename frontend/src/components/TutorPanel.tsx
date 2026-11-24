@@ -80,6 +80,7 @@ export function TutorPanel({ topic, demoLearner, itemId, sqlAttempt }: TutorPane
                   <li key={citation.id}>
                     <a href={citation.url} className="font-medium text-green-900 underline">{citation.title}</a>
                     <span className="text-stone-600"> · {citation.attribution}</span>
+                    {citation.license_url && <> · <a href={citation.license_url} className="text-green-900 underline">License</a></>}
                   </li>
                 ))}
               </ul>}

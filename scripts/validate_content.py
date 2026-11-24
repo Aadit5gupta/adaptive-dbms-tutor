@@ -62,6 +62,14 @@ class Counts:
 
 
 @dataclass(frozen=True)
+class BookExcerpt:
+    book_id: str
+    clearance_id: str
+    topic_id: str
+    text: bytes
+
+
+@dataclass(frozen=True)
 class Content:
     catalog: Catalog
     domains: list[Domain]
@@ -72,6 +80,7 @@ class Content:
     counts: Counts
     human_counts: Counts
     ai_counts: Counts
+    book_excerpts: tuple[BookExcerpt, ...]
 
 
 def read_yaml(path: Path) -> Any:
@@ -262,6 +271,25 @@ def load_catalog(root: Path = ROOT) -> Catalog:
         raise ContentError(f"{manifest}: {error}") from error
 
 
+def load_book_excerpts(root: Path, catalog: Catalog, topics: set[str]) -> tuple[BookExcerpt, ...]:
+    excerpts: list[BookExcerpt] = []
+    for book in catalog.books:
+        for clearance in book.section_clearances:
+            topic = clearance.bundled_topic_id
+            if topic is None:
+                continue
+            path = root / "content/manifests/book_excerpts" / f"{clearance.id}.txt"
+            if topic not in topics:
+                raise ContentError(f"{path}: unknown bundled excerpt topic {topic}")
+            try:
+                data = path.read_bytes()
+                catalog.verify_import(book.id, clearance.id, data)
+            except (OSError, ValueError) as error:
+                raise ContentError(f"{path}: {error}") from error
+            excerpts.append(BookExcerpt(book.id, clearance.id, topic, data))
+    return tuple(excerpts)
+
+
 def load_content(root: Path = ROOT) -> Content:
     content = root / "content"
     catalog = load_catalog(root)
@@ -387,6 +415,7 @@ def load_content(root: Path = ROOT) -> Content:
         count(HUMAN_STATUSES | {"ai_verified"}),
         count(HUMAN_STATUSES, human_dependencies=True),
         count({"ai_verified"}),
+        load_book_excerpts(root, catalog, topics),
     )
 
 

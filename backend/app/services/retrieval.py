@@ -109,7 +109,7 @@ def approved_books(catalog: Catalog) -> ColumnElement[bool]:
         )
         for book in catalog.books
         for clearance in book.section_clearances
-        if clearance.rights_status == "approved_local_index"
+        if clearance.indexable
     ]
     return tuple_(
         Passage.book_id,

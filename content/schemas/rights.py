@@ -7,7 +7,7 @@ from urllib.parse import unquote
 
 from pydantic import Field, HttpUrl, StringConstraints, model_validator
 
-from content.schemas.models import LogicalId, Record, Text
+from content.schemas.models import LogicalId, Record, Text, TopicId
 
 Sha256 = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
 CATALOG_IDS = {
@@ -20,6 +20,21 @@ CATALOG_IDS = {
 BCCAMPUS_EXCEPTIONS = {
     "chapter-10-er-modelling": "https://creativecommons.org/licenses/by/3.0/",
     "chapter-11-functional-dependencies": "https://creativecommons.org/licenses/by-sa/3.0/",
+}
+
+
+PUBLISHER_LICENSE_SCOPES = {
+    "runestone_practical_db": (
+        (
+            "https://runestone.academy/ns/books/published/practical_db/PART1_SQL/"
+            "07-constraints/constraints.html#enforcement-mechanisms"
+        ),
+        "https://creativecommons.org/licenses/by-sa/4.0/",
+    ),
+    "bccampus_db_design_2e": (
+        "https://opentextbc.ca/dbdesign01/chapter/chapter-9-integrity-rules-and-constraints/",
+        "https://creativecommons.org/licenses/by/4.0/",
+    ),
 }
 
 
@@ -38,7 +53,11 @@ class Clearance(Record):
     section_url: HttpUrl
     license_url: HttpUrl
     rights_status: Literal[
-        "link_only", "approved_local_index", "blocked_pending_review", "blocked_pending_permission"
+        "link_only",
+        "approved_local_index",
+        "publisher_license_verified",
+        "blocked_pending_review",
+        "blocked_pending_permission",
     ]
     scope: Literal["text_only"]
     exceptions_found: Text
@@ -49,9 +68,18 @@ class Clearance(Record):
     approved_content_hash: Sha256
     attribution_text: Text
     permission_evidence_url: HttpUrl | None = None
+    bundled_topic_id: TopicId | None = None
+
+    @property
+    def indexable(self) -> bool:
+        return self.rights_status in {"approved_local_index", "publisher_license_verified"}
 
     @model_validator(mode="after")
     def check_dates(self) -> "Clearance":
+        if (self.bundled_topic_id is not None) != (
+            self.rights_status == "publisher_license_verified"
+        ):
+            raise ValueError("bundled topic requires a verified publisher license")
         if self.reviewed_on < self.accessed_on:
             raise ValueError("reviewed_on precedes accessed_on")
         return self
@@ -88,7 +116,7 @@ class Catalog(Record):
             clearance.id: clearance
             for book in self.books
             for clearance in book.section_clearances
-            if clearance.rights_status == "approved_local_index"
+            if clearance.indexable
         }
 
     @model_validator(mode="after")
@@ -105,7 +133,7 @@ class Catalog(Record):
                     raise ValueError(f"{book.id}: duplicate clearance ID or section URL")
                 clearance_ids.add(clearance.id)
                 urls.add(str(clearance.section_url))
-                if clearance.rights_status == "approved_local_index":
+                if clearance.indexable:
                     self.check_approval(book, clearance)
         return self
 
@@ -128,7 +156,21 @@ class Catalog(Record):
             raise ValueError(f"{clearance.id}: section URL is outside book host")
         if clearance.exceptions_found.casefold() != "none" and not clearance.exceptions_resolved:
             raise ValueError(f"{clearance.id}: section exceptions must be resolved")
-        if clearance.reviewer.lower().startswith("ai:"):
+        ai_review = clearance.reviewer.casefold().startswith("ai:")
+        if clearance.rights_status == "publisher_license_verified":
+            scope = (str(clearance.section_url), str(clearance.license_url))
+            if (
+                scope != PUBLISHER_LICENSE_SCOPES.get(book.id)
+                or clearance.license_url != book.license_url
+            ):
+                raise ValueError(
+                    f"{clearance.id}: section is outside verified publisher-license scopes"
+                )
+            if not ai_review or clearance.exceptions_found.casefold() != "none":
+                raise ValueError(
+                    f"{clearance.id}: publisher record requires an explicit AI reviewer and no exceptions in the selected text"
+                )
+        elif ai_review:
             raise ValueError(f"{clearance.id}: section clearance requires a human reviewer")
         if book.id == "openstax_foundations_is" and not clearance.permission_evidence_url:
             raise ValueError("OpenStax tutor ingestion requires documented written permission")
@@ -159,10 +201,7 @@ class Catalog(Record):
             if book.id != book_id:
                 continue
             for clearance in book.section_clearances:
-                if (
-                    clearance.id == clearance_id
-                    and clearance.rights_status == "approved_local_index"
-                ):
+                if clearance.id == clearance_id and clearance.indexable:
                     if sha256(text).hexdigest() != clearance.approved_content_hash:
                         raise ValueError(f"{clearance_id}: approved content hash mismatch")
                     if not text.decode("utf-8").strip():

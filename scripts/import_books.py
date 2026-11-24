@@ -15,6 +15,7 @@ from app.services.curriculum import publish_content
 from app.services.source_import import (
     MAX_SECTION_BYTES,
     import_book_section,
+    index_bundled_book_excerpts,
     index_reviewed_lessons,
 )
 from sqlalchemy.exc import SQLAlchemyError
@@ -28,10 +29,10 @@ def main() -> int:
     parser.add_argument("--demo", action="store_true")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser(
-        "lessons", help="publish reviewed curriculum and index its authored lessons"
+        "lessons", help="publish curriculum and index reviewed lessons and bundled book excerpts"
     )
     section = commands.add_parser(
-        "section", help="import exact section bytes after human clearance"
+        "section", help="import exact section bytes with a matching rights record"
     )
     section.add_argument("--book", required=True)
     section.add_argument("--clearance", required=True)
@@ -53,6 +54,7 @@ def main() -> int:
                 if text is None:
                     publish_content(db, content)
                     count = index_reviewed_lessons(db, content)
+                    count += index_bundled_book_excerpts(db, content)
                 else:
                     count = import_book_section(
                         db, content.catalog, args.book, args.clearance, args.topic, text

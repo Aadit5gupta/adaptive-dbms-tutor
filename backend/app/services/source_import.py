@@ -131,3 +131,13 @@ def import_book_section(
     )
     db.flush()
     return len(chunks)
+
+
+
+def index_bundled_book_excerpts(db: Session, content: Content) -> int:
+    return sum(
+        import_book_section(
+            db, content.catalog, excerpt.book_id, excerpt.clearance_id, excerpt.topic_id, excerpt.text
+        )
+        for excerpt in content.book_excerpts
+    )

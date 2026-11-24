@@ -69,10 +69,7 @@ def library_router(engine: Engine, root: Path) -> APIRouter:
                     license_evidence_url=str(book.license_evidence_url),
                     indexed_sections=len(searchable),
                     searchable_passages=sum(searchable.values()),
-                    cleared_sections=sum(
-                        section.rights_status == "approved_local_index"
-                        for section in book.section_clearances
-                    ),
+                    cleared_sections=sum(section.indexable for section in book.section_clearances),
                     section_exceptions=book.section_exceptions,
                 )
             )

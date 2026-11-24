@@ -8,7 +8,7 @@
 
 Never compute indexed counts by counting permissions. Distinguish:
 
-1. `cleared_sections`: exact section URLs with documented `approved_local_index` records and matching approved text hashes.
+1. `cleared_sections`: exact section URLs with documented `approved_local_index` or `publisher_license_verified` records and matching text hashes.
 2. `indexed_sections`: cleared sections for which an **atomic, successful import** committed searchable chunks into the app's SQLite FTS index.
 3. `indexed_books`: distinct books with ≥1 currently searchable approved indexed section.
 
@@ -22,7 +22,7 @@ The library UI must show actual `indexed_books of 5`, not a goal or a manifest g
 4. Define a precise import scope (prefer `text_only`), excluding unreviewed images and datasets. Attribute or exclude any derivatives with different obligations.
 5. Check redistribution and adaptation obligations, including CC BY attribution; CC BY-SA share-alike for adapted material; CC BY-NC / BY-NC-SA noncommercial limitations. A college project is not automatic permission for future commercial reuse. Do not collapse incompatible adapted works into a single rewritten CC-licensed document. Separately licensed sources may coexist as a correctly attributed collection.
 6. Extract **only the intended permitted section text** locally; compute its SHA-256 in the encoding/canonicalization specified by the ingestion script. Record section URL, license URL, scope, exceptions, reviewer, reviewed-on and the approved text hash. Never claim the hash matches before checking the actual extracted bytes.
-7. Add a `section_clearances` entry only after an actual human has reviewed the rights. The manifest initially has zero approved clearances. Example structure (NOT an approval to copy):
+7. For the human path, use `approved_local_index` only after an actual human has reviewed the rights. The example below shows the record format.
 
 ```yaml
 section_clearances:
@@ -46,6 +46,13 @@ Set `exceptions_resolved` only after resolving documented exceptions. For DataFi
 9. Run an idempotent offline import into FTS with section/page provenance. Confirm query hits and displayed license/attribution. Count imported sections only after searchable chunks are committed. Keep raw publisher source files out of Git unless expressly permitted and needed.
 10. Re-audit if a license/section changes, a new chapter version is imported or a passage becomes a model-generated adaptation intended for distribution.
 
+## Publisher license verification for bundled excerpts
+
+For the publisher path, use `publisher_license_verified` and an explicit `ai:...` verifier. The validator pins the eligible section URL and license. Record a valid `bundled_topic_id`, actual access and review dates, attribution, and the exact SHA-256. Store the approved UTF-8 snippet at `content/manifests/book_excerpts/<clearance_id>.txt`. Inspect the precise excerpt and confirm it contains no exception. The manifest and the displayed source and license links carry the credit for each excerpt. This path applies to the two exact scopes below.
+
+- Runestone, foreign-key enforcement, one sentence on cascade deletion. [Chapter section](https://runestone.academy/ns/books/published/practical_db/PART1_SQL/07-constraints/constraints.html#enforcement-mechanisms) · [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+- BCcampus, Chapter 9, one sentence defining orphan records. [Chapter and license notice](https://opentextbc.ca/dbdesign01/chapter/chapter-9-integrity-rules-and-constraints/) · [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+
 ## 3. Current high-priority exceptions (observed 2026-11-22)
 
 | Source | Audit position |
@@ -61,7 +68,7 @@ See the [section rights review package](section-rights-review.md) for exact chap
 ## 4. Machine-verifiable gates
 
 - Exactly 5 catalog records with unique source IDs and evidence URLs.
-- Rights enum: `link_only | approved_local_index | blocked_pending_review | blocked_pending_permission | excluded_image` (the last is for recorded excluded assets, not a text-import permission).
+- Rights enum: `link_only | approved_local_index | publisher_license_verified | blocked_pending_review | blocked_pending_permission | excluded_image` (the last is for recorded excluded assets, not a text-import permission).
 - `default_import_policy` remains `link_only` for any unlisted/unreviewed section.
 - **No import of DataField** unless the owner explicitly changes the rights record with actual evidence; tests enforce this condition rather than silently overriding it.
 - BCcampus Chapters 10/11 have explicit exception records; importer refuses those exact sections until a separate section clearance with appropriately documented derivative license obligations is approved.
@@ -79,4 +86,4 @@ python scripts/import_books.py lessons
 python scripts/import_books.py section --book BOOK_ID --clearance CLEARANCE_ID --topic TOPIC_ID --text PATH
 ```
 
-Use the top-level `--demo` flag before the subcommand to target the marked demo database. Reviewed original lessons receive their own attribution. They do not contribute to the indexed book count.
+Use the top-level `--demo` flag before the subcommand to target the marked demo database. The `lessons` command also imports the bundled textbook excerpts. Reviewed original lessons receive their own attribution and are counted separately from books.

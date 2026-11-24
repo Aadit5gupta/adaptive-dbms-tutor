@@ -43,6 +43,8 @@
 
 | D13 | 2026-11-25 | Fill the 16 empty Learn topics with introductory lessons and ordinary practice | The owner requested usable material in the pending Learn subsections | Expanding assessment and misconception coverage in the same change | All 24 topics have material. The new questions are ordinary practice and use the existing learner review and attribution policy. |
 
+| D14 | 2026-11-25 | Permit section-scoped publisher-license verification for the two bundled excerpts | The owner requested searchable textbook material without a human approval step for these verified licenses | Blanket book clearance or fabricated human approval | Exact scope, publisher terms, attribution and bytes are pinned. Only the two defined excerpts use the new path. The human clearance workflow applies to other candidate sections. |
+
 ## Deviations and blockers
 
 | Date | Stage/task | Problem / deviation | Impact | Fallback | Owner action required |

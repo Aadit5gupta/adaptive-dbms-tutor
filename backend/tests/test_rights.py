@@ -1,12 +1,13 @@
 from copy import deepcopy
 from hashlib import sha256
+from pathlib import Path
 from typing import Any
 
 import pytest
 from pydantic import ValidationError
 
 from content.schemas.rights import Catalog
-from scripts.validate_content import ROOT, read_yaml
+from scripts.validate_content import ROOT, ContentError, load_book_excerpts, read_yaml
 
 TEXT = b"Original synthetic text for the clearance test."
 
@@ -32,10 +33,19 @@ def clearance(url: str) -> dict[str, Any]:
     }
 
 
-def test_bootstrap_catalog_has_no_approvals(manifest: dict[str, Any]) -> None:
+def test_catalog_has_two_publisher_records_and_no_blanket_approval(
+    manifest: dict[str, Any],
+) -> None:
     catalog = Catalog.model_validate(manifest)
     assert len(catalog.books) == 5
-    assert catalog.approved_clearances == {}
+    assert catalog.approved_clearances.keys() == {
+        "bccampus_orphan_records",
+        "runestone_foreign_key_actions",
+    }
+    assert all(
+        item.rights_status == "publisher_license_verified" and item.reviewer.startswith("ai:")
+        for item in catalog.approved_clearances.values()
+    )
     with pytest.raises(ValueError, match="no approval"):
         catalog.verify_import("bccampus_db_design_2e", "missing", TEXT)
 
@@ -114,3 +124,29 @@ def test_ai_cannot_serve_as_rights_reviewer(manifest: dict[str, Any]) -> None:
     manifest["books"][0]["section_clearances"] = [approval]
     with pytest.raises(ValidationError, match="requires a human reviewer"):
         Catalog.model_validate(manifest)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("section_url", "https://opentextbc.ca/dbdesign01/chapter/other/", "outside verified"),
+        ("license_url", "https://creativecommons.org/licenses/by-sa/4.0/", "outside verified"),
+        ("reviewer", "Synthetic human reviewer", "explicit AI reviewer"),
+        ("exceptions_found", "Third-party excerpt", "exceptions must be resolved"),
+    ],
+)
+def test_publisher_records_cannot_expand_scope(
+    manifest: dict[str, Any], field: str, value: str, message: str
+) -> None:
+    manifest["books"][0]["section_clearances"][0][field] = value
+    with pytest.raises(ValidationError, match=message):
+        Catalog.model_validate(manifest)
+
+
+def test_bundled_text_rejects_changed_bytes(manifest: dict[str, Any], tmp_path: Path) -> None:
+    catalog = Catalog.model_validate(manifest)
+    source = tmp_path / "content/manifests/book_excerpts/bccampus_orphan_records.txt"
+    source.parent.mkdir(parents=True)
+    source.write_bytes(TEXT)
+    with pytest.raises(ContentError, match="approved content hash mismatch"):
+        load_book_excerpts(tmp_path, catalog, {"relational.keys"})
