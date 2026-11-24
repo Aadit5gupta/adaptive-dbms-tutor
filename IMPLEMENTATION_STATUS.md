@@ -4,7 +4,7 @@
 
 - **Current stage:** Final acceptance audit complete. Conditional go for a local college demo. Public deployment and human-study use remain no-go.
 - **Passing commits:** use `git log --oneline --grep='^S[0-6]\.'` (a commit cannot embed its own hash)
-- **Last updated by implementation agent:** 2026-11-23
+- **Last updated by implementation agent:** 2026-11-25
 - **Environment/OS/tested versions:** see bootstrap CLI checks in `DECISIONS.md`
 - **Default scope:** lean MVP until real deadline/review capacity confirmed in `DECISIONS.md`
 
@@ -12,13 +12,13 @@
 
 | Measure | Learner policy | AI-verified | Human-reviewed | S1 minimum | S4 minimum |
 |---|---:|---:|---:|---:|---:|
-| MCQs | 30 | 30 | 0 | 12 | 30 |
-| Ordinary practice MCQs | 17 | 17 | 0 | 4 | 4 |
-| Lessons | 6 | 6 | 0 | 2 | 6 |
+| MCQs | 46 | 46 | 0 | 12 | 30 |
+| Ordinary practice MCQs | 33 | 33 | 0 | 4 | 4 |
+| Lessons | 22 | 22 | 0 | 2 | 6 |
 | SQL exercises independently checked across all fixtures | 6 | 6 | 0 | 1 | 6 |
 | Enabled misconception definitions with full coverage | 3 | 3 | 0 | 2 | 3 |
 
-Six original lessons are searchable in both local databases. The Library reports **0 of 5 books indexed** and the manifest contains zero approved publisher sections. S1 and S4 pass with `--review-policy learner`. Both default human-only gates exit 1 with zero qualifying records.
+All 24 Learn topics have material. Twenty-two original lessons are searchable in both local databases. The Library reports **0 of 5 books indexed** and the manifest contains zero approved publisher sections. S1 and S4 pass with `--review-policy learner`. Both default human-only gates exit 1 with zero qualifying records.
 
 ## S0 — Source of truth, content schema, bootstrap
 
@@ -100,6 +100,7 @@ Six original lessons are searchable in both local databases. The Library reports
 | S6.5 Final acceptance corrections | done_tested | Fixed mixed-session resumption, repeated-detector independence, open-item hints, SQL feedback and error messages, demo Markdown, and mobile lesson overflow. Pytest 138, Vitest 2, Chrome regression 6 and real Chrome acceptance journeys verified. Both learner gates, Alembic, the authored replay, and real Ollama and offline fallback passed. Pushed to `origin/main`. [Hosted checks passed](https://github.com/Aadit5gupta/adaptive-dbms-tutor/actions/runs/45170749595). | 2026-11-23 / `3b56e5c` |
 | S6.6 Final acceptance report | done_tested | [Report](docs/FINAL_ACCEPTANCE_REPORT.md) records actual Chrome journeys, fixes, screenshots, remaining defects, and separate readiness decisions. | 2026-11-23 |
 | S6.7 Browser demo reset | done_tested | Added a confirmed reset for both synthetic learners. The authenticated learner database remains outside the operation. Pytest 139, Vitest 2, Chrome 6, build, lint, type checks, S4 learner validation and authored CLI replay passed. | 2026-11-23 |
+| S6.8 Learn curriculum coverage | done_tested | Added 16 AI-verified original lessons and 16 practice questions in the two `coverage.yaml` files. Published in both local databases. Pytest 139, Vitest 2, Chrome 7, lint, type checks, build, learner S1/S4 gates and authored CLI replay passed. All 16 new lessons were retrieved from FTS5 in both databases. Real Ollama grounded its reply in a new lesson. See [test report](docs/test-report.md#learn-coverage-25-november-2026). | 2026-11-25 |
 | Human review and publisher indexing | blocked | Human-only gates and independent human pilot sign-off require actual human review. Publisher ingestion requires per-section rights review and approved hashes. OpenStax and DataField additionally require permission evidence for this corpus. | 2026-11-23 |
 
 **Allowed task statuses:** `todo | in_progress | done_tested | blocked`. Mark `done_tested` only with executed commands, observed results and date. A passing stage is never inferred from completed scaffolding. If human review/licensing blocks a gate, label it **blocked**, continue eligible engineering work and disclose limitations honestly.

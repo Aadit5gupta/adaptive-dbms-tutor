@@ -95,3 +95,28 @@ test('a narrow lesson scrolls its example table inside the page', async ({ page 
   await expect(page.getByRole('table', { name: '' })).toBeVisible()
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(390)
 })
+
+test('signed-in Learn covers every listed subtopic with reviewed content', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Create an account' }).click()
+  await page.getByLabel('Email', { exact: true }).fill('curriculum-coverage@example.com')
+  await page.getByLabel('Password', { exact: true }).fill('synthetic curriculum passphrase')
+  await page.getByRole('button', { name: 'Create account', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
+  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Learn', exact: true }).click()
+  const domains = page.locator('main details')
+  await expect(domains).toHaveCount(7)
+  for (const domain of await domains.all()) {
+    await domain.locator('summary').click()
+  }
+  await expect(page.getByRole('heading', { level: 2 })).toHaveCount(24)
+  await expect(page.getByText('Reviewed material pending.', { exact: true })).toHaveCount(0)
+  await expect(page.locator('main a[href*="/learn/lesson_intro_"]')).toHaveCount(16)
+  await page.getByRole('link', { name: 'Identify a weak entity through its owner' }).click()
+  await expect(page.getByRole('heading', { name: 'Identify a weak entity through its owner' })).toBeVisible()
+  await expect(page.getByText('AI-verified original lesson', { exact: true })).toBeVisible()
+  await page.getByRole('link', { name: 'Practice this topic' }).click()
+  await page.getByRole('button', { name: 'Start or resume practice' }).click()
+  await answer(page, '(wing_code, locker_number).')
+  await expect(page.getByRole('heading', { name: 'Correct', exact: true })).toBeVisible()
+})

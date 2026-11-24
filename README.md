@@ -2,7 +2,7 @@
 
 Adaptive DBMS Tutor is a local-first DBMS and SQL learning platform. Deterministic grading drives mastery, misconception evidence and recommendations. The tutor uses SQLite FTS5, BM25 and the local Ollama model to explain reviewed material.
 
-The app runs on Apple Silicon macOS. The learner bank includes 30 AI-verified MCQs, six original lessons, six SQL exercises and three enabled misconception definitions. Six original lessons support tutoring. The Library shows five catalog entries and zero indexed books. [Educational review](docs/educational-review.md) · [Section rights review](docs/section-rights-review.md)
+The app runs on Apple Silicon macOS. The AI-verified learner bank includes 46 MCQs, 22 original lessons, six SQL exercises and three enabled misconception definitions. All 24 Learn topics have learner material. The tutor can retrieve the 22 original lessons. The Library shows five catalog entries and zero indexed books. [Educational review](docs/educational-review.md) · [Section rights review](docs/section-rights-review.md)
 
 - [Implementation status](IMPLEMENTATION_STATUS.md)
 - [Architecture and schema](docs/architecture.md)

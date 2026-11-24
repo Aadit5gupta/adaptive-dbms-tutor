@@ -41,6 +41,8 @@
 
 | D12 | 2026-11-23 | Keep open assessment hints and the original JOIN count mismatch explanation curated | Actual Chrome sessions exposed repeated incomplete hints and an incorrect COUNT recommendation from the small model | Giving all generated output the same instructional weight | The curated prompts preserve answer and evidence boundaries. Other eligible DBMS and SQL tutoring still uses the bounded local provider. |
 
+| D13 | 2026-11-25 | Fill the 16 empty Learn topics with introductory lessons and ordinary practice | The owner requested usable material in the pending Learn subsections | Expanding assessment and misconception coverage in the same change | All 24 topics have material. The new questions are ordinary practice and use the existing learner review and attribution policy. |
+
 ## Deviations and blockers
 
 | Date | Stage/task | Problem / deviation | Impact | Fallback | Owner action required |

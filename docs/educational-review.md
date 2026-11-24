@@ -82,3 +82,19 @@ The separate reviewer derived the expected results from each fixture and ran bot
 | `sql_repeat_customers` | JOIN, GROUP BY and HAVING | Multiple qualifying customers, counts above two and unassigned orders. |
 
 The visible and first hidden fixture now contain the edge rows that distinguish common mistakes. In particular, the hidden fixture contains two qualifying customers, a count above two and two NULL customer IDs. Those rows catch hardcoded counts, a single-row limit and grouping unassigned orders as customers.
+
+## Learn curriculum coverage, 25 November 2026
+
+The same two AI review roles reviewed 16 original introductory lessons and 16 ordinary practice questions. The separate-context reviewer solved each question independently, checked the distractors and explanations against the references, and independently ran the subquery, decomposition and query plan examples in SQLite. The final wording distinguishes weak entity identifiers, lock acquisition, commit order and sparse index entries. Each of the 16 previously empty topics now has a lesson with a worked example and a practice question with deterministic feedback. Existing diagnostic, detector and checkpoint banks retain their original items.
+
+| New material | Chapter evidence |
+|---|---|
+| Entity types, attributes, cardinality in both directions and identifying relationships | Entity sets, cardinality and weak entities in [Practical DB ERD, §2.2.1 and §2.2.2](https://runestone.academy/ns/books/published/practical_db/PART2_DATA_MODELING/02-ERD/ERD.html) |
+| Relations, rows and columns, selection and projection | Relation properties and algebra operations in [Practical DB relational model, §3.1.1 and §3.1.3](https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/01-relational-model/relational-model.html) and [relational algebra, §3.2.1](https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/02-relational-algebra/relational-algebra.html) |
+| Correlated existence tests and lossless binary decomposition | EXISTS and decomposition in [Practical DB subqueries, §1.8.4](https://runestone.academy/ns/books/published/practical_db/PART1_SQL/08-subqueries/subqueries.html) and [normalization, §3.3.6](https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/03-normalization/normalization.html), with the binary lossless-join criterion in [Database System Concepts, ch. 7](https://www.db-book.com/slides-dir/PDF-dir/ch7.pdf) |
+| ACID, serializability, recoverable schedules and isolation anomalies | Transaction guarantees in [DataField, ch. 26](https://datafield.dev/sql/part-04/chapter-26/), with the conflict graph and recoverability rules in [Database System Concepts, ch. 17, slides 25–30](https://www.db-book.com/slides-dir/PDF-dir/ch17.pdf) |
+| Lock modes, two-phase locking and deadlocks | Lock compatibility, waits-for cycles and rollback in [DataField, ch. 27](https://datafield.dev/sql/part-04/chapter-27/), with the formal two-phase locking rule in [Database System Concepts, ch. 18, slides 9–10](https://www.db-book.com/slides-dir/PDF-dir/ch18.pdf) |
+| Physical index layouts, B+ trees and hash indexes | Index mechanics in [DataField, ch. 23](https://datafield.dev/sql/part-04/chapter-23/), with notation and definitions in [Database System Concepts, ch. 14](https://www.db-book.com/slides-dir/PDF-dir/ch14.pdf) |
+| Reading a SQLite query plan | Scan and index examples in [Learning Database Design and SQL, ch. 8](https://brendanpshea.github.io/database_sql/database_ch08_indexes_gotham.html) and access path definitions in the [SQLite query plan documentation](https://www.sqlite.org/eqp.html) |
+
+The new versions are `ai_verified` and count toward learner gates. The human-reviewed count and approved book-section count are both zero. The app indexes the 22 original lessons and uses chapter links as factual references.

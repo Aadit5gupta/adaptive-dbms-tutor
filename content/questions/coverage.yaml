@@ -1,0 +1,496 @@
+- id: q_topic_intro_er_entities
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  subtopic_id: er.entities
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART2_DATA_MODELING/02-ERD/ERD.html
+    reproduced_book_text: false
+  stem: A workshop tracks individual tools. Every tool has its own asset tag and weight. Which item is an attribute
+    of Tool?
+  options:
+  - text: The Tool entity type.
+    correct: false
+  - text: The weight recorded for a tool.
+    correct: true
+  - text: The particular drill tagged T17.
+    correct: false
+  - text: The association between a tool and its current borrower.
+    correct: false
+  explanation: Weight is a property of an individual tool. Tool is the type, T17 refers to a specific instance,
+    and the association describes a relationship.
+- id: q_topic_intro_er_cardinality
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  subtopic_id: er.cardinality
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART2_DATA_MODELING/02-ERD/ERD.html
+    reproduced_book_text: false
+  stem: Every borrowed camera is checked out to exactly one member. A member may have no cameras or several
+    cameras checked out. How many checked-out cameras can one member have?
+  options:
+  - text: Exactly one.
+    correct: false
+  - text: One or more.
+    correct: false
+  - text: Zero or one.
+    correct: false
+  - text: Zero or more.
+    correct: true
+  explanation: A member may have no checked-out cameras and can have several. The exactly-one rule applies
+    in the camera-to-member direction.
+- id: q_topic_intro_er_weak_entities
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  subtopic_id: er.weak_entities
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART2_DATA_MODELING/02-ERD/ERD.html
+    reproduced_book_text: false
+  stem: Gym wing codes are unique. Locker numbers are unique within a wing, and locker 12 exists in both East
+    and West. Which pair guarantees that you can identify one locker across the gym?
+  options:
+  - text: (wing_code, locker_number).
+    correct: true
+  - text: (locker_number, aisle_number), when aisle numbers may repeat across wings.
+    correct: false
+  - text: (locker_number, door_color), when colors may repeat.
+    correct: false
+  - text: (wing_code, floor_number), when each floor can contain several lockers.
+    correct: false
+  explanation: A locker number distinguishes lockers only inside its owner wing. Using the wing code with the
+    locker number identifies one locker.
+- id: q_topic_intro_relational_relations
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  subtopic_id: relational.relations
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/01-relational-model/relational-model.html
+    reproduced_book_text: false
+  stem: In Parcel(tracking_code, weight_kg, depot_code), which rule limits the allowed values for the weight
+    attribute?
+  options:
+  - text: A tracking code must identify one parcel.
+    correct: false
+  - text: Each known depot code must refer to a row in Depot.
+    correct: false
+  - text: Every parcel weight must be a number greater than zero.
+    correct: true
+  - text: A report must sort by tracking code.
+    correct: false
+  explanation: The valid set of weight values is a domain constraint. Unique identification, references, and
+    report order are separate concerns.
+- id: q_topic_intro_relational_algebra
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  subtopic_id: relational.algebra
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/02-relational-algebra/relational-algebra.html
+    reproduced_book_text: false
+  stem: A report needs only the bay codes of completed repairs. In relational algebra, which pair of operations
+    in that order produces the result from Repair(status, bay_code)?
+  options:
+  - text: Project bay_code, then select rows using status.
+    correct: false
+  - text: Select rows with status completed, then project bay_code.
+    correct: true
+  - text: Project status, then select rows using bay_code.
+    correct: false
+  - text: Select all rows, then project status.
+    correct: false
+  explanation: Selection needs the status attribute to filter first. Projection then keeps only bay_code in
+    the result.
+- id: q_topic_intro_sql_subqueries
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  subtopic_id: sql.subqueries
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/08-subqueries/subqueries.html
+    reproduced_book_text: false
+  stem: Workshops contains one row per workshop. A SELECT from Workshops filters its rows with WHERE EXISTS
+    to check for matching bookings. Workshop 8 has three bookings. How many result rows come from workshop
+    8?
+  options:
+  - text: One row.
+    correct: true
+  - text: Zero rows.
+    correct: false
+  - text: Three rows.
+    correct: false
+  - text: Four rows.
+    correct: false
+  explanation: EXISTS serves as a true-or-false condition on the workshop row. It does not emit the individual
+    bookings.
+- id: q_topic_intro_normalization_decomposition
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  subtopic_id: normalization.decomposition
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/03-normalization/normalization.html
+    reproduced_book_text: false
+  stem: Delivery(parcel_id, depot_code, depot_city) has the dependency depot_code → depot_city. It is split
+    into ParcelDepot(parcel_id, depot_code) and DepotCity(depot_code, depot_city). Which fact is sufficient
+    to show the split is lossless?
+  options:
+  - text: Both tables have two columns.
+    correct: false
+  - text: A single sample JOIN returned the expected number of rows.
+    correct: false
+  - text: Each smaller table contains at least one attribute from Delivery.
+    correct: false
+  - text: The common depot code determines all attributes of DepotCity.
+    correct: true
+  explanation: For a binary split, the common attributes determining a complete component guarantee a lossless
+    natural join.
+- id: q_topic_intro_transactions_acid
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  subtopic_id: transactions.acid
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://datafield.dev/sql/part-04/chapter-26/
+    reproduced_book_text: false
+  stem: A cinema records a seat reservation and then creates its ticket in one transaction. Ticket creation
+    fails and the reservation is rolled back. Which ACID property keeps the steps together?
+  options:
+  - text: Consistency.
+    correct: false
+  - text: Isolation.
+    correct: false
+  - text: Atomicity.
+    correct: true
+  - text: Durability.
+    correct: false
+  explanation: Atomicity makes the two changes succeed together or be rolled back together.
+- id: q_topic_intro_transactions_schedules
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  subtopic_id: transactions.schedules
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://datafield.dev/sql/part-04/chapter-26/
+    reproduced_book_text: false
+  stem: Given W1(A), R2(A), R1(B), W2(B), what does the conflict graph say? W means write, R means read, and
+    the number identifies the transaction.
+  options:
+  - text: It has only T2 → T1, so T2 must come first.
+    correct: false
+  - text: It has a cycle because there are conflicts on two items.
+    correct: false
+  - text: It has no edges because each transaction touches two items.
+    correct: false
+  - text: It has only T1 → T2, so the schedule is conflict-serializable.
+    correct: true
+  explanation: The write of A by T1 precedes T2's read, and T1's read of B precedes T2's write. Both conflicts
+    point from T1 to T2.
+- id: q_topic_intro_transactions_recoverability
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  subtopic_id: transactions.recoverability
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://datafield.dev/sql/part-04/chapter-26/
+    reproduced_book_text: false
+  stem: T1 writes X. T2 reads that uncommitted value and commits while T1 is still active. T1 subsequently
+    aborts. Which conclusion follows?
+  options:
+  - text: The schedule violates recoverability because the dependent reader committed before its writer had committed.
+    correct: true
+  - text: The schedule is recoverable because T1's eventual abort releases its locks.
+    correct: false
+  - text: The schedule is cascadeless because both transactions finished.
+    correct: false
+  - text: The schedule is recoverable because T2 only read X.
+    correct: false
+  explanation: T2 already committed a result that depended on a value from T1, which then aborted. The recoverability
+    rule requires the writer to commit first.
+- id: q_topic_intro_concurrency_locks
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  subtopic_id: concurrency.locks
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://datafield.dev/sql/part-04/chapter-27/
+    reproduced_book_text: false
+  stem: A transaction has released its first lock. It then acquires a new lock on an item it has not yet locked.
+    Does this satisfy basic two-phase locking?
+  options:
+  - text: Yes, if the new lock is shared.
+    correct: false
+  - text: Yes, if the new lock is on a different item.
+    correct: false
+  - text: No. After the first release, the transaction cannot acquire a new lock.
+    correct: true
+  - text: Yes, provided the transaction will release all locks before it ends.
+    correct: false
+  explanation: The first lock release starts the shrinking phase. Acquiring a new lock after that point violates
+    the protocol.
+- id: q_topic_intro_concurrency_deadlocks
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  subtopic_id: concurrency.deadlocks
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://datafield.dev/sql/part-04/chapter-27/
+    reproduced_book_text: false
+  stem: T1 holds the camera lock and waits for a tripod held by T2. T2 waits for the camera while holding the
+    tripod. What does the waits-for graph contain?
+  options:
+  - text: Only T1 → T2, an ordinary wait.
+    correct: false
+  - text: T1 → T2 and T2 → T1, a deadlock cycle.
+    correct: true
+  - text: Only T2 → T1, an ordinary wait.
+    correct: false
+  - text: No edges because each transaction already holds one lock.
+    correct: false
+  explanation: Each transaction is blocked by the other. Drawing both waits produces a cycle.
+- id: q_topic_intro_concurrency_isolation
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  subtopic_id: concurrency.isolation
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://datafield.dev/sql/part-04/chapter-26/
+    reproduced_book_text: false
+  stem: T1 runs the same query for all open help tickets twice. Between reads T2 commits an insertion, and
+    T1's second result contains an additional matching ticket. Which anomaly is illustrated?
+  options:
+  - text: A dirty read.
+    correct: false
+  - text: A nonrepeatable read of an existing ticket's field.
+    correct: false
+  - text: A phantom read.
+    correct: true
+  - text: A deadlock.
+    correct: false
+  explanation: The repeated predicate returned an additional committed matching row. A dirty read would instead
+    observe an uncommitted write.
+- id: q_topic_intro_indexing_layout
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  subtopic_id: indexing.layout
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://datafield.dev/sql/part-04/chapter-23/
+    reproduced_book_text: false
+  stem: The receipts have unique numbers. The data file is sorted by receipt number, and every block holds several
+    receipts. An index records only the first receipt number and address of each block. What layout does this describe?
+  options:
+  - text: A dense index containing every receipt number.
+    correct: false
+  - text: A hash index with one bucket per receipt.
+    correct: false
+  - text: A nonclustered index on customer name.
+    correct: false
+  - text: A sparse index on an ordered data file.
+    correct: true
+  explanation: The block-start entries represent only some receipt numbers. The sorted file makes it possible
+    to locate a candidate block from those entries.
+- id: q_topic_intro_indexing_structures
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  subtopic_id: indexing.structures
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://datafield.dev/sql/part-04/chapter-23/
+    reproduced_book_text: false
+  stem: A query fetches orders with timestamps between a start and an end time. Which index directly supports
+    scanning the matching keys in timestamp order?
+  options:
+  - text: A hash index on the timestamp.
+    correct: false
+  - text: A B+ tree index on the timestamp.
+    correct: true
+  - text: A hash index on the order ID.
+    correct: false
+  - text: A B+ tree index on an unrelated customer surname.
+    correct: false
+  explanation: The timestamp B+ tree organizes its leaf keys in time order so a range scan can walk the relevant
+    entries.
+- id: q_topic_intro_indexing_plans
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  subtopic_id: indexing.plans
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://brendanpshea.github.io/database_sql/database_ch08_indexes_gotham.html
+    reproduced_book_text: false
+  stem: SQLite reports SEARCH Checkouts USING INDEX idx_code (checkout_code=?) for a filtered query. What can
+    you infer from that line?
+  options:
+  - text: SQLite chose an indexed lookup for a subset of rows in Checkouts.
+    correct: true
+  - text: SQLite measured the elapsed time and found the lookup completed instantly.
+    correct: false
+  - text: Every row in Checkouts must be scanned in storage order.
+    correct: false
+  - text: Creating idx_code permanently changed the query's logical result.
+    correct: false
+  explanation: SEARCH identifies a subset lookup, and USING INDEX names its access path. This output describes
+    the plan and does not report timing.

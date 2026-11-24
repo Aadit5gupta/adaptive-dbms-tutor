@@ -76,3 +76,16 @@ The final audit reran the existing tests and used installed Chrome against the n
 ## Browser demo reset
 
 139 backend tests, two Vitest tests and six Chrome cases passed. Browser coverage exercised cancellation, reset with an open activity, both fresh learner states and a new diagnostic after reload. The API test checks loopback and Origin requirements, replay rejection and an in-flight tutor reply. Ruff, mypy, frontend lint/typecheck/build, S4 learner validation and the authored CLI replay passed. The live Chrome confirmation opened and canceled at 390 px.
+
+## Learn coverage, 25 November 2026
+
+| Check | Actual result |
+|---|---|
+| `bash scripts/check_backend.sh backend/.venv/bin` | 139 pytest tests passed, including the restricted SQL worker regressions. Ruff, mypy and strict validation passed. |
+| `python scripts/validate_content.py --strict --stage S1 --review-policy learner` and the S4 equivalent | Both passed with 46 MCQs, 33 ordinary practice questions, 22 lessons, six checked SQL exercises and three enabled patterns. Both default human-only gates exited 1 with zero qualifying items. |
+| Frontend lint, typecheck, Vitest and production build | All passed, including both Vitest tests. |
+| Chrome Playwright, standard and `DBMS_TEST_AUTHORED=1` suites | Four standard and three authored tests passed. The new test opened every Learn domain, found all 24 topics and zero pending labels, opened the new weak-entity lesson, and completed its practice question. |
+| `python scripts/verify_demo.py` | Both learners passed the original detector, remediation and checkpoint replay. Learner B's SQL answer passed the grading fixtures. |
+| `python scripts/import_books.py lessons` and `python scripts/import_books.py --demo lessons` | Both local databases published the new content. A catalog and scoped BM25 probe checked all 16 new lessons in each database. Each database has 22 original lesson passages and zero book passages. |
+| SQLite worked examples | The correlated EXISTS query returned the qualifying workshop once with three matching bookings. The indexed lookup produced the documented SEARCH plan. The decomposition projections rejoined to the example tuples. |
+| `python scripts/check_ollama.py` and targeted weak-entity probes | Real `qwen3:1.7b` cited the original LEFT JOIN lesson in the standard check and the new weak-entity lesson in both targeted probes. The first weak-entity reply misstated where duplicate locker numbers can occur, despite naming the correct composite key. The concrete two-wing prompt correctly explained that each wing can have a locker 7 and identified both by the wing code and locker number. |

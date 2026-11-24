@@ -1,0 +1,366 @@
+- id: lesson_intro_er_entities
+  version: 1
+  title: Identify entities and their attributes
+  subtopic_id: er.entities
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART2_DATA_MODELING/02-ERD/ERD.html
+    reproduced_book_text: false
+  body_markdown: |
+    A repair desk tracks equipment. An **entity type** describes a kind of thing the desk tracks, such as Tool. An **instance** is one particular tool, such as the drill tagged T17. An **attribute** describes a property, such as weight or purchase date.
+
+    | Asset tag | Tool kind | Weight in kg |
+    | --- | --- | --- |
+    | T17 | Drill | 2.1 |
+    | T24 | Drill | 1.8 |
+
+    Both rows describe instances of Tool. They share a kind, so tool kind cannot identify an instance here. The desk assigns each tool a unique asset tag. If location later needs its own address and inspection history, it may deserve a separate entity type.
+- id: lesson_intro_er_cardinality
+  version: 1
+  title: Read relationship cardinality in both directions
+  subtopic_id: er.cardinality
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART2_DATA_MODELING/02-ERD/ERD.html
+    reproduced_book_text: false
+  body_markdown: |
+    Cardinality answers how many instances on one side of a relationship may be linked to one instance on the other side. Write a minimum and maximum for each direction. A minimum of zero makes participation optional in that direction.
+
+    Suppose every badge is assigned to exactly one volunteer. A volunteer may have zero, one, or several badges. Read both directions separately:
+
+    - One volunteer can have zero to many badges.
+    - One badge must belong to exactly one volunteer.
+
+    This is one-to-many from Volunteer to Badge. The word *many* is an allowed maximum. A new volunteer can still have zero badges.
+- id: lesson_intro_er_weak_entities
+  version: 1
+  title: Identify a weak entity through its owner
+  subtopic_id: er.weak_entities
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART2_DATA_MODELING/02-ERD/ERD.html
+    reproduced_book_text: false
+  body_markdown: |
+    A marina numbers its berths separately on each dock. Berth 4 on dock N and berth 4 on dock S are different berths. In this design Berth is a **weak entity type**. Its berth number distinguishes berths within one dock, so it is a **partial key**. The pair (dock code, berth number) identifies a berth across the marina.
+
+    The relationship to Dock is **identifying** because the dock's key forms part of the berth's identity. A separate example helps distinguish dependence from association. A boat with a marina-wide unique registration code keeps that identity even if it is reassigned to another berth.
+- id: lesson_intro_relational_relations
+  version: 1
+  title: Read a relation and its constraints
+  subtopic_id: relational.relations
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/01-relational-model/relational-model.html
+    reproduced_book_text: false
+  body_markdown: |
+    A relation has a schema describing its attributes and their allowed domains. A **tuple** is one row of values. In the mathematical relational model, a relation is a set of tuples. Tuple ordering carries no meaning.
+
+    Consider Parcel(tracking_code, weight_kg, depot_code). A tracking code identifies a parcel. A domain rule can require weight to be a positive number. A reference rule can require depot_code to refer to an existing depot. These rules answer three different questions: which parcel is this, is this weight allowed, and does the related depot exist?
+
+    A SQL table is an implementation of these ideas. Its declared constraints determine what values the database will enforce.
+- id: lesson_intro_relational_algebra
+  version: 1
+  title: Choose rows and columns in relational algebra
+  subtopic_id: relational.algebra
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/02-relational-algebra/relational-algebra.html
+    reproduced_book_text: false
+  body_markdown: |
+    **Selection** filters tuples using a condition. **Projection** keeps a chosen list of attributes. Their output is another relation, so the operators can be composed.
+
+    Suppose Equipment has columns asset_tag, condition, and room. To list only the rooms that contain damaged equipment, first select tuples with condition equal to damaged. Then project room. The result contains one attribute. If two qualifying tools are in the same room, the relational result lists that room once because tuples form a set.
+
+    A join combines related tuples from two inputs. For example, joining Equipment to Room can associate an asset tag with a room's building.
+- id: lesson_intro_sql_subqueries
+  version: 1
+  title: Test for a matching row with EXISTS
+  subtopic_id: sql.subqueries
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/08-subqueries/subqueries.html
+    reproduced_book_text: false
+  body_markdown: |
+    A subquery is a query inside another SQL statement. A **correlated** subquery refers to a value supplied by the outer query. Use EXISTS when the outer row qualifies if there is at least one inner match.
+
+    For example, find workshops with at least one booking.
+
+    ```sql
+    SELECT w.id
+    FROM workshops AS w
+    WHERE EXISTS (
+        SELECT 1 FROM bookings AS b WHERE b.workshop_id = w.id
+    );
+    ```
+
+    For each workshop row, the condition asks whether any booking matches its ID. One booking suffices. Several matching bookings still qualify the same outer row once. Change EXISTS to NOT EXISTS to find workshops with no bookings.
+- id: lesson_intro_normalization_decomposition
+  version: 1
+  title: Tell whether a decomposition is lossless
+  subtopic_id: normalization.decomposition
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/03-normalization/normalization.html
+    reproduced_book_text: false
+  body_markdown: |
+    A decomposition replaces one relation with projections onto smaller sets of attributes. It is **lossless** when joining the projections recovers exactly the original tuples for every valid state of the original relation. A lossy split can introduce extra combinations.
+
+    Suppose Delivery(parcel_id, depot_code, depot_city) obeys depot_code → depot_city. Split it into ParcelDepot(parcel_id, depot_code) and DepotCity(depot_code, depot_city). The shared depot code determines every attribute of DepotCity. For a binary decomposition under functional dependencies, this suffices for a lossless join. Each parcel keeps its depot code and joins to that depot's one city in the projections.
+
+    A sample join is a useful check. The dependency explains why the split works beyond that sample.
+
+    [Further reading on lossless joins](https://www.db-book.com/slides-dir/PDF-dir/ch7.pdf)
+- id: lesson_intro_transactions_acid
+  version: 1
+  title: Use a transaction to keep a change together
+  subtopic_id: transactions.acid
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://datafield.dev/sql/part-04/chapter-26/
+    reproduced_book_text: false
+  body_markdown: |
+    A transaction groups related database changes. **Atomicity** makes the group succeed or roll back as a unit. **Consistency** concerns preserving the rules of the database from one valid state to another. **Isolation** governs how simultaneous transactions can affect the values each observes. **Durability** protects committed changes across failures covered by the database's recovery guarantees.
+
+    A ticket desk reserves a seat and creates the associated ticket. If ticket creation fails, the desk should roll back the reservation as part of the same transaction. Atomicity is the property that keeps the seat and ticket changes together.
+- id: lesson_intro_transactions_schedules
+  version: 1
+  title: Test a schedule with a conflict graph
+  subtopic_id: transactions.schedules
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://datafield.dev/sql/part-04/chapter-26/
+    reproduced_book_text: false
+  body_markdown: |
+    A schedule is an interleaving of operations that preserves each transaction's own order. For a **conflict graph**, compare operations in different transactions on the same item. When at least one operation is a write, draw an arrow from the earlier operation's transaction to the later one's transaction.
+
+    In W1(X), R2(X), W2(Y), R1(Y), the order on X gives T1 → T2. The order on Y gives T2 → T1. No serial order satisfies both arrows. The cycle shows that the schedule is not conflict-serializable. An acyclic graph allows a serial order in which every arrow points forward.
+
+    [Further reading on conflict graphs](https://www.db-book.com/slides-dir/PDF-dir/ch17.pdf)
+- id: lesson_intro_transactions_recoverability
+  version: 1
+  title: Check commit order after a transaction reads another's write
+  subtopic_id: transactions.recoverability
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://datafield.dev/sql/part-04/chapter-26/
+    reproduced_book_text: false
+  body_markdown: |
+    A schedule is **recoverable** if a transaction that reads another transaction's written value can commit only after that writer commits. Apply the rule to every reads-from dependency. If the writer aborts, a dependent reader that used an uncommitted value may need to abort too.
+
+    Suppose T1 writes a revised quota and T2 reads that uncommitted value. If T1 commits and then T2 commits, the dependency is recoverable. In a **cascadeless** schedule T2 would wait until T1 commits before reading T1's value. The commit rule checks recoverability. The earlier read rule prevents cascading aborts.
+
+    [Further reading on recoverability](https://www.db-book.com/slides-dir/PDF-dir/ch17.pdf)
+- id: lesson_intro_concurrency_locks
+  version: 1
+  title: Recognize the two phases of locking
+  subtopic_id: concurrency.locks
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://datafield.dev/sql/part-04/chapter-27/
+    reproduced_book_text: false
+  body_markdown: |
+    In the basic shared/exclusive lock model, shared locks are compatible with other shared locks on an item. An exclusive lock conflicts with both modes on that item. Locks coordinate concurrent access to shared data.
+
+    **Two-phase locking (2PL)** has a growing phase in which the transaction may acquire locks, followed by a shrinking phase that starts at its first release. Once shrinking starts it may only release existing locks. For example, acquire S(A), acquire X(B), release S(A), release X(B) follows the phase rule. Acquiring a lock on C after releasing A would break it.
+
+    Basic 2PL guarantees conflict serializability for compliant schedules. Transactions can still deadlock.
+
+    [Further reading on two-phase locking](https://www.db-book.com/slides-dir/PDF-dir/ch18.pdf)
+- id: lesson_intro_concurrency_deadlocks
+  version: 1
+  title: Find a cycle in a waits-for graph
+  subtopic_id: concurrency.deadlocks
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://datafield.dev/sql/part-04/chapter-27/
+    reproduced_book_text: false
+  body_markdown: |
+    A waits-for graph draws an arrow **from the waiting transaction to the transaction holding the required lock**. A cycle of outstanding waits is a deadlock in this lock model.
+
+    For example, an equipment checkout holds a lock on a camera and wants a tripod. A kit update holds the tripod and wants the camera. The checkout waits for the kit update, and the kit update waits for the checkout. If both must hold their first lock while waiting, neither can finish. A database can resolve the cycle by aborting a participant and releasing its locks. Acquiring resources in a consistent global order can prevent this pattern.
+- id: lesson_intro_concurrency_isolation
+  version: 1
+  title: Recognize dirty, nonrepeatable, and phantom reads
+  subtopic_id: concurrency.isolation
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://datafield.dev/sql/part-04/chapter-26/
+    reproduced_book_text: false
+  body_markdown: |
+    To name an isolation anomaly, ask what the first transaction observed.
+
+    - A **dirty read** sees a change that another transaction has yet to commit.
+    - A **nonrepeatable read** rereads a row and sees a changed value after someone else commits an update.
+    - A **phantom read** repeats a predicate and sees a different set of matching rows after another committed change.
+
+    Imagine a report rechecks its list of unreturned gear. Another transaction commits a new checkout between the two reads, adding a row to the result. That is a phantom. Implementation-specific isolation guarantees can be stronger than the standard minimum for a named level.
+- id: lesson_intro_indexing_layout
+  version: 1
+  title: Distinguish file order from index density
+  subtopic_id: indexing.layout
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://datafield.dev/sql/part-04/chapter-23/
+    reproduced_book_text: false
+  body_markdown: |
+    A **clustered index** follows the order in which the data records are organized for its search key. A nonclustered index has its own lookup order and uses references to reach records stored elsewhere. Think about record placement separately from the number of index entries.
+
+    In the textbook model of an ordered file, a **dense index** represents every distinct search-key value and can reach all matching records. A **sparse index** represents only selected keys. If boxes of receipts are stored in increasing receipt number, an entry for the starting number of each block lets you find a candidate block and search within it. That is a sparse index over ordered data.
+
+    [Further reading on ordered indexes](https://www.db-book.com/slides-dir/PDF-dir/ch14.pdf)
+- id: lesson_intro_indexing_structures
+  version: 1
+  title: Choose a tree or hash lookup
+  subtopic_id: indexing.structures
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://datafield.dev/sql/part-04/chapter-23/
+    reproduced_book_text: false
+  body_markdown: |
+    A **B-tree family** index maintains keys in sorted order. The leaves of a **B+ tree** store keys and record references or the records themselves. The leaves are linked in key order, so a range scan can locate its lower boundary and proceed through matching keys.
+
+    A **hash index** uses a hash of the key to locate a bucket. It supports exact equality lookup and does not maintain sorted key order for range scans. In a lending system, a B+ tree can help list checkouts in a date range. In a system that offers a hash index, an exact lookup by catalog code may make use of it. A B+ tree can also handle exact equality.
+
+    [Further reading on B+ trees and hashing](https://www.db-book.com/slides-dir/PDF-dir/ch14.pdf)
+- id: lesson_intro_indexing_plans
+  version: 1
+  title: Read a basic SQLite query plan
+  subtopic_id: indexing.plans
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_primary
+    independent_reviewer: ai:codex_separate_context
+  source:
+    kind: authored
+    factual_reference_url: https://brendanpshea.github.io/database_sql/database_ch08_indexes_gotham.html
+    reproduced_book_text: false
+  body_markdown: |
+    A query plan describes how the database intends to obtain the result. SQLite's EXPLAIN QUERY PLAN can show a SCAN or a SEARCH. SCAN denotes a full scan access path and can use an index for ordering. SEARCH denotes an access path limited to a subset, for example through an indexed filter.
+
+    For a condition WHERE checkout_code = 'C382', the line SEARCH Checkouts USING INDEX idx_code (checkout_code=?) indicates lookup through idx_code for the filter. This is a plan description. Its presence alone does not measure how long the query took. For a query that needs most rows, a scan can be a sensible choice.
+
+    [SQLite plan terminology](https://www.sqlite.org/eqp.html)
