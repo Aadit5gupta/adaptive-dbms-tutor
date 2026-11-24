@@ -1,5 +1,5 @@
 import { request } from './client'
-import type { Item, QueryResult } from './demo'
+import type { AnswerResult as Grade, Item, QueryResult } from './demo'
 
 export type Goal = 'exam' | 'placements' | 'understanding'
 export type Level = 'beginner' | 'some_experience' | 'advanced'
@@ -44,6 +44,7 @@ export interface Recommendation {
   action_type: string
   subtopic_id: string
   reason: string
+  misconception_code: string | null
   lesson_ref: string | null
   difficulty: string | null
 }
@@ -66,8 +67,13 @@ export interface Progress {
 export interface Hypothesis {
   code: string
   title: string
-  state: string
+  state: 'possible' | 'active' | 'improving' | 'resolved'
   evidence_count: number
+}
+
+export interface AssessmentResult extends Grade {
+  next_action: Recommendation | null
+  misconception: Hypothesis | null
 }
 
 export interface Session {

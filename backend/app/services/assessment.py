@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from app.db.models import (
     AssessmentSession,
     Attempt,
+    Misconception,
     Question,
     QuestionOption,
     QuestionVersion,
@@ -30,7 +31,7 @@ from app.schemas.assessment import (
     SQLAnswerInput,
 )
 from app.services.learning_state import mastery_for, recommend, save_recommendation
-from app.services.misconceptions import update_misconception
+from app.services.misconceptions import hypothesis_view, update_misconception
 from app.services.sql_grading import Grade, WorkerError, grade_sql, run_visible
 from content.schemas.models import Pool
 from content.sql_results import ResultRows
@@ -303,6 +304,7 @@ def persist_submission(
                 else None
             )
             action, decision = recommend(db, attempt, question.subtopic_id, after, hypothesis)
+            rule = db.get(Misconception, hypothesis.code) if hypothesis else None
         result = AnswerResult(
             attempt_id=attempt.id,
             correct=correct,
@@ -312,6 +314,7 @@ def persist_submission(
                 before=before.score, after=after.score, confidence=after.confidence
             ),
             next_action=action,
+            misconception=hypothesis_view(hypothesis, rule) if hypothesis and rule else None,
         )
         attempt.result_json = result.model_dump_json()
         db.add(attempt)

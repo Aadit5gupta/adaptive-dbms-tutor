@@ -191,6 +191,9 @@ def test_signed_in_assessment_and_progress_are_private(
                 f"/api/v1/assessments/{sid}/submit", json=body, headers=headers
             )
             assert submitted.status_code == 200 and not submitted.json()["correct"]
+            first_signal = submitted.json()["misconception"]
+            assert first_signal["code"] == "KEYS-02"
+            assert first_signal["state"] == "possible" and first_signal["evidence_count"] == 1
             assert (
                 await a.post(f"/api/v1/assessments/{sid}/submit", json=body, headers=headers)
             ).json() == submitted.json()
@@ -204,6 +207,9 @@ def test_signed_in_assessment_and_progress_are_private(
                 headers={**ORIGIN, "Idempotency-Key": kind["item_id"]},
             )
             assert result.json()["next_action"]["action_type"] == "MISCONCEPTION_REMEDIATION"
+            active = result.json()["misconception"]
+            assert active["state"] == "active" and active["evidence_count"] == 2
+            assert (await a.get("/api/v1/misconceptions")).json() == [active]
             assert (await a.get("/api/v1/lessons/keys@1")).json()["title"] == "keys"
             checks = await a.post("/api/v1/practice/checkpoints")
             assert checks.json()["total"] == 2

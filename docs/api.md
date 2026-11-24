@@ -43,7 +43,7 @@ Register and sign in at `POST /auth/register` and `POST /auth/login` with `email
 
 The curriculum, versioned lessons, assessments, practice, revision, SQL Lab and progress endpoints require a signed-in session. `POST /practice/sessions` accepts a topic, optional difficulty and a mode of `practice` or `review`. `POST /assessments/start` starts a screening when the topic is omitted or a targeted probe when supplied.
 
-Session responses carry a current item, total and remaining counts. Send a choice with an idempotency key to `/practice/sessions/{id}/answer` or `/assessments/{id}/submit`. `POST /practice/checkpoints` uses the current learner's recommended and still-eligible remediation. Progress, hypotheses and recommendations can be fetched from `/progress`, `/misconceptions` and `/recommendations/next`.
+Session responses carry a current item, total and remaining counts. Send a choice with an idempotency key to `/practice/sessions/{id}/answer` or `/assessments/{id}/submit`. `POST /practice/checkpoints` uses the current learner's recommended and still-eligible remediation. Progress, hypotheses and recommendations can be fetched from `/progress`, `/misconceptions` and `/recommendations/next`. Graded response feedback includes an optional `misconception` snapshot when that answer updates the learner’s misconception evidence.
 
 A targeted session only resumes a session whose items are all in the requested topic. For a reviewed SQL exercise, start a session with `POST /sql/exercises/{id}/sessions`. Run or submit a query to the matching endpoint with the returned session and item IDs. Session ownership, immutable versions and secret-free feedback apply to both routes.
 

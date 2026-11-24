@@ -53,6 +53,8 @@
 
 | D18 | 2026-11-25 | Give a single lesson more prompt space and use a cited curated reply for common normalization comparisons | The app sent only 600 of 907 bytes from the lesson, cutting off the second dependency chain. Even with both examples, the model used an imprecise definition once | Trusting a source citation as a correctness check | The prompt keeps its existing byte and token budgets. Common comparison and two-table follow-up prompts use the reviewed explanation when the actual lesson is retrieved. |
 
+| D19 | 2026-11-25 | Show signed-in misconception transitions in feedback and Progress | The previous Progress view mixed hypotheses with revision and left an empty list unexplained | Giving the frontend its own evidence thresholds or forcing remediation before practice can continue | Deterministic grading returns the updated snapshot. The UI shows the existing states and links to the server-selected lesson. |
+
 ## Deviations and blockers
 
 | Date | Stage/task | Problem / deviation | Impact | Fallback | Owner action required |

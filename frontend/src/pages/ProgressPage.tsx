@@ -4,13 +4,15 @@ import { Link } from 'react-router'
 import { request } from '../api/client'
 import type { Hypothesis } from '../api/learning'
 import { card, Failure, PageHeading, Pending, textLink } from '../components/layout'
-import { useCurriculum, useProgress } from './DashboardPage'
+import { MisconceptionStatus } from '../components/MisconceptionStatus'
+import { actionLink, useCurriculum, useProgress } from './DashboardPage'
 
 export function ProgressPage() {
   const progress = useProgress()
   const course = useCurriculum()
   const hypotheses = useQuery({ queryKey: ['hypotheses'], queryFn: ({ signal }) => request<Hypothesis[]>('/misconceptions', { signal }) })
   const titles = new Map(course.data?.map((domain) => [domain.id, domain.title]))
+  const next = progress.data?.recommendation
   const topicTitles = new Map(progress.data?.topics.map((topic) => [topic.topic, topic.title]))
   return <>
     <PageHeading title="Progress">See which topics have evidence, when revision is due, and how your latest attempts changed your score.</PageHeading>
@@ -29,15 +31,22 @@ export function ProgressPage() {
           {progress.data.domains.length === 0 && <p className="mt-3 text-sm text-stone-600">The curriculum has no installed content yet.</p>}
         </section>
         <section className={card}>
-          <h2 className="text-lg font-semibold">Revision and hypotheses</h2>
+          <h2 className="text-lg font-semibold">Revision and misconceptions</h2>
           {progress.data.topics.filter((row) => row.review_due).map((row) => (
             <Link key={row.topic} className={`mt-3 block text-sm ${textLink}`} to={`/practice?mode=review&topic=${row.topic}`}>Review {row.title}</Link>
           ))}
           {!progress.data.topics.some((row) => row.review_due) && <p className="mt-3 text-sm text-stone-600">No topics are due for revision.</p>}
-          {hypotheses.data?.map((row) => <article key={row.code} className="mt-4 border-t border-stone-200 pt-3 text-sm">
-            <h3 className="font-medium">{row.title}</h3>
-            <p className="mt-1 text-stone-600">{row.state} · {row.evidence_count} independent signals</p>
-          </article>)}
+          <div id="misconceptions" className="mt-5 border-t border-stone-200 pt-4">
+            <h3 className="font-semibold">Misconceptions</h3>
+            {hypotheses.isPending && <Pending>Checking misconception progress…</Pending>}
+            {hypotheses.data?.length === 0 &&
+              <p className="mt-2 text-sm text-stone-600">No misconception patterns detected yet.</p>}
+            {hypotheses.data?.map((row) => <article key={row.code} className="mt-3">
+              <MisconceptionStatus hypothesis={row} />
+              {next?.action_type === 'MISCONCEPTION_REMEDIATION' && next.misconception_code === row.code &&
+                <Link to={actionLink(next)} className={`mt-2 inline-block text-sm ${textLink}`}>Open remediation lesson</Link>}
+            </article>)}
+          </div>
         </section>
         <section className={card}>
           <h2 className="text-lg font-semibold">Topic scores</h2>

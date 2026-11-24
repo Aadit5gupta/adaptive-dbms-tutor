@@ -3,11 +3,12 @@ import { useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 
 import { request } from '../api/client'
-import type { AnswerResult, Item } from '../api/demo'
-import { mutate, type Session } from '../api/learning'
+import type { Item } from '../api/demo'
+import { mutate, type AssessmentResult, type Session } from '../api/learning'
 import { card, Empty, Failure, field, PageHeading, Pending, primary, secondary, textLink } from '../components/layout'
 import { AssessmentHints } from '../components/AssessmentHints'
-import { useCurriculum } from './DashboardPage'
+import { MisconceptionStatus } from '../components/MisconceptionStatus'
+import { actionLink, useCurriculum } from './DashboardPage'
 
 type Mode = 'practice' | 'diagnostic' | 'checkpoint' | 'review'
 const modeNames: Record<Mode, string> = {
@@ -66,7 +67,7 @@ export function PracticePage() {
         idem.current = { item: item.item_id, choice, key: crypto.randomUUID() }
       }
       const route = mode === 'diagnostic' ? `/assessments/${sessionId}/submit` : `/practice/sessions/${sessionId}/answer`
-      return mutate<AnswerResult>(route, { item_id: item.item_id, option_index: choice }, { key: idem.current.key })
+      return mutate<AssessmentResult>(route, { item_id: item.item_id, option_index: choice }, { key: idem.current.key })
     },
     onSuccess: async () => {
       await Promise.all([
@@ -78,6 +79,8 @@ export function PracticePage() {
   })
 
   const item = session.data?.items[0]
+  const next = answer.data?.next_action
+  const misconception = answer.data?.misconception
   return <>
     <PageHeading title={modeNames[mode]}>
       {mode === 'diagnostic' ? 'Check your understanding with reviewed questions. Topics without evidence stay unassessed.'
@@ -87,6 +90,12 @@ export function PracticePage() {
     {answer.data && <section className={`${card} mt-5 max-w-2xl`} aria-live="polite">
       <h2 className="font-semibold text-green-950">{answer.data.correct ? 'Correct' : 'Review this idea'}</h2>
       <p className="mt-2 leading-7 text-stone-700">{answer.data.explanation}</p>
+      {misconception && <div className="mt-4 border-t border-stone-200 pt-3">
+        <MisconceptionStatus hypothesis={misconception} />
+        <Link to="/progress#misconceptions" className={`mt-2 inline-block text-sm ${textLink}`}>View misconception progress</Link>
+      </div>}
+      {next?.action_type === 'MISCONCEPTION_REMEDIATION' && <Link to={actionLink(next)}
+        className={`mt-3 ${primary}`}>Open remediation lesson</Link>}
     </section>}
     <Failure error={start.error ?? session.error ?? answer.error}
       retry={session.isError ? () => void session.refetch() : undefined} />

@@ -124,3 +124,9 @@ The authored Learner A/B CLI replay and real Ollama textbook citation also passe
 The reported question retrieved the 907-byte original lesson but sent only its first 600 bytes to Ollama. The prompt ended inside the second example’s dependency chain. With fuller evidence, two real Ollama probes separated the examples, though the generated definition could still imply that the entire key fails to determine an attribute that depends on a subset. The repaired comparison and lesson follow-up use a curated answer with the real lesson citation.
 
 Pytest 148, Vitest 2, Ruff, mypy, frontend lint, typecheck, production build and strict validation passed. Chrome passed four standard and five authored scenarios, including asking the reported question from the lesson and checking the two distinct dependency explanations. The authored CLI replay and both real Ollama corpus smoke checks passed.
+
+## Signed-in misconception feedback, 25 November 2026
+
+Pytest 148, Vitest 2, Ruff, mypy, frontend lint, typecheck and build passed. Strict validation and S4 learner validation passed. The account regression verified that the first and second evidence-bearing answers return their actual misconception states, preserve idempotent submission, and expose no state across accounts. The authored A/B CLI replay also passed.
+
+Four standard and six authored Chrome scenarios passed. The new browser test registered a regular account, saw the empty misconception section, gave two independent foreign-key detector responses, saw the possible and active states, opened the recommended lesson, completed both checkpoints and confirmed the resolved state in Progress. The test never opened Learner Demo.

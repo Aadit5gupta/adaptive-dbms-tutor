@@ -15,6 +15,7 @@ from app.db.models import (
     SessionItem,
     UserMisconception,
 )
+from app.schemas.assessment import HypothesisView
 from content.schemas.models import Misconception as Definition
 
 Status = Literal["possible", "active", "improving", "resolved"]
@@ -31,6 +32,16 @@ class Signal:
 class Hypothesis:
     state: Status | None
     evidence_count: int
+
+
+def hypothesis_view(row: UserMisconception, rule: Misconception) -> HypothesisView:
+    return HypothesisView(
+        code=row.code,
+        title=rule.title,
+        topic_id=rule.subtopic_id,
+        state=row.state,
+        evidence_count=row.evidence_count,
+    )
 
 
 def evaluate_hypothesis(signals: list[Signal], minimum: int = 2) -> Hypothesis:

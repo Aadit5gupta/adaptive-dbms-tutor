@@ -42,6 +42,14 @@ class MasteryChange(BaseModel):
     confidence: str
 
 
+class HypothesisView(BaseModel):
+    code: str
+    title: str
+    topic_id: str
+    state: str
+    evidence_count: int
+
+
 class AnswerResult(BaseModel):
     attempt_id: str
     correct: bool
@@ -49,3 +57,4 @@ class AnswerResult(BaseModel):
     feedback_code: str | None = None
     mastery: MasteryChange | None = None
     next_action: NextAction | None = None
+    misconception: HypothesisView | None = None

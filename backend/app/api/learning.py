@@ -18,7 +18,13 @@ from app.db.models import (
     SQLExerciseVersion,
     UserMisconception,
 )
-from app.schemas.assessment import AnswerInput, AnswerResult, SessionView, SQLAnswerInput
+from app.schemas.assessment import (
+    AnswerInput,
+    AnswerResult,
+    HypothesisView,
+    SessionView,
+    SQLAnswerInput,
+)
 from app.schemas.tutor import Topic
 from app.services.adaptive import NextAction
 from app.services.assessment import (
@@ -37,6 +43,7 @@ from app.services.catalog import (
     lesson_detail,
     reviewed_exercises,
 )
+from app.services.misconceptions import hypothesis_view
 from app.services.progress import Progress, latest_recommendation, read_progress
 from app.services.sql_grading import (
     FixtureTable,
@@ -64,14 +71,6 @@ class DiagnosticInput(BaseModel):
 
 class SqlInput(SQLAnswerInput):
     session_id: Annotated[str, Field(min_length=1, max_length=64)]
-
-
-class Hypothesis(BaseModel):
-    code: str
-    title: str
-    topic_id: str
-    state: str
-    evidence_count: int
 
 
 def first_question(view: SessionView) -> SessionView:
@@ -141,16 +140,10 @@ def learning_router(accounts: Accounts, root: Path) -> APIRouter:
             return read_progress(db, user_id, int(time()))
 
     @router.get("/misconceptions")
-    def hypotheses(user_id: Annotated[str, Depends(identity)]) -> list[Hypothesis]:
+    def hypotheses(user_id: Annotated[str, Depends(identity)]) -> list[HypothesisView]:
         with Session(engine) as db:
             return [
-                Hypothesis(
-                    code=row.code,
-                    title=rule.title,
-                    topic_id=rule.subtopic_id,
-                    state=row.state,
-                    evidence_count=row.evidence_count,
-                )
+                hypothesis_view(row, rule)
                 for row, rule in db.execute(
                     select(UserMisconception, Misconception)
                     .join(Misconception, Misconception.code == UserMisconception.code)
