@@ -232,19 +232,24 @@ def test_bundled_book_passages_are_idempotent_searchable_and_attributed(
 
     engine, content, _ = indexed_db
     with Session(engine) as db, db.begin():
-        assert index_bundled_book_excerpts(db, content) == 2
-        assert index_bundled_book_excerpts(db, content) == 2
+        assert index_bundled_book_excerpts(db, content) == 4
+        assert index_bundled_book_excerpts(db, content) == 4
         assert book_counts(db, content.catalog) == {
             "bccampus_db_design_2e": {"bccampus_orphan_records": 1},
             "runestone_practical_db": {"runestone_foreign_key_actions": 1},
+            "shea_pop_culture_sql": {"shea_sqlite_index_storage": 1},
+            "datafield_db_fundamentals": {"datafield_transaction_atomicity": 1},
         }
     retriever = Retriever(engine, s1)
     for query, section in (
         ("orphan record", "bccampus_orphan_records"),
         ("delete cascade", "runestone_foreign_key_actions"),
+        ("additional disk space", "shea_sqlite_index_storage"),
+        ("single indivisible operation", "datafield_transaction_atomicity"),
     ):
-        hit = retriever.search(query, ("relational.keys",), k=1)[0]
         clearance = content.catalog.approved_clearances[section]
+        assert clearance.bundled_topic_id is not None
+        hit = retriever.search(query, (clearance.bundled_topic_id,), k=1)[0]
         assert hit.citation.kind == "book"
         assert hit.citation.url == str(clearance.section_url)
         assert hit.citation.license_url == str(clearance.license_url)

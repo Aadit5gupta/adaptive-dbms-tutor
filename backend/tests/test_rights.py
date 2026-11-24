@@ -33,14 +33,16 @@ def clearance(url: str) -> dict[str, Any]:
     }
 
 
-def test_catalog_has_two_publisher_records_and_no_blanket_approval(
+def test_catalog_has_four_publisher_records_and_no_blanket_approval(
     manifest: dict[str, Any],
 ) -> None:
     catalog = Catalog.model_validate(manifest)
     assert len(catalog.books) == 5
     assert catalog.approved_clearances.keys() == {
         "bccampus_orphan_records",
+        "datafield_transaction_atomicity",
         "runestone_foreign_key_actions",
+        "shea_sqlite_index_storage",
     }
     assert all(
         item.rights_status == "publisher_license_verified" and item.reviewer.startswith("ai:")
@@ -73,7 +75,9 @@ def test_verified_import_checks_book_and_unchanged_bytes(manifest: dict[str, Any
 
 def test_datafield_requires_permission(manifest: dict[str, Any]) -> None:
     manifest["books"][-1]["section_clearances"] = [clearance("https://datafield.dev/sql/test/")]
-    with pytest.raises(ValidationError, match="DataField remains link-only"):
+    with pytest.raises(
+        ValidationError, match="Other DataField sections require documented permission"
+    ):
         Catalog.model_validate(manifest)
 
 

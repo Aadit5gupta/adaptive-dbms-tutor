@@ -26,7 +26,7 @@ The original engineering sequence below retains historical human gate references
 
 **Files:** `content/manifests/books.yaml`, manifest schema/checker, rights tests.
 
-**Build:** Load five catalog entries, license evidence, per-section exceptions. The provided YAML is **not** clearance. A section can be imported only with a valid per-section rights record, recorded reviewer, date and license, and a matching content hash. See the current rights policy in MASTER_PLAN.md §4. BCcampus Chapters **10 and 11** need independent checks; DataField remains link-only. Import-count model derives from committed chunks, not YAML approvals.
+**Build:** Load five catalog entries, license evidence, per-section exceptions. The provided YAML is **not** clearance. A section can be imported only with a valid per-section rights record, recorded reviewer, date and license, and a matching content hash. See the current rights policy in MASTER_PLAN.md §4. BCcampus Chapters **10 and 11** need independent checks; Only the verified Chapter 26 excerpt from DataField is bundled. Import-count model derives from committed chunks, not YAML approvals.
 
 **Tests:** missing/duplicate book IDs, unknown statuses, DataField permission violation, uncleared section import, hash mismatch and failed import all rejected. No authoritative `indexed_section_count` in manifest. **Accept:** five catalog records and zero indexed books at bootstrap.
 

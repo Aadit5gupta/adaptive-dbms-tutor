@@ -1,0 +1,1 @@
+A transaction is a unit of work that is treated as a single, indivisible operation — it either happens completely or not at all.

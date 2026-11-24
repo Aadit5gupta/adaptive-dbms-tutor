@@ -79,7 +79,7 @@ test('original questions, lessons and SQL take both demo learners through remedi
   await page.getByRole('button', { name: 'Start diagnostic' }).click()
   await expect(page.getByRole('radio', { name: /Only one ticket can reference account 9/ })).toBeVisible()
   await page.goto('/library')
-  await expect(page.getByText('2 of 5 indexed')).toBeVisible()
+  await expect(page.getByText('4 of 5 indexed')).toBeVisible()
   const search = page.getByRole('searchbox', { name: 'Search passages' })
   await search.fill('ON DELETE CASCADE')
   await page.getByRole('button', { name: 'Search', exact: true }).click()
@@ -90,6 +90,20 @@ test('original questions, lessons and SQL take both demo learners through remedi
     .toHaveAttribute('href', /constraints\.html#enforcement-mechanisms$/)
   await expect(result.getByRole('link', { name: 'License' }))
     .toHaveAttribute('href', 'https://creativecommons.org/licenses/by-sa/4.0/')
+  await search.fill('additional disk space')
+  await page.getByRole('button', { name: 'Search', exact: true }).click()
+  const shea = page.getByRole('region', { name: 'Passage results' }).getByRole('article').filter({
+    hasText: 'Brendan Shea',
+  })
+  await expect(shea.getByRole('link', { name: 'License' }))
+    .toHaveAttribute('href', 'https://creativecommons.org/licenses/by-nc/4.0/')
+  await search.fill('single indivisible operation')
+  await page.getByRole('button', { name: 'Search', exact: true }).click()
+  const datafield = page.getByRole('region', { name: 'Passage results' }).getByRole('article').filter({
+    hasText: 'DataField.Dev',
+  })
+  await expect(datafield.getByRole('link', { name: 'Database Fundamentals' }))
+    .toHaveAttribute('href', /chapter-26\/#the-problem-the-world-doesnt-pause$/)
 })
 
 

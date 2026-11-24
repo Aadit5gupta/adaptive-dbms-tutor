@@ -35,6 +35,17 @@ PUBLISHER_LICENSE_SCOPES = {
         "https://opentextbc.ca/dbdesign01/chapter/chapter-9-integrity-rules-and-constraints/",
         "https://creativecommons.org/licenses/by/4.0/",
     ),
+    "shea_pop_culture_sql": (
+        (
+            "https://brendanpshea.github.io/database_sql/"
+            "database_ch08_indexes_gotham.html#how-indexes-impact-storage"
+        ),
+        "https://creativecommons.org/licenses/by-nc/4.0/",
+    ),
+    "datafield_db_fundamentals": (
+        "https://datafield.dev/sql/part-04/chapter-26/#the-problem-the-world-doesnt-pause",
+        "https://creativecommons.org/licenses/by-sa/4.0/",
+    ),
 }
 
 
@@ -174,8 +185,12 @@ class Catalog(Record):
             raise ValueError(f"{clearance.id}: section clearance requires a human reviewer")
         if book.id == "openstax_foundations_is" and not clearance.permission_evidence_url:
             raise ValueError("OpenStax tutor ingestion requires documented written permission")
-        if book.id == "datafield_db_fundamentals" and not clearance.permission_evidence_url:
-            raise ValueError("DataField remains link-only without documented permission")
+        if (
+            book.id == "datafield_db_fundamentals"
+            and clearance.rights_status != "publisher_license_verified"
+            and not clearance.permission_evidence_url
+        ):
+            raise ValueError("Other DataField sections require documented permission")
         if book.id == "bccampus_db_design_2e":
             for chapter, license_url in BCCAMPUS_EXCEPTIONS.items():
                 if chapter in section_path(clearance.section_url).casefold().split("/") and (

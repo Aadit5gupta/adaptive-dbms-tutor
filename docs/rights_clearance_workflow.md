@@ -40,7 +40,7 @@ section_clearances:
     attribution_text: '<ready-to-display title/author/source/license/changes>'
 ```
 
-Set `exceptions_resolved` only after resolving documented exceptions. For DataField and OpenStax, a separate approval must include `permission_evidence_url`. Import verification hashes the exact UTF-8 bytes selected for indexing.
+Set `exceptions_resolved` only after resolving documented exceptions. For OpenStax and for DataField sections outside the verified publisher scope, a separate approval must include `permission_evidence_url`. Import verification hashes the exact UTF-8 bytes selected for indexing.
 
 8. Run `python scripts/validate_content.py --strict` and section-rights tests. The import script must reject missing clearance, hash mismatch, unresolved exceptions, wrong source IDs and accidentally imported images. Do not override this for demos.
 9. Run an idempotent offline import into FTS with section/page provenance. Confirm query hits and displayed license/attribution. Count imported sections only after searchable chunks are committed. Keep raw publisher source files out of Git unless expressly permitted and needed.
@@ -48,10 +48,13 @@ Set `exceptions_resolved` only after resolving documented exceptions. For DataFi
 
 ## Publisher license verification for bundled excerpts
 
-For the publisher path, use `publisher_license_verified` and an explicit `ai:...` verifier. The validator pins the eligible section URL and license. Record a valid `bundled_topic_id`, actual access and review dates, attribution, and the exact SHA-256. Store the approved UTF-8 snippet at `content/manifests/book_excerpts/<clearance_id>.txt`. Inspect the precise excerpt and confirm it contains no exception. The manifest and the displayed source and license links carry the credit for each excerpt. This path applies to the two exact scopes below.
+For the publisher path, use `publisher_license_verified` and an explicit `ai:...` verifier. The validator pins the eligible section URL and license. Record a valid `bundled_topic_id`, actual access and review dates, attribution, and the exact SHA-256. Store the approved UTF-8 snippet at `content/manifests/book_excerpts/<clearance_id>.txt`. Inspect the precise excerpt and confirm it contains no exception. The manifest and the displayed source and license links carry the credit for each excerpt. This path applies to the four exact scopes below.
 
 - Runestone, foreign-key enforcement, one sentence on cascade deletion. [Chapter section](https://runestone.academy/ns/books/published/practical_db/PART1_SQL/07-constraints/constraints.html#enforcement-mechanisms) · [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
 - BCcampus, Chapter 9, one sentence defining orphan records. [Chapter and license notice](https://opentextbc.ca/dbdesign01/chapter/chapter-9-integrity-rules-and-constraints/) · [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+
+- Brendan Shea, Chapter 8, one paragraph about index storage costs, for the noncommercial project. [Chapter section](https://brendanpshea.github.io/database_sql/database_ch08_indexes_gotham.html#how-indexes-impact-storage) · [Book license notice](https://brendanpshea.github.io/database_sql/) · [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)
+- DataField, Chapter 26, one sentence about transaction atomicity. [Chapter section and license footer](https://datafield.dev/sql/part-04/chapter-26/#the-problem-the-world-doesnt-pause) · [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
 
 ## 3. Current high-priority exceptions (observed 2026-11-22)
 
@@ -61,7 +64,7 @@ For the publisher path, use `publisher_license_verified` and an explicit `ai:...
 | Runestone *A Practical Introduction to Databases* | CC BY-SA 4.0 book notice; exclude cover photograph and independently check referenced example datasets. Good priority for text-only licensing audit. |
 | Brendan Shea *SQL and Database Management Through Pop Culture* | Homepage states CC BY-NC 4.0. Noncommercial; third-party media/code/datasets need separate review. |
 | OpenStax *Foundations of Information Systems* | Preface states CC BY-NC-SA 4.0; check special attribution/figure licenses and page-by-page required notices if reusing book text. |
-| DataField *Database Fundamentals* | No unambiguous blanket redistribution/indexing permission established in the inspected source. **Keep link-only** until written permission or a valid license explicitly permits use. |
+| DataField *Database Fundamentals* | The Chapter 26 footer explicitly states CC BY-SA 4.0. The documented Chapter 26 snippet is bundled. Other sections and assets require a per-section record. |
 
 See the [section rights review package](section-rights-review.md) for exact chapter evidence and proposed exclusions. The manifest tracks existing exceptions and any actual clearances. This is a **partial audit**: it does not assert that all other sections lack exceptions.
 
@@ -70,7 +73,7 @@ See the [section rights review package](section-rights-review.md) for exact chap
 - Exactly 5 catalog records with unique source IDs and evidence URLs.
 - Rights enum: `link_only | approved_local_index | publisher_license_verified | blocked_pending_review | blocked_pending_permission | excluded_image` (the last is for recorded excluded assets, not a text-import permission).
 - `default_import_policy` remains `link_only` for any unlisted/unreviewed section.
-- **No import of DataField** unless the owner explicitly changes the rights record with actual evidence; tests enforce this condition rather than silently overriding it.
+- The code pins DataField to the supported Chapter 26 excerpt for publisher-license verification. Other DataField imports retain the documented permission requirement.
 - BCcampus Chapters 10/11 have explicit exception records; importer refuses those exact sections until a separate section clearance with appropriately documented derivative license obligations is approved.
 - Each approved imported text hash must match its clearance and stored chunk provenance. No clearance → no import. Approval without import → `indexed_books` remains unchanged.
 - Reviewer identity and dates must be real; Codex must never fill in fake human approvals.

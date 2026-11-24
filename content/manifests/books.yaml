@@ -104,7 +104,19 @@ books:
       reuse. No asset-level audit completed.
     status: blocked_pending_review
     accessed_on: '2026-11-22'
-  section_clearances: []
+  section_clearances:
+  - id: shea_sqlite_index_storage
+    section_url: https://brendanpshea.github.io/database_sql/database_ch08_indexes_gotham.html#how-indexes-impact-storage
+    license_url: https://creativecommons.org/licenses/by-nc/4.0/
+    rights_status: publisher_license_verified
+    scope: text_only
+    exceptions_found: none
+    accessed_on: '2026-11-25'
+    reviewer: ai:codex_primary
+    reviewed_on: '2026-11-25'
+    approved_content_hash: aca869bf754c679ba962e6dac4f3af6dc73d35138f2e61d32517ecbf3b104ebd
+    attribution_text: 'SQL and Database Management Through Pop Culture by Brendan Shea, Chapter 8. © 2026, CC BY-NC 4.0. Unmodified text excerpt for noncommercial use.'
+    bundled_topic_id: indexing.structures
   notes: Noncommercial content. Future commercial use requires rights re-check/permission or replacement. Default
     link-only policy is per uncleared section, NOT a dynamic indexing count.
   default_import_policy: link_only
@@ -137,17 +149,24 @@ books:
   authors:
   - DataField.Dev
   source_url: https://datafield.dev/sql/
-  license: null
-  license_url: null
-  license_evidence_url: https://datafield.dev/sql/
-  accessed_on: '2026-11-22'
-  section_exceptions:
-  - section_url: https://datafield.dev/sql/
-    issue: No blanket permission for local copying/indexing verified from inspected textbook page; obtain author
-      permission or explicit license.
-    status: blocked_pending_permission
-    accessed_on: '2026-11-22'
-  section_clearances: []
-  notes: Link-only. Public/free reading is not authorization to create a redistributed local text index. Default
-    link-only policy is per uncleared section, NOT a dynamic indexing count.
+  license: CC BY-SA 4.0 (Chapter 26 footer)
+  license_url: https://creativecommons.org/licenses/by-sa/4.0/
+  license_evidence_url: https://datafield.dev/sql/part-04/chapter-26/
+  accessed_on: '2026-11-25'
+  section_exceptions: []
+  section_clearances:
+  - id: datafield_transaction_atomicity
+    section_url: https://datafield.dev/sql/part-04/chapter-26/#the-problem-the-world-doesnt-pause
+    license_url: https://creativecommons.org/licenses/by-sa/4.0/
+    rights_status: publisher_license_verified
+    scope: text_only
+    exceptions_found: none
+    accessed_on: '2026-11-25'
+    reviewer: ai:codex_primary
+    reviewed_on: '2026-11-25'
+    approved_content_hash: 01f69251c416b662886608b2776df34fb1e9a2ab3156acd7ef9064faca460c2c
+    attribution_text: 'Database Fundamentals by DataField.Dev, Chapter 26. © 2026, CC BY-SA 4.0. Unmodified sentence excerpt.'
+    bundled_topic_id: transactions.acid
+  notes: The Chapter 26 license notice supports the specific text excerpt below the corresponding heading.
+    Other sections, datasets, exercises and assets retain their default link-only policy.
   default_import_policy: link_only

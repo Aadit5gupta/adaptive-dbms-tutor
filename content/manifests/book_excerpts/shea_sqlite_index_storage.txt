@@ -1,0 +1,1 @@
+Indexes can speed up queries, but they are not free. Each index takes additional disk space because SQLite stores it in its own B-tree structure.

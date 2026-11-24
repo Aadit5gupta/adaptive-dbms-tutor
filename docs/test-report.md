@@ -98,3 +98,9 @@ The final audit reran the existing tests and used installed Chrome against the n
 | Learner content and demo | Strict validation and S1/S4 learner gates passed with two indexable publisher records. The authored CLI replay passed. Four standard and three authored Chrome tests passed. Chrome showed 2 of 5 indexed in the authored Library and verified the Runestone search result, exact section link and license link. |
 | Local import and search | Application and dedicated demo imports each reported 24 searchable passages. The live Library returned one passage each from Runestone and BCcampus. Searching for orphan records returned the BCcampus reference first. |
 | Real Ollama | `python scripts/check_ollama.py --book` correctly explained that deleting the parent machine under ON DELETE CASCADE deletes both referencing jobs and cited the Runestone book excerpt. The original-lesson LEFT JOIN check also passed. |
+
+## Shea and DataField book retrieval, 25 November 2026
+
+The two snippets were matched to the publisher HTML and checked against the published license notices. Strict validation and both S1/S4 learner gates passed with four indexable publisher scopes. Pytest 145, Vitest 2, Ruff, mypy, frontend lint, typecheck and build passed. All seven Chrome scenarios passed across the standard and authored suites. The authored Library showed 4 of 5 indexed and returned the Shea license and exact DataField section link.
+
+Both local imports reported 26 searchable passages and the authored Learner A/B CLI replay passed. The live Library returned one indexed section for each of the four books. Real Ollama cited the Shea excerpt when explaining SQLite index storage and the DataField excerpt when explaining transaction atomicity. OpenStax retained zero indexed sections.

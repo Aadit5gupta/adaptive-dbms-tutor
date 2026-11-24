@@ -45,6 +45,8 @@
 
 | D14 | 2026-11-25 | Permit section-scoped publisher-license verification for the two bundled excerpts | The owner requested searchable textbook material without a human approval step for these verified licenses | Blanket book clearance or fabricated human approval | Exact scope, publisher terms, attribution and bytes are pinned. Only the two defined excerpts use the new path. The human clearance workflow applies to other candidate sections. |
 
+| D15 | 2026-11-25 | Add SHA-256-pinned Shea Chapter 8 and DataField Chapter 26 excerpts | The owner asked to resolve the remaining sources. Shea lists a noncommercial license and DataField Chapter 26 carries an explicit CC BY-SA 4.0 footer | Whole-book import and assuming the OpenStax notice is inapplicable | Four distinct book sources now have one searchable excerpt each. The Shea excerpt is for noncommercial use. OpenStax remains link-only pending written permission. |
+
 ## Deviations and blockers
 
 | Date | Stage/task | Problem / deviation | Impact | Fallback | Owner action required |

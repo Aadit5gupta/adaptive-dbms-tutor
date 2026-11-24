@@ -18,7 +18,7 @@
 | SQL exercises independently checked across all fixtures | 6 | 6 | 0 | 1 | 6 |
 | Enabled misconception definitions with full coverage | 3 | 3 | 0 | 2 | 3 |
 
-All 24 Learn topics have material. Twenty-two original lessons are searchable in both local databases. The Library reports **2 of 5 books indexed**, with one licensed text excerpt from Runestone and one from BCcampus. Both local databases have the two excerpts. S1 and S4 pass with `--review-policy learner`. Both default human-only gates exit 1 with zero qualifying records.
+All 24 Learn topics have material. Twenty-two original lessons are searchable in both local databases. The Library reports **4 of 5 books indexed**, with one licensed text excerpt each from Runestone, BCcampus, Shea and DataField. Both local databases have all four excerpts. S1 and S4 pass with `--review-policy learner`. Both default human-only gates exit 1 with zero qualifying records.
 
 ## S0 — Source of truth, content schema, bootstrap
 
@@ -102,6 +102,7 @@ All 24 Learn topics have material. Twenty-two original lessons are searchable in
 | S6.7 Browser demo reset | done_tested | Added a confirmed reset for both synthetic learners. The authenticated learner database remains outside the operation. Pytest 139, Vitest 2, Chrome 6, build, lint, type checks, S4 learner validation and authored CLI replay passed. | 2026-11-23 |
 | S6.8 Learn curriculum coverage | done_tested | Added 16 AI-verified original lessons and 16 practice questions in the two `coverage.yaml` files. Published in both local databases. Pytest 139, Vitest 2, Chrome 7, lint, type checks, build, learner S1/S4 gates and authored CLI replay passed. All 16 new lessons were retrieved from FTS5 in both databases. Real Ollama grounded its reply in a new lesson. See [test report](docs/test-report.md#learn-coverage-25-november-2026). | 2026-11-25 |
 | S6.9 Publisher-licensed textbook excerpts | done_tested | Bundled two publisher-license-verified excerpts. Added scoped rights validation, hash checks, repeatable imports and visible license links. Both local databases indexed 24 passages. Pytest 145, Vitest 2, Chrome 7, S1/S4 learner gates, authored CLI replay and real Ollama passed. | 2026-11-25 |
-| Human review and additional publisher scopes | blocked | Human-only assessment gates and human pilot sign-off require actual human review. Unresolved section exceptions need separate clearance. OpenStax and DataField require permission evidence for this corpus. | 2026-11-25 |
+| S6.10 Additional licensed textbook sources | done_tested | Added Shea Chapter 8 for noncommercial use and DataField Chapter 26 under its published CC BY-SA license. Both local databases index 26 passages. Pytest 145, Vitest 2, Chrome 7, learner gates and authored replay passed. Real Ollama cited both new excerpts. | 2026-11-25 |
+| Human review and additional publisher scopes | blocked | Human-only assessment gates and human pilot sign-off require actual human review. Unresolved section exceptions need separate clearance. OpenStax remains link-only pending written permission. | 2026-11-25 |
 
 **Allowed task statuses:** `todo | in_progress | done_tested | blocked`. Mark `done_tested` only with executed commands, observed results and date. A passing stage is never inferred from completed scaffolding. If human review/licensing blocks a gate, label it **blocked**, continue eligible engineering work and disclose limitations honestly.

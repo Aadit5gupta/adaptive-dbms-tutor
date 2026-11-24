@@ -26,7 +26,7 @@ Run the backend with `DBMS_DEMO_ENABLED=true` and open `http://127.0.0.1:5173/de
 4. Open checkpoints. Choose **The badges with NULL and office 2 are accepted** for the issuing-office question and **UNIQUE on Bookings.room_id** for the room constraint question. Confirm resolution and a different recommendation. Reload to verify persisted progress.
 5. Switch to **Learner B**. Choose INNER JOIN for the route report that needs all routes. In practice, choose the option that keeps one null-extended row for an unmatched customer after INNER JOIN. Observe the distinct **SQL-JOIN-01** hypothesis.
 6. Open B’s lesson. In SQL practice, run and submit a query that returns every customer with a count of orders, including zero. The preview uses visible rows and submission grades against the published datasets.
-7. Open Library and verify **2 of 5 indexed**. Search for `ON DELETE CASCADE` to show the exact Runestone source and its license. On the relational keys lesson page, ask the tutor what happens to jobs when their machine is deleted under `ON DELETE CASCADE`. Confirm the tutor cites the book passage. Compare a real Ollama reply with curated tutoring by restarting the backend with `TUTOR_PROVIDER=curated` if desired.
+7. Open Library and verify **4 of 5 indexed**. Search for `ON DELETE CASCADE` to show the exact Runestone source and its license. On the relational keys lesson page, ask the tutor what happens to jobs when their machine is deleted under `ON DELETE CASCADE`. Confirm the tutor cites the book passage. Compare a real Ollama reply with curated tutoring by restarting the backend with `TUTOR_PROVIDER=curated` if desired.
 
 An eligible SQL solution for the reviewer:
 
