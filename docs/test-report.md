@@ -110,3 +110,11 @@ Both local imports reported 26 searchable passages and the authored Learner A/B 
 Pytest 146, Vitest 2, Ruff, mypy, frontend lint, typecheck and production build passed. Strict validation and the S4 learner gate passed. The new backend regression verified that the filter finds the requested source kind, that the FTS excerpt includes a match late in a long passage, and that the full tutor passage stays available.
 
 Four standard and four authored Chrome scenarios passed. At 390 px, the new scenario filtered for textbooks, reloaded the same query, opened a topic-specific tutor with an editable draft, received a curated textbook citation and returned to the same search via Back. It then filtered for lessons and opened the signed-in lesson and its tutor. The real Ollama textbook citation and authored Learner A/B CLI replay also passed.
+
+## One-click practice hints, 25 November 2026
+
+Pytest 146, Vitest 2, Ruff, mypy, frontend lint, typecheck, production build, strict content validation and the S4 learner gate passed. The authenticated tutor test verified questionless hints, a clue for repeated foreign-key values, a generic response to a request for the correct option, no model calls for item hints, account isolation and ordered hint levels. It also confirmed that an advanced hint preserves the existing independent-evidence restriction.
+
+Four standard and five authored Chrome scenarios passed. At 390 px, a prepared hint worked with one click, the outgoing request had no question text, the optional typed clue responded to the foreign-key question, all three prepared levels could be opened in order, and the next practice item started with a fresh hint control.
+
+The authored Learner A/B CLI replay and real Ollama textbook citation also passed.

@@ -49,6 +49,8 @@
 
 | D16 | 2026-11-25 | Use the existing FTS index for matched Library previews and filter by source before ranking | Book and lesson titles used to lead to similar external links, and leading excerpts could omit the match | A separate search service or client-side filtering of truncated results | Preserve the existing tutor passage and provenance pipeline. Library results distinguish in-app lessons from publisher excerpts and pass a topic with an editable question to Ask Tutor. |
 
+| D17 | 2026-11-25 | Separate one-click and typed clues in open practice items | The prepared hint ignored the required question text | Sending a learner's request and the open assessment to the LLM | Prepared hints advance through three levels. Typed requests match curated reasoning prompts for recognized wording on the authorized topic and fall back to the general hint. Existing level 2/3 evidence rules apply. |
+
 ## Deviations and blockers
 
 | Date | Stage/task | Problem / deviation | Impact | Fallback | Owner action required |

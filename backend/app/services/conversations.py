@@ -216,7 +216,7 @@ def store_reply(engine: Engine, user_id: str, snapshot: Snapshot, reply: TutorRe
                 TutorMessage(
                     conversation_id=snapshot.id,
                     role="user",
-                    content=snapshot.request.query,
+                    content=snapshot.request.query or f"Requested hint {snapshot.request.hint_level}",
                     created_at=now,
                 ),
                 TutorMessage(

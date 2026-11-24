@@ -22,6 +22,108 @@ ASSESSMENT_HINTS = (
 )
 
 
+# Each clue suggests a reasoning step using only the approved topic and learner's words.
+ASSESSMENT_CLUES: dict[str, tuple[tuple[set[str], str], ...]] = {
+    "relational.keys": (
+        (
+            {"duplicate", "duplicates", "repeated", "repeat", "repeats", "twice", "unique"},
+            (
+                "Compare the column that stores the reference with the column it points to. "
+                "Which column does each constraint describe?"
+            ),
+        ),
+        (
+            {"foreign", "reference", "references", "club", "matching", "missing", "parent", "null"},
+            (
+                "Pick one row with a reference. Identify the column that stores the value "
+                "and the table where you would look for a match."
+            ),
+        ),
+        (
+            {"candidate", "composite", "superkey", "primary", "minimal"},
+            (
+                "Try removing one column from the proposed key. Can you construct two "
+                "allowed rows that would then be indistinguishable?"
+            ),
+        ),
+    ),
+    "sql.joins": (
+        (
+            {"inner", "left", "join", "joins", "matching", "unmatched", "null"},
+            (
+                "Draw one row from the left table that has no match. Trace what each "
+                "proposed join would do with that row."
+            ),
+        ),
+    ),
+    "sql.aggregation": (
+        (
+            {"count", "aggregate", "group", "grouping", "having", "null"},
+            (
+                "Make a tiny group with a missing value. Trace which rows or values "
+                "each expression checks before comparing the results."
+            ),
+        ),
+    ),
+    "sql.null": (
+        (
+            {"null", "unknown", "missing", "equal", "comparison"},
+            (
+                "Evaluate the condition for one known value and one missing value. "
+                "Write the result of each comparison before deciding which rows pass."
+            ),
+        ),
+    ),
+    "sql.subqueries": (
+        (
+            {"exists", "subquery", "correlated", "matching"},
+            (
+                "Pick one outer row and trace the inner query with that row's values. "
+                "What does the outer condition look for in the result?"
+            ),
+        ),
+    ),
+    "normalization.normal_forms": (
+        (
+            {"partial", "transitive", "dependency", "normalize", "normalization", "key"},
+            (
+                "Draw an arrow from each determinant to what it determines. Follow the "
+                "arrows from the key and check whether you need every column or an intermediate step."
+            ),
+        ),
+    ),
+    "transactions.acid": (
+        (
+            {"atomicity", "rollback", "commit", "durability", "isolation", "transaction"},
+            (
+                "Trace what would happen if execution stopped at the point described. "
+                "Which changes should be visible to the people in the example?"
+            ),
+        ),
+    ),
+    "indexing.plans": (
+        (
+            {"scan", "search", "plan", "index", "sqlite"},
+            (
+                "Look at the operation reported for the table. Compare how much of the "
+                "table each proposed access path would have to examine."
+            ),
+        ),
+    ),
+}
+
+
+def assessment_hint(request: TutorInput) -> str:
+    prepared = ASSESSMENT_HINTS[request.hint_level - 1]
+    if not request.query:
+        return prepared
+    words = set(re.findall(r"[a-z]+", request.query.casefold()))
+    for triggers, clue in ASSESSMENT_CLUES.get(request.topic_id or "", ()):
+        if words & triggers:
+            return clue
+    return f"I don’t have a specific clue for that wording. {prepared}"
+
+
 class TutorService:
     def __init__(self, retriever: Retriever, provider: TutorProvider | None = None):
         self.retriever = retriever
@@ -56,7 +158,7 @@ class TutorService:
     ) -> TutorReply:
         if request.mode == "hint" and request.item_id is not None:
             return TutorReply(
-                answer=ASSESSMENT_HINTS[request.hint_level - 1],
+                answer=assessment_hint(request),
                 citations=[],
                 mode="hint",
                 provider="curated",

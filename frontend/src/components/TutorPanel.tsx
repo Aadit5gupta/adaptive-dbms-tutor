@@ -19,17 +19,15 @@ interface TutorReply {
 interface TutorPanelProps {
   topic?: string
   demoLearner?: Learner
-  itemId?: string
   sqlAttempt?: string
   initialQuestion?: string
 }
 
-export function TutorPanel({ topic, demoLearner, itemId, sqlAttempt, initialQuestion = '' }: TutorPanelProps) {
-  const fixedMode = itemId ? 'hint' : sqlAttempt ? 'sql_feedback' : null
+export function TutorPanel({ topic, demoLearner, sqlAttempt, initialQuestion = '' }: TutorPanelProps) {
+  const fixedMode = sqlAttempt ? 'sql_feedback' : null
   const [question, setQuestion] = useState(initialQuestion)
   const [mode, setMode] = useState<Mode>(fixedMode ?? 'ask')
   const [level, setLevel] = useState(1)
-  const [maxLevel, setMaxLevel] = useState(itemId ? 1 : 3)
   const [conversation, setConversation] = useState<string>()
   const [turns, setTurns] = useState<{ question: string; reply: TutorReply }[]>([])
   const tutor = useMutation({
@@ -41,7 +39,7 @@ export function TutorPanel({ topic, demoLearner, itemId, sqlAttempt, initialQues
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query, topic_id: topic, mode, hint_level: level,
-          conversation_id: conversation, item_id: itemId, attempt_id: sqlAttempt,
+          conversation_id: conversation, attempt_id: sqlAttempt,
         }),
       })
     },
@@ -49,7 +47,6 @@ export function TutorPanel({ topic, demoLearner, itemId, sqlAttempt, initialQues
       setConversation(reply.conversation_id)
       setTurns((recent) => [...recent.slice(-2), { question: query, reply }])
       setQuestion('')
-      if (itemId && reply.status !== 'no_evidence') setMaxLevel((available) => Math.min(3, Math.max(available, level + 1)))
     },
   })
 
@@ -63,7 +60,7 @@ export function TutorPanel({ topic, demoLearner, itemId, sqlAttempt, initialQues
   return (
     <section className="rounded-2xl border border-stone-200 bg-white p-5 sm:p-7">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-xl font-semibold">{itemId ? 'Progressive hints' : sqlAttempt ? 'SQL mistake explanation' : 'Ask Tutor'}</h2>
+        <h2 className="text-xl font-semibold">{sqlAttempt ? 'SQL mistake explanation' : 'Ask Tutor'}</h2>
         {turns.length > 0 && <button type="button" className="text-sm font-medium text-green-900 underline"
           onClick={reset} disabled={tutor.isPending}>New conversation</button>}
       </div>
@@ -113,8 +110,8 @@ export function TutorPanel({ topic, demoLearner, itemId, sqlAttempt, initialQues
           Hint level
           <select value={level} disabled={tutor.isPending} onChange={(event) => setLevel(Number(event.target.value))} className="rounded-lg border border-stone-300 bg-white p-2">
             <option value={1}>1 · Starting point</option>
-            <option value={2} disabled={maxLevel < 2}>2 · Concept clue</option>
-            <option value={3} disabled={maxLevel < 3}>3 · Guided example</option>
+            <option value={2}>2 · Concept clue</option>
+            <option value={3}>3 · Guided example</option>
           </select>
         </label>}
         <label className="grid gap-1 text-sm font-medium">

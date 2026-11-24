@@ -6,7 +6,7 @@ import { request } from '../api/client'
 import type { AnswerResult, Item } from '../api/demo'
 import { mutate, type Session } from '../api/learning'
 import { card, Empty, Failure, field, PageHeading, Pending, primary, secondary, textLink } from '../components/layout'
-import { TutorPanel } from '../components/TutorPanel'
+import { AssessmentHints } from '../components/AssessmentHints'
 import { useCurriculum } from './DashboardPage'
 
 type Mode = 'practice' | 'diagnostic' | 'checkpoint' | 'review'
@@ -33,7 +33,6 @@ function QuestionForm({ item, submit, busy }: { item: Item; submit: (choice: num
 
 export function PracticePage() {
   const [params, setParams] = useSearchParams()
-  const [hintFor, setHintFor] = useState<string>()
   const client = useQueryClient()
   const modeParameter = params.get('mode')
   const mode: Mode = modeParameter === 'diagnostic' || modeParameter === 'checkpoint' || modeParameter === 'review' ? modeParameter : 'practice'
@@ -95,12 +94,8 @@ export function PracticePage() {
     {session.data && item && <section className={`${card} mt-5 max-w-2xl`}>
       <p className="mb-3 text-sm font-medium text-stone-600">Question {session.data.total - session.data.remaining + 1} of {session.data.total}</p>
       <QuestionForm key={item.item_id} item={item} busy={answer.isPending} submit={(choice) => answer.mutate({ item, choice })} />
-      {mode === 'practice' && <button type="button" className={`mt-4 ${secondary}`} onClick={() => {
-        setHintFor(hintFor === item.item_id ? undefined : item.item_id)
-      }}>{hintFor === item.item_id ? 'Close hints' : 'Get a hint'}</button>}
-      {mode === 'practice' && hintFor === item.item_id && <div className="mt-4">
-        <TutorPanel key={item.item_id} topic={item.subtopic_id} itemId={item.item_id} />
-      </div>}
+      {(mode === 'practice' || mode === 'review') &&
+        <AssessmentHints key={item.item_id} itemId={item.item_id} busy={answer.isPending} />}
     </section>}
     {session.data && !item && <section className={`${card} mt-5 max-w-2xl`}>
       <h2 className="font-semibold">Session complete</h2>

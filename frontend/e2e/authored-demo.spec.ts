@@ -192,3 +192,45 @@ test('Library filters sources and leads directly to the lesson and topic tutor',
   await expect(page.getByRole('heading', { name: 'Keep unmatched rows with LEFT JOIN' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Ask Tutor' })).toBeVisible()
 })
+
+
+
+test('practice hints work in one click and a specific clue is optional', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 900 })
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Create an account' }).click()
+  await page.getByLabel('Email', { exact: true }).fill('practice-hints@example.com')
+  await page.getByLabel('Password', { exact: true }).fill('synthetic practice hint passphrase')
+  await page.getByRole('button', { name: 'Create account', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
+  await page.goto('/practice?topic=relational.keys')
+  await page.getByRole('button', { name: 'Start or resume practice' }).click()
+  await expect(page.getByLabel('What are you stuck on?')).toHaveCount(0)
+
+  const [firstHint] = await Promise.all([
+    page.waitForRequest((request) => request.url().endsWith('/api/v1/tutor/hint')),
+    page.getByRole('button', { name: 'Get a hint', exact: true }).click(),
+  ])
+  expect(firstHint.postDataJSON()).toMatchObject({ hint_level: 1 })
+  expect(firstHint.postDataJSON()).not.toHaveProperty('query')
+  await expect(page.getByText('1 · Starting point')).toBeVisible()
+  await expect(page.getByLabel('What are you stuck on?')).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Ask for a specific clue' }).click()
+  await page.getByLabel('What are you stuck on?').fill('Why does the foreign key value repeat?')
+  await page.getByRole('button', { name: 'Get a clue', exact: true }).click()
+  await expect(page.getByText(/Which column does each constraint describe/)).toBeVisible()
+  await expect(page.getByText('2 · Concept clue')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Get the next hint' }).click()
+  await expect(page.getByText('2 · Concept clue')).toBeVisible()
+  await page.getByRole('button', { name: 'Get the next hint' }).click()
+  await expect(page.getByText('3 · Guided example')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Get the next hint' })).toHaveCount(0)
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(390)
+
+  await page.getByRole('radio').first().check()
+  await page.getByRole('button', { name: 'Submit answer' }).click()
+  await expect(page.getByText('Question 2 of 5')).toBeVisible()
+  await expect(page.getByText('1 · Starting point')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Get a hint', exact: true })).toBeVisible()
+})
