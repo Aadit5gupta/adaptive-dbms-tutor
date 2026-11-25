@@ -47,6 +47,7 @@ def test_allocation_withholds_key_and_sql_specs(assessment_db: Engine) -> None:
                 "question_ref",
                 "subtopic_id",
                 "stem",
+                "difficulty",
                 "options",
             }
             assert len(item.options) == 4

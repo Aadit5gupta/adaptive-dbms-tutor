@@ -44,24 +44,31 @@ function StudyActivity({ mode, selectedTopic }: { mode: Mode; selectedTopic: str
   const [params, setParams] = useSearchParams()
   const client = useQueryClient()
   const sessionId = params.get('session')
+  const diagnosticScope = mode === 'diagnostic' ? selectedTopic : ''
+  const selectedDifficulty = mode === 'practice' ? params.get('difficulty') ?? '' : ''
   const curriculum = useCurriculum()
   const courseTopics = curriculum.data?.flatMap((domain) => domain.topics) ?? []
   const topics = courseTopics.filter((topic) => mode === 'diagnostic' ? topic.diagnostic : topic.practice)
+  const sessionKey = (id: string | null) => ['practice', id, diagnosticScope] as const
   const session = useQuery({
-    queryKey: ['practice', sessionId],
-    queryFn: ({ signal }) => request<Session>(`/practice/sessions/${encodeURIComponent(sessionId ?? '')}`, { signal }),
+    queryKey: sessionKey(sessionId),
+    queryFn: ({ signal }) => {
+      const scope = diagnosticScope ? `?${new URLSearchParams({ diagnostic_scope: diagnosticScope })}` : ''
+      return request<Session>(`/practice/sessions/${encodeURIComponent(sessionId ?? '')}${scope}`, { signal })
+    },
     enabled: Boolean(sessionId), retry: false,
   })
   const start = useMutation({
     mutationFn: () => {
       const topic = selectedTopic || undefined
-      const difficulty = params.get('difficulty') || undefined
+      const difficulty = selectedDifficulty || undefined
+      const fresh = params.get('fresh') === '1'
       if (mode === 'checkpoint') return mutate<Session>('/practice/checkpoints')
       if (mode === 'diagnostic') return mutate<Session>('/assessments/start', { topic })
-      return mutate<Session>('/practice/sessions', { topic, difficulty, mode })
+      return mutate<Session>('/practice/sessions', { topic, difficulty, mode, fresh })
     },
     onSuccess: (view) => {
-      client.setQueryData(['practice', view.session_id], view)
+      client.setQueryData(sessionKey(view.session_id), view)
       setParams((query) => { query.set('session', view.session_id); return query })
     },
   })
@@ -89,6 +96,7 @@ function StudyActivity({ mode, selectedTopic }: { mode: Mode; selectedTopic: str
   const diagnosticTopic = mode !== 'diagnostic' && misconception?.state === 'possible'
     ? courseTopics.find((topic) => topic.id === misconception.topic_id && topic.diagnostic)
     : undefined
+  const requestedCount = mode === 'diagnostic' ? (selectedTopic.includes('.') ? 3 : 21) : mode === 'checkpoint' ? 2 : 5
   const checking = answer.isPending
   const waitingForNext = answer.isSuccess && item?.item_id === answer.variables.item.item_id
   const noTargetedDiagnostic = mode === 'diagnostic' && Boolean(selectedTopic) &&
@@ -123,7 +131,12 @@ function StudyActivity({ mode, selectedTopic }: { mode: Mode; selectedTopic: str
     {checking && <Pending>Checking your answer…</Pending>}
     {waitingForNext && !session.isError && <Pending>Loading the next question…</Pending>}
     {session.data && item && <section key={item.item_id} hidden={checking || waitingForNext} className={`${card} mt-5 max-w-2xl`}>
-      <p className="mb-3 text-sm font-medium text-stone-600">Question {session.data.total - session.data.remaining + 1} of {session.data.total}</p>
+      {session.data.total < requestedCount && session.data.remaining === session.data.total &&
+        <p className="mb-2 text-sm text-stone-600">This session has {session.data.total} eligible {session.data.total === 1 ? 'question' : 'questions'} for your selection.</p>}
+      <p className="mb-3 text-sm font-medium text-stone-600">
+        <span>Question {session.data.total - session.data.remaining + 1} of {session.data.total}</span>
+        <span className="ml-2 capitalize">· {item.difficulty}</span>
+      </p>
       <QuestionForm item={item} busy={answer.isPending} submit={(choice) => answer.mutate({ item, choice })} />
       {(mode === 'practice' || mode === 'review') &&
         <AssessmentHints itemId={item.item_id} busy={answer.isPending} />}
@@ -153,7 +166,26 @@ function StudyActivity({ mode, selectedTopic }: { mode: Mode; selectedTopic: str
                 return query
               })}>
                 <option value="">Available topics</option>
-                {topics.map((topic) => <option key={topic.id} value={topic.id}>{topic.title}</option>)}
+                {curriculum.data?.map((domain) => {
+                  const available = domain.topics.filter((topic) => topics.includes(topic))
+                  return available.length > 0 && <optgroup key={domain.id} label={domain.title}>
+                    <option value={domain.id}>All {domain.title} topics</option>
+                    {available.map((topic) => <option key={topic.id} value={topic.id}>{topic.title}</option>)}
+                  </optgroup>
+                })}
+              </select>
+            </label>}
+            {mode === 'practice' && <label className="mb-4 grid gap-2 text-sm font-medium">Difficulty
+              <select className={field} value={selectedDifficulty} onChange={(event) => setParams((query) => {
+                if (event.target.value) query.set('difficulty', event.target.value)
+                else query.delete('difficulty')
+                query.delete('fresh')
+                return query
+              })}>
+                <option value="">Any difficulty</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
               </select>
             </label>}
             <button className={primary} disabled={start.isPending} onClick={() => start.mutate()}>

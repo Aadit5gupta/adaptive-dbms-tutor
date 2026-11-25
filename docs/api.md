@@ -45,7 +45,7 @@ The curriculum, versioned lessons, assessments, practice, revision, SQL Lab and 
 
 Session responses carry a current item, total and remaining counts. Send a choice with an idempotency key to `/practice/sessions/{id}/answer` or `/assessments/{id}/submit`. `POST /practice/checkpoints` uses the current learner's recommended and still-eligible remediation. Progress, hypotheses and recommendations can be fetched from `/progress`, `/misconceptions` and `/recommendations/next`. Graded response feedback includes an optional `misconception` snapshot when that answer updates the learner’s misconception evidence.
 
-A targeted session only resumes a session whose items are all in the requested topic. For a reviewed SQL exercise, start a session with `POST /sql/exercises/{id}/sessions`. Run or submit a query to the matching endpoint with the returned session and item IDs. Session ownership, immutable versions and secret-free feedback apply to both routes.
+Practice resumes an open session only when its items match the requested topic or domain and explicit difficulty. Diagnostic can project the matching, already-allocated questions from a wider screening without reallocating them. Use `diagnostic_scope` on the session GET to preserve that scoped view. The optional practice `fresh` flag restricts a new allocation to unexposed questions. For a reviewed SQL exercise, start a session with `POST /sql/exercises/{id}/sessions`. Run or submit a query to the matching endpoint with the returned session and item IDs. Session ownership, immutable versions and secret-free feedback apply to both routes.
 
 ## Tutor follow-ups
 

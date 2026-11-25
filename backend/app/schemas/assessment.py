@@ -6,12 +6,17 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 from app.services.adaptive import NextAction
 
+StudyScope = Annotated[
+    str, StringConstraints(pattern=r"^[a-z_]+(?:\.[a-z][a-z0-9_]*)?$", max_length=64)
+]
+
 
 class ItemView(BaseModel):
     item_id: str
     question_ref: str
     subtopic_id: str
     stem: str
+    difficulty: str
     options: list[str]
 
 

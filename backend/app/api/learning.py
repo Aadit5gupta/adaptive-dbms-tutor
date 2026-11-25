@@ -24,8 +24,8 @@ from app.schemas.assessment import (
     HypothesisView,
     SessionView,
     SQLAnswerInput,
+    StudyScope,
 )
-from app.schemas.tutor import Topic
 from app.services.adaptive import NextAction
 from app.services.assessment import (
     AssessmentError,
@@ -58,15 +58,16 @@ from content.sql_results import ResultRows
 class PracticeInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    topic: Topic | None = None
+    topic: StudyScope | None = None
     difficulty: Literal["easy", "medium", "hard"] | None = None
     mode: Literal["practice", "review"] = "practice"
+    fresh: bool = False
 
 
 class DiagnosticInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    topic: Topic | None = None
+    topic: StudyScope | None = None
 
 
 class SqlInput(SQLAnswerInput):
@@ -97,7 +98,14 @@ def learning_router(accounts: Accounts, root: Path) -> APIRouter:
         with Session(engine) as db, db.begin():
             db.connection().exec_driver_sql("BEGIN IMMEDIATE")
             return first_question(
-                start_study(db, user_id, body.mode, topic=body.topic, difficulty=body.difficulty)
+                start_study(
+                    db,
+                    user_id,
+                    body.mode,
+                    topic=body.topic,
+                    difficulty=body.difficulty,
+                    fresh=body.fresh,
+                )
             )
 
     @router.post("/assessments/start")
@@ -115,9 +123,15 @@ def learning_router(accounts: Accounts, root: Path) -> APIRouter:
             return first_question(start_checkpoints(db, user_id))
 
     @router.get("/practice/sessions/{sid}")
-    def current(sid: str, user_id: Annotated[str, Depends(identity)]) -> SessionView:
+    def current(
+        sid: str,
+        user_id: Annotated[str, Depends(identity)],
+        diagnostic_scope: StudyScope | None = None,
+    ) -> SessionView:
         with Session(engine) as db:
-            return first_question(study_session(db, user_id, sid))
+            return first_question(
+                study_session(db, user_id, sid, diagnostic_scope=diagnostic_scope)
+            )
 
     @router.post("/practice/sessions/{sid}/answer")
     @router.post("/assessments/{sid}/submit")

@@ -8,6 +8,7 @@ export interface Item {
   question_ref: string
   subtopic_id: string
   stem: string
+  difficulty: string
   options: string[]
 }
 

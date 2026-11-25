@@ -7,9 +7,10 @@ from pathlib import Path
 from time import time
 from uuid import uuid4
 
-from sqlalchemy import case, func, select
+from sqlalchemy import func, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.elements import ColumnElement
 
 from app.db.models import (
     AssessmentSession,
@@ -54,21 +55,31 @@ def options_for(db: Session, question_ref: str) -> list[QuestionOption]:
     )
 
 
-def open_item_views(db: Session, session: AssessmentSession) -> SessionView:
-    items = db.execute(
+def question_in_scope(scope: str) -> ColumnElement[bool]:
+    if "." in scope:
+        return Question.subtopic_id == scope
+    return Question.subtopic_id.in_(select(Topic.id).where(Topic.domain_slug == scope))
+
+
+def open_item_views(
+    db: Session, session: AssessmentSession, *, scope: str | None = None
+) -> SessionView:
+    query = (
         select(SessionItem, QuestionVersion, Question)
         .join(QuestionVersion, SessionItem.question_version_id == QuestionVersion.id)
         .join(Question, Question.id == QuestionVersion.question_id)
-        .where(SessionItem.session_id == session.id, SessionItem.status == "open")
+        .where(SessionItem.session_id == session.id)
         .order_by(SessionItem.position)
     )
-    open_items = list(items)
-    total = db.scalar(
-        select(func.count()).select_from(SessionItem).where(SessionItem.session_id == session.id)
-    )
+    if scope:
+        query = query.where(question_in_scope(scope))
+    items = list(db.execute(query))
+    open_items = [
+        (item, version, question) for item, version, question in items if item.status == "open"
+    ]
     return SessionView(
         session_id=session.id,
-        total=total or 0,
+        total=len(items),
         remaining=len(open_items),
         items=[
             ItemView(
@@ -76,6 +87,7 @@ def open_item_views(db: Session, session: AssessmentSession) -> SessionView:
                 question_ref=version.id,
                 subtopic_id=question.subtopic_id,
                 stem=version.stem,
+                difficulty=version.difficulty,
                 options=[option.body for option in options_for(db, version.id)],
             )
             for item, version, question in open_items
@@ -93,7 +105,7 @@ def allocate_mcqs(
     reserved_refs: tuple[str, ...] = (),
     misconception_code: str | None = None,
     fresh_only: bool = False,
-    prefer_difficulty: str | None = None,
+    difficulty: str | None = None,
     balance_domains: bool = False,
     context: str | None = None,
 ) -> SessionView:
@@ -108,13 +120,13 @@ def allocate_mcqs(
         .subquery()
     )
     query = (
-        select(QuestionVersion, Topic.domain_slug)
+        select(QuestionVersion, Topic.domain_slug, Question.subtopic_id)
         .join(Question, Question.id == QuestionVersion.question_id)
         .join(Topic, Topic.id == Question.subtopic_id)
         .where(Question.type == "mcq", QuestionVersion.pool == pool)
     )
     if subtopic is not None:
-        query = query.where(Question.subtopic_id == subtopic)
+        query = query.where(question_in_scope(subtopic))
     exposure = (
         select(QuestionVersion.question_id, func.count().label("count"))
         .join(SessionItem, SessionItem.question_version_id == QuestionVersion.id)
@@ -135,14 +147,15 @@ def allocate_mcqs(
         if fresh_only:
             query = query.where(exposure.c.count.is_(None))
     query = query.order_by(func.coalesce(exposure.c.count, 0))
-    if prefer_difficulty:
-        query = query.order_by(case((QuestionVersion.difficulty == prefer_difficulty, 0), else_=1))
+    if difficulty:
+        query = query.where(QuestionVersion.difficulty == difficulty)
     query = query.order_by(Question.id)
     if balance_domains:
         by_domain: dict[str, list[QuestionVersion]] = defaultdict(list)
-        for version, domain in db.execute(query):
-            if len(by_domain[domain]) < 3:
-                by_domain[domain].append(version)
+        for version, domain, topic_id in db.execute(query):
+            group = topic_id if subtopic and "." not in subtopic else domain
+            if len(by_domain[group]) < 3:
+                by_domain[group].append(version)
         versions = [
             version
             for round_ in zip_longest(*by_domain.values())
@@ -150,7 +163,7 @@ def allocate_mcqs(
             if version is not None
         ][:limit]
     else:
-        versions = [version for version, _ in db.execute(query.limit(limit))]
+        versions = [version for version, _, _ in db.execute(query.limit(limit))]
     if not versions:
         raise AssessmentError(
             "There are no eligible questions for this activity.", "no_content", 404

@@ -2,21 +2,30 @@
 
 from typing import Literal
 
-from sqlalchemy import func, select
+from sqlalchemy import and_, case, func, select
 from sqlalchemy.orm import Session
 
 from app.db.models import AssessmentSession, Question, QuestionVersion, SessionItem
 from app.schemas.assessment import SessionView
-from app.services.assessment import AssessmentError, allocate_mcqs, open_item_views
+from app.services.assessment import (
+    AssessmentError,
+    allocate_mcqs,
+    open_item_views,
+    question_in_scope,
+)
 
 StudyMode = Literal["practice", "diagnostic", "review"]
 
 
-def study_session(db: Session, user_id: str, session_id: str) -> SessionView:
+def study_session(
+    db: Session, user_id: str, session_id: str, *, diagnostic_scope: str | None = None
+) -> SessionView:
     owned = db.get(AssessmentSession, session_id)
     if owned is None or owned.user_id != user_id:
         raise AssessmentError("Assessment session not found.", "session_not_found", 404)
-    return open_item_views(db, owned)
+    return open_item_views(
+        db, owned, scope=diagnostic_scope if owned.kind == "diagnostic" else None
+    )
 
 
 def start_study(
@@ -26,6 +35,7 @@ def start_study(
     *,
     topic: str | None = None,
     difficulty: str | None = None,
+    fresh: bool = False,
 ) -> SessionView:
     """Caller holds a short immediate transaction during allocation and resumption."""
     query = select(AssessmentSession).where(
@@ -33,31 +43,44 @@ def start_study(
         AssessmentSession.kind == mode,
         AssessmentSession.status == "open",
     )
-    if topic:
-        eligible = (
-            select(SessionItem.session_id)
-            .join(QuestionVersion, QuestionVersion.id == SessionItem.question_version_id)
-            .join(Question, Question.id == QuestionVersion.question_id)
-            .group_by(SessionItem.session_id)
-            .having(
-                func.min(Question.subtopic_id) == topic, func.max(Question.subtopic_id) == topic
-            )
-        )
-        query = query.where(AssessmentSession.id.in_(eligible))
-    existing = db.scalar(
-        query.order_by(AssessmentSession.created_at.desc(), AssessmentSession.id).limit(1)
+    conditions = []
+    assigned = (
+        select(SessionItem.session_id)
+        .join(QuestionVersion, QuestionVersion.id == SessionItem.question_version_id)
+        .join(Question, Question.id == QuestionVersion.question_id)
     )
+    scoped = query
+    if topic:
+        conditions.append(question_in_scope(topic))
+    if difficulty:
+        conditions.append(QuestionVersion.difficulty == difficulty)
+    if conditions:
+        eligible = assigned.group_by(SessionItem.session_id).having(
+            func.sum(case((and_(*conditions), 1), else_=0)) == func.count()
+        )
+        scoped = scoped.where(AssessmentSession.id.in_(eligible))
+    order = (AssessmentSession.created_at.desc(), AssessmentSession.id)
+    existing = db.scalar(scoped.order_by(*order).limit(1))
     if existing is not None:
         return open_item_views(db, existing)
     if mode == "diagnostic":
+        if topic:
+            # A wider diagnostic may already own the exact published item. Project
+            # just the requested scope without allocating a second copy.
+            pending = assigned.where(question_in_scope(topic), SessionItem.status == "open")
+            mixed = db.scalar(
+                query.where(AssessmentSession.id.in_(pending)).order_by(*order).limit(1)
+            )
+            if mixed is not None:
+                return open_item_views(db, mixed, scope=topic)
         return allocate_mcqs(
             db,
             user_id,
             "diagnostic",
             subtopic=topic,
-            limit=3 if topic else 21,
+            limit=3 if topic and "." in topic else 21,
             fresh_only=True,
-            balance_domains=topic is None,
+            balance_domains=topic is None or "." not in topic,
         )
     return allocate_mcqs(
         db,
@@ -65,7 +88,8 @@ def start_study(
         "practice",
         subtopic=topic,
         limit=5,
-        prefer_difficulty=difficulty,
+        difficulty=difficulty,
+        fresh_only=fresh,
         context=mode,
     )
 
