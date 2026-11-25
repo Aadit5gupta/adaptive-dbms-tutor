@@ -22,7 +22,7 @@ from app.services.tutor import TutorService
 from scripts.demo_support import demo_write
 from scripts.validate_content import ROOT, load_content
 
-from .content_fixtures import make_foundation, make_s1_content
+from .content_fixtures import add_progression_questions, make_foundation, make_s1_content
 
 
 def run() -> None:
@@ -56,6 +56,8 @@ def run() -> None:
                         index_bundled_book_excerpts(session, content)
                     if target is engine:
                         seed_learners(session)
+                    if target is admin and os.environ.get("DBMS_TEST_PROGRESSION") == "1":
+                        add_progression_questions(session)
             app.include_router(demo_router(engine, bank), prefix="/api/v1")
             app.include_router(
                 local_tutor_router(TutorService(Retriever(engine, bank)), engine), prefix="/api/v1"

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from sqlalchemy.orm import Session
 
 from scripts.validate_content import ROOT
 
@@ -133,3 +134,16 @@ def make_s1_content(foundation: Path) -> Path:
     save(foundation, "content/lessons/test.yaml", lessons)
     save(foundation, "content/misconceptions.yaml", rules)
     return foundation
+
+
+def add_progression_questions(db: Session) -> None:
+    """Install labeled synthetic tier coverage in a disposable database."""
+    from app.services.curriculum import publish_question
+
+    from content.schemas.models import MCQ
+
+    for tier, count in (("easy", 5), ("medium", 4), ("hard", 3)):
+        for index in range(count):
+            item = mcq(f"audit_{tier}_{index}", "er.entities")
+            item.update(difficulty=tier, stem=f"Synthetic progression {tier} item {index}")
+            publish_question(db, MCQ.model_validate(item), ROOT)

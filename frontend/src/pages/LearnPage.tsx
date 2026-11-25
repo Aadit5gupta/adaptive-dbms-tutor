@@ -47,10 +47,16 @@ export function LessonPage() {
     retry: false,
   })
   const curriculum = useCurriculum()
+  const difficulty = params.get('difficulty')
   const canPractice = curriculum.data?.some((domain) => domain.topics.some((topic) =>
     topic.id === lesson.data?.topic_id && topic.practice))
   if (lesson.isPending) return <Pending>Loading lesson…</Pending>
   if (lesson.isError) return <Failure error={lesson.error} retry={() => void lesson.refetch()} />
+  const practiceParams = new URLSearchParams({ topic: lesson.data.topic_id })
+  if (difficulty && params.get('fresh') === '1') {
+    practiceParams.set('difficulty', difficulty)
+    practiceParams.set('fresh', '1')
+  }
   return <>
     <Link className={textLink} to="/learn">Back to curriculum</Link>
     <div className="mt-4"><PageHeading title={lesson.data.title} /></div>
@@ -60,7 +66,7 @@ export function LessonPage() {
         <LessonBody body={lesson.data.body} />
         <div className="mt-6 flex flex-wrap items-center gap-3">
           {checkpoint && <Link className={primary} to="/practice?mode=checkpoint">Open checkpoints</Link>}
-          {!checkpoint && canPractice && <Link className={secondary} to={`/practice?topic=${lesson.data.topic_id}`}>Practice this topic</Link>}
+          {!checkpoint && canPractice && <Link className={secondary} to={`/practice?${practiceParams}`}>Practice this topic</Link>}
           <a className={textLink} href={lesson.data.source_url}>Lesson reference</a>
         </div>
       </article>

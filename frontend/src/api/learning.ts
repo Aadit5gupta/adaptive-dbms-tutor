@@ -47,6 +47,8 @@ export interface Recommendation {
   misconception_code: string | null
   lesson_ref: string | null
   difficulty: string | null
+  question_id: string | null
+  fresh: boolean
 }
 
 export interface Progress {

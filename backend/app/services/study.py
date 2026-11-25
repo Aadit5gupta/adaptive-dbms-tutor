@@ -3,9 +3,9 @@
 from typing import Literal
 
 from sqlalchemy import and_, case, func, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 
-from app.db.models import AssessmentSession, Question, QuestionVersion, SessionItem
+from app.db.models import AssessmentSession, Attempt, Question, QuestionVersion, SessionItem
 from app.schemas.assessment import SessionView
 from app.services.assessment import (
     AssessmentError,
@@ -59,6 +59,19 @@ def start_study(
             func.sum(case((and_(*conditions), 1), else_=0)) == func.count()
         )
         scoped = scoped.where(AssessmentSession.id.in_(eligible))
+    if fresh and mode != "diagnostic":
+        previous_version = aliased(QuestionVersion)
+        graded = (
+            select(previous_version.question_id)
+            .join(Attempt, Attempt.question_version_id == previous_version.id)
+            .where(
+                Attempt.user_id == user_id, Attempt.context.not_in(("pre_test_a", "post_test_b"))
+            )
+        )
+        reused = assigned.where(
+            SessionItem.status == "open", QuestionVersion.question_id.in_(graded)
+        )
+        scoped = scoped.where(AssessmentSession.id.not_in(reused))
     order = (AssessmentSession.created_at.desc(), AssessmentSession.id)
     existing = db.scalar(scoped.order_by(*order).limit(1))
     if existing is not None:

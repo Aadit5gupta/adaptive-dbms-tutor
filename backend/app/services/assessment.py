@@ -200,6 +200,21 @@ def allocate_sql(db: Session, user_id: str, logical_id: str) -> SessionView:
     )
     if version is None:
         raise AssessmentError("No reviewed SQL exercise is available.", "no_content", 404)
+    existing = db.scalar(
+        select(AssessmentSession)
+        .join(SessionItem, SessionItem.session_id == AssessmentSession.id)
+        .where(
+            AssessmentSession.user_id == user_id,
+            AssessmentSession.kind == "sql",
+            AssessmentSession.status == "open",
+            SessionItem.status == "open",
+            SessionItem.question_version_id == version.id,
+        )
+        .order_by(AssessmentSession.created_at.desc(), AssessmentSession.id)
+        .limit(1)
+    )
+    if existing is not None:
+        return open_item_views(db, existing)
     session = AssessmentSession(
         id=uuid4().hex, user_id=user_id, kind="sql", status="open", created_at=int(time())
     )

@@ -37,6 +37,7 @@ def test_confidence_counts_distinct_unhinted_answers_only() -> None:
     state = MasteryState(distinct=2, attempts=2)
     state = update_mastery(state, AttemptEvidence(True, False, 0))
     assert state.attempts == 3
+    assert state.score == 0.5
     assert state.distinct == 2
     assert state.confidence == "insufficient"
     for confidence in ("emerging", "emerging", "emerging", "supported"):

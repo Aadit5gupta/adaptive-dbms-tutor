@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 MODEL_NAME = "bounded_evidence"
-MODEL_VERSION = "1"
+MODEL_VERSION = "2"
 REVIEW_DAYS = (1, 3, 7, 14)
 SECONDS_PER_DAY = 86_400
 
@@ -51,8 +51,9 @@ def update_mastery(state: MasteryState, evidence: AttemptEvidence) -> MasterySta
         return state
 
     # Round off floating-point noise at the policy boundaries.
-    update = state.score + 0.20 * (int(evidence.correct) - state.score)
-    score = round(max(0.0, min(1.0, update)), 12)
+    score = state.score
+    if evidence.first_independent_answer:
+        score = round(score + 0.20 * (int(evidence.correct) - score), 12)
     step, due = state.review_step, state.review_due_at
     if evidence.first_independent_answer:
         if due is None or not evidence.correct:

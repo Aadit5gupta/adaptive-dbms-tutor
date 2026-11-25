@@ -136,3 +136,11 @@ Four standard and six authored Chrome scenarios passed. The new browser test reg
 Chrome reproduced two question forms visible together after practice submission. The form and hint controls previously shared a sibling key. The corrected question card has one key and uses one pending status during grading. With a deliberately delayed submission, Chrome verified zero visible forms while pending and exactly one after the next question appeared.
 
 The Chrome scenario now starts with a practice signal, follows the new Progress link to the targeted diagnostic, verifies the expected Tickets question and completes remediation and both checkpoints. It also checks the message shown when the targeted question has been attempted and the link to general Diagnostic is available. Four standard and six authored Chrome scenarios passed. Pytest 148, Vitest 2, lint, type checking, production build, strict content validation and the authored A/B CLI replay passed.
+
+## Adaptive learning progression audit, 25 November 2026
+
+The [adaptive learning audit](ADAPTIVE_LEARNING_AUDIT.md) contains the full versioned inventory, recommendation criteria and observed learner traces. Both published databases matched the 46 authored MCQs and six SQL exercises. The missing Tickets item was attributable to its diagnostic role, prior completion for the possible-KEYS-02 account, and a narrower session resumption defect for otherwise eligible learners with unfinished screening work.
+
+Pytest 162, Vitest 2, Ruff, mypy, frontend lint, typecheck, production build, structural validation and S1/S4 learner gates passed. The targeted SQL test suite passed all 33 cases. Both local database migrations passed consistency checks and retained attempt and mastery history counts. The authored A/B CLI replay and both actual Qwen3 lesson- and textbook-citation checks passed.
+
+Fifteen Chrome scenarios passed across the three suites. Authored accounts opened fresh and resumed scoped diagnostics, followed exact practice tiers, received targeted reteaching, failed or resolved a misconception in separate journeys, and moved to eligible work on exhaustion. The full hard-tier flow passed with isolated synthetic items because the production bank contains zero hard MCQs. No new content was published.

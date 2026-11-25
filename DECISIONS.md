@@ -57,6 +57,10 @@
 
 | D20 | 2026-11-25 | Replace the question and its hint controls together and link a possible misconception to its topic diagnostic | Chrome reproduced the previous question remaining beside the next one; Practice and Diagnostic navigation was also easy to confuse | Rendering cached forms while their assessment session advances | One stable key identifies the whole question card. The signed-in UI shows one submission status and links to the scoped diagnostic with a general-diagnostic option when it has no fresh item. |
 
+| D21 | 2026-11-25 | Honor diagnostic scope and practice difficulty across allocation and resumption | A paused general diagnostic could hide the ungraded Tickets item, and a medium recommendation could reopen easy practice | Changing detector pools or padding requested activities | Preserve existing item IDs and attempt independence. Report actual shortages. |
+
+| D22 | 2026-11-25 | Adopt mastery v2 and adaptive policy v3 | Replays inflated scores and stale or mismatched recommendations could lead to exhausted work | Adding a second learner model or publishing unreviewed hard items | First unassisted logical answers update score and confidence. Tier and prerequisite gates use demonstrated evidence. Recompute current action from eligible content and preserve historical decisions. The bank remains sparse. |
+
 ## Deviations and blockers
 
 | Date | Stage/task | Problem / deviation | Impact | Fallback | Owner action required |

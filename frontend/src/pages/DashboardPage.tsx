@@ -20,11 +20,18 @@ export function topicDiagnosticPath(topic: string) {
 
 export function actionLink(action: Recommendation) {
   const topic = encodeURIComponent(action.subtopic_id)
-  if (action.lesson_ref) return `/learn/${action.lesson_ref}${action.action_type === 'MISCONCEPTION_REMEDIATION' ? '?checkpoints=1' : ''}`
-  if (action.action_type === 'SQL_PRACTICE') return `/sql?topic=${topic}`
+  if (action.lesson_ref) {
+    const lesson = `/learn/${action.lesson_ref}`
+    if (action.action_type === 'MISCONCEPTION_REMEDIATION') return `${lesson}?checkpoints=1`
+    if (action.difficulty && action.fresh) return `${lesson}?${new URLSearchParams({ difficulty: action.difficulty, fresh: '1' })}`
+    return lesson
+  }
+  if (action.action_type === 'SQL_PRACTICE') return action.question_id
+    ? `/sql?${new URLSearchParams({ exercise: action.question_id })}` : `/sql?topic=${topic}`
   if (action.action_type === 'DIAGNOSTIC') return topicDiagnosticPath(action.subtopic_id)
-  if (action.action_type === 'MIXED_REVIEW') return `/practice?mode=review&topic=${topic}`
-  if (action.action_type.startsWith('PRACTICE')) return `/practice?topic=${topic}&difficulty=${action.difficulty ?? 'easy'}`
+  if (action.action_type === 'REVIEW_LATER') return '/progress'
+  if (action.action_type === 'MIXED_REVIEW') return `/practice?mode=review&topic=${topic}${action.fresh ? '&fresh=1' : ''}`
+  if (action.action_type.startsWith('PRACTICE')) return `/practice?topic=${topic}&difficulty=${action.difficulty ?? 'easy'}${action.fresh ? '&fresh=1' : ''}`
   return '/learn'
 }
 
@@ -51,7 +58,8 @@ export function DashboardPage({ account }: { account: Account }) {
             </p>
             <Link className="mt-6 inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-green-950"
               to={action ? actionLink(action) : topics.some((topic) => topic.diagnostic) ? '/practice?mode=diagnostic' : '/learn'}>
-              {action && action.action_type !== 'COMPLETE' ? 'Open recommended activity' : topics.some((topic) => topic.diagnostic) ? 'Start diagnostic' : 'Browse curriculum'}
+              {action?.action_type === 'COMPLETE' ? 'Browse curriculum' : action ? 'Open recommended activity'
+                : topics.some((topic) => topic.diagnostic) ? 'Start diagnostic' : 'Browse curriculum'}
               <ArrowRight size={16} aria-hidden="true" />
             </Link>
           </section>

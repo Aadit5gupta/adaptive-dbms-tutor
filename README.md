@@ -84,11 +84,12 @@ DBMS_DEMO_ENABLED=true python -m uvicorn app.main:app --app-dir backend --host 1
 
 Run Vite in the second terminal and open `http://127.0.0.1:5173/demo`. To repeat the demo, choose **Reset demo**, then **Reset both learners**. The replay uses the learner content gate. The default human-only content gate remains available for reporting human review coverage. See the [authoring and sign-off guide](docs/content_authoring_guide.md).
 
-The automated browser tests use isolated databases. Run the synthetic suite or the original learner bank in the existing Google Chrome installation.
+The automated browser tests use isolated databases. Run the baseline or authored learner bank in Google Chrome. The third command adds synthetic tiers for the progression test only.
 
 ```sh
 DBMS_TEST_CHROME=1 npm --prefix frontend run test:e2e
 DBMS_TEST_AUTHORED=1 DBMS_TEST_CHROME=1 npm --prefix frontend run test:e2e -- authored-demo.spec.ts
+DBMS_TEST_AUTHORED=1 DBMS_TEST_PROGRESSION=1 DBMS_TEST_CHROME=1 npm --prefix frontend run test:e2e -- progression.spec.ts
 ```
 
 SQL execution support and limits are documented in the [SQL worker notes](docs/sql-worker.md).
@@ -97,7 +98,7 @@ SQL execution support and limits are documented in the [SQL worker notes](docs/s
 
 After migration, publish the curriculum and index the original lessons and bundled licensed excerpts with `python scripts/import_books.py lessons`. Open the frontend and create a local account. Use Settings to save a learning goal and experience level, export your learning data or delete your account.
 
-The dashboard shows reviewed activity, coverage and the deterministic next recommendation. When an answer adds misconception evidence, its feedback shows the new status and the independent signal count. **Progress → Misconceptions** keeps the current status and links to the recommended remediation lesson when available. Practice and diagnostics resume on refresh. In practice, select **Get a hint** for the next prepared clue or **Ask for a specific clue** to explain what you’re stuck on. SQL Lab shows visible fixture rows and includes a SQLite-aware editor. Preview leaves your progress unchanged, and Submit grades against the published exercise's fixtures.
+The dashboard shows reviewed activity, coverage and the deterministic next recommendation. When an answer adds misconception evidence, its feedback shows the new status and the independent signal count. **Progress → Misconceptions** keeps the current status and links to the recommended remediation lesson when available. Practice and diagnostics resume on refresh. Filter by domain or topic, and pick an exact practice difficulty. Recommendations use currently eligible items and explain when you have finished the fresh practice available for a topic. Repeated practice stays in history without raising confidence. See the [adaptive learning audit](docs/ADAPTIVE_LEARNING_AUDIT.md) for the current question counts and progression examples. In practice, select **Get a hint** for the next prepared clue or **Ask for a specific clue** to explain what you’re stuck on. SQL Lab shows visible fixture rows and includes a SQLite-aware editor. Preview leaves your progress unchanged, and Submit grades against the published exercise's fixtures.
 
 
 In Library, choose **Original lessons** or **Textbooks** to narrow a search. Lesson titles open Learn so you can continue to practice or tutoring. Textbook results provide the chapter and license links, plus **Ask Tutor about this topic** to carry the search into an editable question.

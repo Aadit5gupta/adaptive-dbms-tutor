@@ -1,9 +1,10 @@
 """Coverage-aware learner progress without answer keys or raw SQL."""
 
 from collections import defaultdict
+from time import time
 
 from pydantic import BaseModel
-from sqlalchemy import Integer, and_, func, select
+from sqlalchemy import Integer, and_, func, literal_column, select
 from sqlalchemy.orm import Session
 
 from app.db.models import (
@@ -15,7 +16,8 @@ from app.db.models import (
     QuestionVersion,
     Topic,
 )
-from app.services.adaptive import NextAction
+from app.services.adaptive import NextAction, choose_next
+from app.services.learning_state import learner_snapshot, state_from_row
 from app.services.mastery import MODEL_NAME
 
 
@@ -54,14 +56,25 @@ class Progress(BaseModel):
     recommendation: NextAction | None
 
 
-def latest_recommendation(db: Session, user_id: str) -> NextAction | None:
-    action = db.scalar(
-        select(PolicyDecision.selected_action)
+def latest_recommendation(
+    db: Session, user_id: str, *, now: int | None = None
+) -> NextAction | None:
+    trigger = db.execute(
+        select(Attempt, Question.subtopic_id)
+        .join(PolicyDecision, PolicyDecision.trigger_attempt_id == Attempt.id)
+        .join(QuestionVersion, QuestionVersion.id == Attempt.question_version_id)
+        .join(Question, Question.id == QuestionVersion.question_id)
         .where(PolicyDecision.user_id == user_id)
         .order_by(PolicyDecision.id.desc())
         .limit(1)
+    ).first()
+    if trigger is None:
+        return None
+    attempt, topic = trigger
+    mastery = state_from_row(db.get(Mastery, (user_id, topic, MODEL_NAME)))
+    return choose_next(
+        learner_snapshot(db, attempt, topic, mastery, int(time()) if now is None else now)
     )
-    return NextAction.model_validate_json(action) if action is not None else None
 
 
 def read_progress(db: Session, user_id: str, now: int) -> Progress:
@@ -72,7 +85,7 @@ def read_progress(db: Session, user_id: str, now: int) -> Progress:
             func.row_number()
             .over(
                 partition_by=Question.subtopic_id,
-                order_by=(Attempt.created_at.desc(), Attempt.id.desc()),
+                order_by=(Attempt.created_at.desc(), literal_column("attempts.rowid").desc()),
             )
             .label("rank"),
         )
@@ -147,7 +160,7 @@ def read_progress(db: Session, user_id: str, now: int) -> Progress:
             .join(Question, Question.id == QuestionVersion.question_id)
             .outerjoin(MasteryHistory, MasteryHistory.attempt_id == Attempt.id)
             .where(Attempt.user_id == user_id)
-            .order_by(Attempt.created_at.desc(), Attempt.id.desc())
+            .order_by(Attempt.created_at.desc(), literal_column("attempts.rowid").desc())
             .limit(20)
         )
     ]
@@ -155,5 +168,5 @@ def read_progress(db: Session, user_id: str, now: int) -> Progress:
         topics=topics,
         domains=domains,
         recent=recent,
-        recommendation=latest_recommendation(db, user_id),
+        recommendation=latest_recommendation(db, user_id, now=now),
     )
