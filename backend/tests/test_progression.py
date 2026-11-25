@@ -307,3 +307,30 @@ def test_review_due_recomputed_without_a_new_submission(authored_db: Engine) -> 
             "q_keys_detector_tickets@1",
         )
     assert submitted.next_action != future
+
+
+def test_sql_recommendation_opens_exact_available_exercise(
+    authored_db: Engine, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from app.services.assessment import allocate_sql
+
+    # Exercise grading is checked independently on supported worker platforms.
+    monkeypatch.setattr("app.services.learning_state.worker_supported", lambda: True)
+    topic = "sql.joins"
+    take(authored_db, "a", topic, "diagnostic", True)
+    take(authored_db, "a", topic, "practice", True, tier="easy")
+    take(authored_db, "a", topic, "practice", True, tier="easy")
+    result, _ = take(authored_db, "a", topic, "practice", True, tier="medium")
+    next_action = result.next_action
+    assert next_action is not None and next_action.action_type == "SQL_PRACTICE"
+    assert next_action.question_id == "sql_customers_without_orders"
+    with Session(authored_db) as db, db.begin():
+        other = allocate_sql(db, "a", "sql_join_001")
+        selected = allocate_sql(db, "a", next_action.question_id)
+        assert selected.session_id != other.session_id
+        assert selected.items[0].question_ref == "sql_customers_without_orders@1"
+        assert allocate_sql(db, "a", next_action.question_id) == selected
+    monkeypatch.setattr("app.services.learning_state.worker_supported", lambda: False)
+    with Session(authored_db) as db:
+        supported_fallback = latest_recommendation(db, "a")
+    assert supported_fallback is not None and supported_fallback.action_type != "SQL_PRACTICE"

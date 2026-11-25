@@ -360,8 +360,8 @@ Run these from the repository root using the documented local environment. Chrom
 
 | Command or evidence | Observed result |
 |---|---|
-| `bash scripts/check_backend.sh backend/.venv/bin` | 162 pytest cases passed, plus Ruff, mypy and strict content validation. |
-| `backend/.venv/bin/python -m pytest -q -s backend/tests/test_progression.py` | 13 cases passed. Allocations, scores, recommendation parity and migration/review cases are replayed above. |
+| `bash scripts/check_backend.sh backend/.venv/bin` | 163 pytest cases passed, plus Ruff, mypy and strict content validation. |
+| `backend/.venv/bin/python -m pytest -q -s backend/tests/test_progression.py` | 14 cases passed. Allocations, scores, recommendation parity and migration/review cases are replayed above. The additional SQL test verifies the exact recommendation and resumption even with another exercise open. Worker availability is varied in the policy test; the actual worker is covered separately. |
 | `backend/.venv/bin/python scripts/validate_content.py --strict --stage S1 --review-policy learner` and the S4 equivalent | Both passed. Counts were 46 MCQs, 33 ordinary practice MCQs, 22 lessons, six SQL tasks and three enabled misconceptions. Separate human review count was zero. |
 | `npm --prefix frontend run lint`, `npm --prefix frontend run typecheck`, `npm --prefix frontend run build`, `npm --prefix frontend test` | All passed, including two Vitest tests. |
 | `DBMS_TEST_CHROME=1 npm --prefix frontend run test:e2e` | Four ordinary smoke/regression scenarios passed. Opt-in authored and progression cases ran separately. |
@@ -371,6 +371,9 @@ Run these from the repository root using the documented local environment. Chrom
 | `backend/.venv/bin/python -m pytest -q backend/tests/test_educational_sql.py backend/tests/test_sql_worker.py` | 33 passed. The six task reference and alternate SELECTs matched independently calculated fixture expectations. The restricted worker accepted alternate solutions and rejected the tested incorrect variants. |
 | `backend/.venv/bin/python -m alembic -c backend/alembic.ini current`, the demo variant `-x demo=true current`, and `alembic check` | Both local databases at `0008_independent_mastery`; no schema drift or FK violations. The app retained 39 attempts, 39 history entries, one misconception and 52 question versions. Demo retained 1, 1, 0 and 52 respectively. |
 | `backend/.venv/bin/python scripts/check_ollama.py` and `--book` | Both passed against existing `qwen3:1.7b`. The model explained LEFT JOIN and ON DELETE CASCADE with actual retrieved citations. |
+
+
+GitHub Actions verified the substantive allocation and progression iterations on `main`, including both backend and frontend jobs. Chrome, the Apple Silicon SQL worker and real Ollama were verified locally. [Allocation workflow](https://github.com/Aadit5gupta/adaptive-dbms-tutor/actions/runs/45558334251) · [Progression workflow](https://github.com/Aadit5gupta/adaptive-dbms-tutor/actions/runs/45561354252)
 
 ## Verdict
 
