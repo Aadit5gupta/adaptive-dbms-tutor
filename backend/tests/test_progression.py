@@ -82,8 +82,9 @@ def test_global_diagnostic_can_resume_ticket_in_exact_scope(authored_db: Engine)
         (
             "practice",
             "normalization",
-            {"normalization.fds", "normalization.normal_forms", "normalization.decomposition"},
+            {"normalization.fds", "normalization.normal_forms"},
         ),
+        ("practice", "normalization.decomposition", {"normalization.decomposition"}),
     ],
 )
 def test_domain_and_topic_selections_use_only_scoped_questions(
@@ -108,13 +109,16 @@ def test_requested_difficulty_does_not_resume_easy_session_or_insert_easy_filler
         )
         assert easy.total == 5
         assert {item.difficulty for item in easy.items} == {"easy"}
-        assert medium.session_id != easy.session_id and medium.total == 1
+        assert medium.session_id != easy.session_id and medium.total == 3
         assert {item.difficulty for item in medium.items} == {"medium"}
         assert medium == start_study(
             db, "b", "practice", topic="relational.keys", difficulty="medium"
         )
+        hard = start_study(db, "b", "practice", topic="relational.keys", difficulty="hard")
+        assert hard.session_id not in (easy.session_id, medium.session_id) and hard.total == 3
+        assert {item.difficulty for item in hard.items} == {"hard"}
         with pytest.raises(AssessmentError, match="no eligible"):
-            start_study(db, "b", "practice", topic="relational.keys", difficulty="hard")
+            start_study(db, "b", "practice", topic="er.entities", difficulty="hard")
 
 
 def take(
@@ -215,19 +219,25 @@ def test_learner_b_progresses_and_recovers_from_a_hard_mistake(authored_db: Engi
     assert outcome.next_action.subtopic_id != topic
 
 
-def test_learner_c_uses_authored_medium_and_explores_after_bank_exhaustion(
+def test_learner_c_uses_published_keys_tiers_and_advances_with_evidence(
     authored_db: Engine,
 ) -> None:
     topic = "relational.keys"
+    take(authored_db, "a", "relational.relations", "practice", True)
     result, state = take(authored_db, "a", topic, "diagnostic", True)
     assert result.next_action and result.next_action.difficulty == "easy"
-    for _ in range(5):
+    for _ in range(3):
         result, state = take(authored_db, "a", topic, "practice", True, tier="easy")
         assert result.misconception is None
     assert result.next_action and result.next_action.difficulty == "medium"
-    result, state = take(authored_db, "a", topic, "practice", True, tier="medium")
-    assert state.distinct == 7 and state.band == "high"
-    assert result.next_action and result.next_action.reason_code == "EXPLORE_NEXT_TOPIC"
+    for _ in range(2):
+        result, state = take(authored_db, "a", topic, "practice", True, tier="medium")
+    assert state.distinct == 6 and state.confidence == "supported"
+    assert result.next_action and result.next_action.difficulty == "hard"
+    for _ in range(2):
+        result, state = take(authored_db, "a", topic, "practice", True, tier="hard")
+    assert state.distinct == 8 and state.band == "high"
+    assert result.next_action and result.next_action.reason_code == "ADVANCE_TOPIC"
     assert result.next_action.subtopic_id != topic and result.misconception is None
 
 
@@ -318,9 +328,10 @@ def test_sql_recommendation_opens_exact_available_exercise(
     monkeypatch.setattr("app.services.learning_state.worker_supported", lambda: True)
     topic = "sql.joins"
     take(authored_db, "a", topic, "diagnostic", True)
-    take(authored_db, "a", topic, "practice", True, tier="easy")
-    take(authored_db, "a", topic, "practice", True, tier="easy")
-    result, _ = take(authored_db, "a", topic, "practice", True, tier="medium")
+    for _ in range(4):
+        take(authored_db, "a", topic, "practice", True, tier="easy")
+    take(authored_db, "a", topic, "practice", False, tier="medium")
+    result, _ = take(authored_db, "a", topic, "practice", False, tier="medium")
     next_action = result.next_action
     assert next_action is not None and next_action.action_type == "SQL_PRACTICE"
     assert next_action.question_id == "sql_customers_without_orders"

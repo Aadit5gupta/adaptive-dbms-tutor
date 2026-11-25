@@ -144,3 +144,7 @@ The [adaptive learning audit](ADAPTIVE_LEARNING_AUDIT.md) contains the full vers
 Pytest 163, Vitest 2, Ruff, mypy, frontend lint, typecheck, production build, structural validation and S1/S4 learner gates passed. The targeted SQL test suite passed all 33 cases. A separate signed-in backend test exhausted JOIN MCQs and verified the exact recommended exercise, correct resumption and fallback when execution is unavailable. Both local database migrations passed consistency checks and retained attempt and mastery history counts. The authored A/B CLI replay and both actual Qwen3 lesson- and textbook-citation checks passed.
 
 Fifteen Chrome scenarios passed across the three suites. Authored accounts opened fresh and resumed scoped diagnostics, followed exact practice tiers, received targeted reteaching, failed or resolved a misconception in separate journeys, and moved to eligible work on exhaustion. The full hard-tier flow passed with isolated synthetic items because the production bank contains zero hard MCQs. No new content was published.
+
+## Misconception learning expansion, 25 November 2026
+
+The reviewed bank contains 76 MCQs. Backend pytest 164, frontend Vitest 2, lint, types and build, learner S1/S4 gates, six published-content Chrome learner journeys and the authored A/B replay passed. Detailed per-answer outcomes and content limitations appear in the [misconception audit](MISCONCEPTION_LEARNING_AUDIT.md).

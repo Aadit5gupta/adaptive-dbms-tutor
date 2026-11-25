@@ -102,3 +102,5 @@ The dashboard shows reviewed activity, coverage and the deterministic next recom
 
 
 In Library, choose **Original lessons** or **Textbooks** to narrow a search. Lesson titles open Learn so you can continue to practice or tutoring. Textbook results provide the chapter and license links, plus **Ask Tutor about this topic** to carry the search into an editable question.
+
+The [misconception learning audit](docs/MISCONCEPTION_LEARNING_AUDIT.md) records the expanded practice bank, separate AI review and browser learner journeys.

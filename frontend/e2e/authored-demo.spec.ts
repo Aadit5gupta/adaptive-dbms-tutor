@@ -266,6 +266,7 @@ test('signed-in learner sees and resolves a misconception outside demo mode', as
   await nav.getByRole('link', { name: 'Practice' }).click()
   await expect(page.getByRole('heading', { name: 'Practice', exact: true })).toBeVisible()
   await page.getByRole('combobox', { name: 'Topic' }).selectOption('relational.keys')
+  await page.getByRole('combobox', { name: 'Difficulty' }).selectOption('easy')
   await page.getByRole('button', { name: 'Start or resume practice' }).click()
 
   let releaseAnswer = () => {}
@@ -349,15 +350,15 @@ test('the selected scope and difficulty survive allocation and refresh', async (
   await page.getByRole('combobox', { name: 'Topic' }).selectOption('relational.keys')
   await page.getByRole('combobox', { name: 'Difficulty' }).selectOption('medium')
   await page.getByRole('button', { name: 'Start or resume practice' }).click()
-  await expect(page.getByText('This session has 1 eligible question for your selection.')).toBeVisible()
-  await expect(page.getByText('Question 1 of 1')).toBeVisible()
+  await expect(page.getByText('This session has 3 eligible questions for your selection.')).toBeVisible()
+  await expect(page.getByText('Question 1 of 3')).toBeVisible()
   await expect(page.getByText('· medium')).toBeVisible()
   expect(page.url()).not.toEqual(easyUrl)
   await page.reload()
   await expect(page.getByText('· medium')).toBeVisible()
 })
 
-test('strong authored learner reaches medium and moves on when the topic bank runs out', async ({ page }) => {
+test('a correct diagnostic followed by easy practice recommends published medium questions', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Create an account' }).click()
   await page.getByLabel('Email', { exact: true }).fill('strong-trajectory@example.com')
@@ -378,7 +379,7 @@ test('strong authored learner reaches medium and moves on when the topic bank ru
     'Two.',
     'branch_id and copy_number.',
     'A row in Account with the same id.',
-    'The invoice fails the foreign-key constraint.',
+    'UNIQUE (station_id, bay_number).',
   ]) {
     await answer(page, choice)
   }
@@ -386,13 +387,9 @@ test('strong authored learner reaches medium and moves on when the topic bank ru
   await expect(next).toHaveAttribute('href', /difficulty=medium&fresh=1$/)
   await next.click()
   await page.getByRole('button', { name: 'Start or resume practice' }).click()
-  await expect(page.getByText('Question 1 of 1')).toBeVisible()
+  await expect(page.getByText('Question 1 of 3')).toBeVisible()
   await expect(page.getByText('· medium')).toBeVisible()
-  await answer(page, '{employee_id, email}')
-  await page.getByRole('link', { name: 'See your next step' }).click()
-  await expect(page.getByText(/Fresh practice at a suitable level is unavailable here/)).toBeVisible()
-  await next.click()
-  await expect(page.getByRole('heading', { name: 'Identify entities and their attributes' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /registry_code/ })).toBeVisible()
   await page.getByRole('link', { name: 'Progress', exact: true }).click()
   await expect(page.getByText('No misconception patterns detected yet.')).toBeVisible()
 })

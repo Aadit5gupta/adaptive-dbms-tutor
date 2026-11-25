@@ -1,0 +1,936 @@
+- id: q_lean_keys_migrate_children
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: Scanner.scan_id is a primary key. Scanner.station_id is a NOT NULL foreign key to Station.id. The rules
+    allow a station to have several scanners, but each station can have only one scanner in each bay. Scanner.bay_number
+    is NOT NULL. Which constraint, added to Scanner, enforces the bay rule while still allowing a station to have
+    multiple scanners?
+  options:
+  - text: UNIQUE (station_id) because a child foreign key must already be unique per parent.
+    correct: false
+    misconception_code: KEYS-02
+  - text: UNIQUE (station_id, bay_number).
+    correct: true
+  - text: UNIQUE (bay_number).
+    correct: false
+  - text: UNIQUE (scan_id, bay_number).
+    correct: false
+  explanation: The pair forbids two scanners in the same bay at one station. A station ID may repeat with another
+    bay, and a bay number may repeat at another station.
+  subtopic_id: relational.keys
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/07-constraints/constraints.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_sql_question_review
+- id: q_lean_keys_alternate_parent
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: medium
+  stem: In SQLite, Building has id as its primary key and registry_code as NOT NULL with neither a UNIQUE constraint
+    nor a unique index. A data check found that all current registry codes differ. Every Inspection row must store
+    a NOT NULL reference to Building.registry_code, and several inspections may share a registry code. What schema
+    change makes that foreign key valid and enforces these rules for future rows?
+  options:
+  - text: Add an ordinary index on Building.registry_code and reference it.
+    correct: false
+  - text: Add UNIQUE to Inspection.registry_code and reference the building column as it stands.
+    correct: false
+  - text: Add UNIQUE to Building.registry_code and reference it from Inspection without adding child uniqueness.
+    correct: true
+  - text: Use the current data check in place of a parent constraint.
+    correct: false
+  explanation: SQLite requires a non-primary parent key to be covered by a compatible UNIQUE constraint or index.
+    Adding parent uniqueness protects future rows and leaves multiple child inspections allowed.
+  subtopic_id: relational.keys
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/07-constraints/constraints.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_sql_question_review
+- id: q_lean_keys_cascaded_code
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: medium
+  stem: Factory.code is a primary key. Repair.factory_code is an enforced foreign key with ON UPDATE CASCADE. Repair
+    has its own repair_id primary key and no uniqueness constraint on factory_code. Two repairs reference F4. The
+    factory changes its code from F4 to F9, which is unused, with no other constraints or actions involved. What
+    happens to those repairs?
+  options:
+  - text: Both repairs remain, now referencing F9.
+    correct: true
+  - text: Only the older repair is retained and it references F9.
+    correct: false
+  - text: Both repairs remain with F4.
+    correct: false
+  - text: Both repairs are deleted by the cascade.
+    correct: false
+  explanation: ON UPDATE CASCADE copies the changed parent key into each referencing row. It neither deletes repair
+    rows nor limits a parent to one child.
+  subtopic_id: relational.keys
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/07-constraints/constraints.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_sql_question_review
+- id: q_lean_keys_composite_fk_pair
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: hard
+  stem: With SQLite foreign-key checks enabled, WarehouseBin has composite primary key (warehouse, bin). Its only
+    keys are (North, 1) and (South, 2). A Move table has an enforced foreign key (warehouse, bin) referencing that
+    pair, its own move_id primary key, and NOT NULL on warehouse and bin. For three separate inserts with fresh
+    move IDs and pairs (North, 1), (North, 2), (South, 2), which are accepted?
+  options:
+  - text: All three, because each warehouse and bin value occurs in the parent table.
+    correct: false
+  - text: Only (North, 2), because it joins two distinct parent rows.
+    correct: false
+  - text: Only (South, 2), because bin 1 cannot be referenced more than once.
+    correct: false
+  - text: (North, 1) and (South, 2) only.
+    correct: true
+  explanation: Each non-NULL child tuple must match both columns of the same parent row. North and 2 occur individually,
+    but the pair (North, 2) does not exist.
+  subtopic_id: relational.keys
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/07-constraints/constraints.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_sql_question_review
+- id: q_lean_keys_composite_unique_scope
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: hard
+  stem: 'In SQLite, Allocation’s child tuple (shop_id, bay) is an enforced foreign key. The parent contains pairs
+    (4, 1), (4, 2), (5, 2). The child has its own row ID and separately enforces UNIQUE (shop_id, booking_day).
+    It currently contains (shop_id, bay, booking_day) = (4, 1, Mon). There are no NULLs. Consider these new rows
+    independently: P=(4, 2, Mon), Q=(4, 2, Tue), R=(5, 1, Mon). Which are accepted with fresh row IDs?'
+  options:
+  - text: P and Q only.
+    correct: false
+  - text: Q only.
+    correct: true
+  - text: R only.
+    correct: false
+  - text: Q and R only.
+    correct: false
+  explanation: P matches a parent but repeats the shop/day pair. Q matches a parent and has a new shop/day pair.
+    R has an unused shop/day pair but has no matching parent tuple.
+  subtopic_id: relational.keys
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/07-constraints/constraints.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_sql_question_review
+- id: q_lean_keys_composite_null_rule
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: hard
+  stem: 'SQLite enforces a foreign key from Visit(site, room) to Office(site, room). The only parent pair is (''E'',
+    12). Both child columns are nullable; the Visit primary key is visit_id, and there are no other constraints.
+    For separate inserts with fresh visit IDs, which child pairs pass: P=(''W'', NULL), Q=(''W'', 12), and R=(''E'',
+    12)?'
+  options:
+  - text: Only R.
+    correct: false
+  - text: Only P.
+    correct: false
+  - text: P and R only.
+    correct: true
+  - text: P, Q, and R.
+    correct: false
+  explanation: SQLite permits a composite child reference with a NULL in any component. For two non-NULL components,
+    the whole pair must match one parent row. The parent has ('E', 12), not ('W', 12).
+  subtopic_id: relational.keys
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/07-constraints/constraints.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_sql_question_review
+- id: q_join_practice_duplicate_matches
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: Bay contains just id 8. Sensor contains exactly two distinct rows, both with bay_id 8. A query selects Bay.id
+    using Bay INNER JOIN Sensor ON Bay.id = Sensor.bay_id, without DISTINCT or grouping. What result does that column
+    contain?
+  options:
+  - text: One row with 8.
+    correct: false
+  - text: No rows because the match is not unique.
+    correct: false
+  - text: Two rows, both with 8.
+    correct: true
+  - text: One row with 8 and one with NULL.
+    correct: false
+  explanation: The join emits one row per matching pair. Selecting only the bay ID does not collapse duplicates.
+  subtopic_id: sql.joins
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/04-multiple-tables/multiple-tables.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_sql_question_review
+- id: q_join_practice_preservation_claim
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: Two queries select the machine ID and reading ID from Machine joined to Reading on Machine.id = Reading.machine_id,
+    without filters or DISTINCT. One uses INNER JOIN and the other uses LEFT JOIN with Machine on the left. Today
+    every machine has a reading and both outputs agree. What small data change would make the results differ?
+  options:
+  - text: No change can distinguish them because INNER JOIN also keeps an unmatched machine with NULL reading columns.
+    correct: false
+    misconception_code: SQL-JOIN-01
+  - text: Add one reading for a machine that already has a reading.
+    correct: false
+  - text: Add a new machine and its first reading.
+    correct: false
+  - text: Add a new machine and give it no reading.
+    correct: true
+  explanation: Only the last change creates an unmatched left row. LEFT JOIN will add that machine with a NULL reading
+    ID. INNER JOIN will still list only matched pairs.
+  subtopic_id: sql.joins
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/04-multiple-tables/multiple-tables.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_sql_question_review
+- id: q_join_practice_right_side_filter
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: medium
+  stem: A report must show every Workshop, paired only with its approved Proposals. A workshop with no approved
+    proposal must still appear once with NULL proposal columns. Proposal.approved is 1 for approved proposals. Which
+    query fragment implements this?
+  options:
+  - text: Workshop w LEFT JOIN Proposal p ON w.id = p.workshop_id WHERE p.approved = 1
+    correct: false
+  - text: Workshop w INNER JOIN Proposal p ON w.id = p.workshop_id AND p.approved = 1
+    correct: false
+  - text: Workshop w LEFT JOIN Proposal p ON w.id = p.workshop_id
+    correct: false
+  - text: Workshop w LEFT JOIN Proposal p ON w.id = p.workshop_id AND p.approved = 1
+    correct: true
+  explanation: With the approval test in ON, only approved proposals can match. A workshop with no approved match
+    still gets a NULL-extended row. Putting the approval test in WHERE removes that row.
+  subtopic_id: sql.joins
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/04-multiple-tables/multiple-tables.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_sql_question_review
+- id: q_join_practice_matched_nullable_value
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: hard
+  stem: 'SQLite tables: Room(id NOT NULL) has rooms 1, 2, 3. Booking(booking_id NOT NULL, room_id, note) contains
+    (11, 1, NULL), (22, 2, ''late''), and no other rows. A report joins Room r LEFT JOIN Booking b ON b.room_id
+    = r.id and needs just rooms with no booking. Which filter is correct for these rows and future rows in which
+    notes may be NULL?'
+  options:
+  - text: WHERE b.booking_id IS NULL
+    correct: true
+  - text: WHERE b.note IS NULL
+    correct: false
+  - text: WHERE r.id IS NULL
+    correct: false
+  - text: WHERE b.booking_id IS NOT NULL
+    correct: false
+  explanation: A real booking always has a booking ID, so only room 3 has a NULL on that column after the join.
+    Room 1 has a real booking with a missing note.
+  subtopic_id: sql.joins
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/04-multiple-tables/multiple-tables.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_sql_question_review
+- id: q_join_practice_preserve_two_stages
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: hard
+  stem: Zone 1 has Rack 10, Zone 2 has no rack, and Rack 10 has Port 7. All IDs are non-NULL. A report must show
+    (zone ID, rack ID, port ID) even when a zone has no rack or a rack has no port. Its FROM clause is Zone z LEFT
+    JOIN Rack r ON z.id = r.zone_id LEFT JOIN Port p ON z.id = p.rack_id. Which repair yields (1, 10, 7) and (2,
+    NULL, NULL), and also preserves racks without ports?
+  options:
+  - text: Keep both LEFT JOINs, and replace the second ON with r.id = p.rack_id.
+    correct: true
+  - text: Keep both LEFT JOINs and replace the second ON with z.id = p.id.
+    correct: false
+  - text: Replace the second LEFT JOIN with INNER JOIN on r.id = p.rack_id.
+    correct: false
+  - text: Keep the original FROM and filter with WHERE p.rack_id IS NOT NULL.
+    correct: false
+  explanation: Port is attached to a rack, so use the rack's ID in the second ON. Both LEFT JOINs are needed to
+    keep a zone without a rack and a rack without a port.
+  subtopic_id: sql.joins
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/04-multiple-tables/multiple-tables.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_sql_question_review
+- id: q_progress_agg_filter_order
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: medium
+  stem: Readings(sensor, strength) has (A, 2), (A, 5), (B, 3), (B, 3), (B, 1). The query groups by sensor after
+    WHERE strength >= 3 and keeps groups with HAVING COUNT(*) >= 2. What sensor and count does it return?
+  options:
+  - text: (A, 2) only.
+    correct: false
+  - text: (B, 2) only.
+    correct: true
+  - text: (A, 1) and (B, 2).
+    correct: false
+  - text: (B, 3) only.
+    correct: false
+  explanation: The WHERE clause leaves one A reading and two B readings. HAVING removes A and keeps B's two-row
+    group.
+  subtopic_id: sql.aggregation
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/09-grouping-and-aggregation/grouping-and-aggregation.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_sql_question_review
+- id: q_progress_agg_distinct_nonnull
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: medium
+  stem: Log(user_id) contains 7, 7, 8, and NULL. SQLite runs SELECT COUNT(*), COUNT(user_id), COUNT(DISTINCT user_id)
+    FROM Log. What does it return?
+  options:
+  - text: (4, 4, 3)
+    correct: false
+  - text: (3, 3, 2)
+    correct: false
+  - text: (4, 2, 2)
+    correct: false
+  - text: (4, 3, 2)
+    correct: true
+  explanation: COUNT(*) counts all four rows. COUNT(user_id) counts three non-NULL occurrences, and COUNT(DISTINCT
+    user_id) counts the two different non-NULL IDs.
+  subtopic_id: sql.aggregation
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/09-grouping-and-aggregation/grouping-and-aggregation.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_sql_question_review
+- id: q_progress_agg_multiplication_before_sum
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: hard
+  stem: A single SupportCase row has two Charge rows with amounts 5 and 7, and three Log rows. A report joins both
+    child tables to SupportCase by case_id before calculating SUM(Charge.amount) for the case. Which pair gives
+    the current result and a correction that still works if charges may share amounts?
+  options:
+  - text: 36; aggregate charges to one sum per case before joining logs, and report that sum once per case.
+    correct: true
+  - text: 12; keep the existing query because SUM ignores duplicates.
+    correct: false
+  - text: 36; use SUM(DISTINCT Charge.amount) on the original joined rows.
+    correct: false
+  - text: 36; divide the joined sum by the number of charge rows.
+    correct: false
+  explanation: Each charge appears once per log and the joined total is 3×(5+7). Aggregate the charges first, and
+    use the case total without summing its repeated joined copies. SUM(DISTINCT amount) would collapse different
+    charges that happen to have equal amounts.
+  subtopic_id: sql.aggregation
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/09-grouping-and-aggregation/grouping-and-aggregation.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_sql_question_review
+- id: q_progress_agg_empty_group_vs_null
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: hard
+  stem: Site has ID 1 and 2. Checkup has columns (id NOT NULL, site_id, minutes) and exactly one row (8, 1, NULL).
+    SQLite groups Site LEFT JOIN Checkup by Site.id, returning (site ID, COUNT(Checkup.id), SUM(Checkup.minutes)).
+    Which pair of output rows is correct?
+  options:
+  - text: (1, 1, 0) and (2, 0, 0)
+    correct: false
+  - text: (1, 0, NULL) and (2, 0, NULL)
+    correct: false
+  - text: (1, 1, NULL) and (2, 0, NULL)
+    correct: true
+  - text: (1, 1, NULL) only
+    correct: false
+  explanation: Site 1 has a real checkup ID while site 2 has a NULL-filled row. No non-NULL minutes exist in either
+    group. SQLite SUM therefore returns NULL for both.
+  subtopic_id: sql.aggregation
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/09-grouping-and-aggregation/grouping-and-aggregation.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_sql_question_review
+- id: q_norm_practice_atomic_cell
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: A design currently stores a variable-length list of separate email addresses in one Contact cell. The addresses
+    are individually searchable and can be added or removed independently. Which redesign represents them as single
+    values per cell while supporting any number of addresses?
+  options:
+  - text: Rename the EmailList column Email, with no data change.
+    correct: false
+  - text: Create ContactEmail(contact_id, address) with one row per contact/address pair.
+    correct: true
+  - text: Put only the first two addresses in columns address1 and address2.
+    correct: false
+  - text: Store the number of addresses alongside the existing list.
+    correct: false
+  explanation: One association row per address gives each queryable address its own value. Neither renaming nor
+    counting the embedded list changes its representation; fixed slots fail for a third or later address.
+  subtopic_id: normalization.normal_forms
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/03-normalization/normalization.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_normalization_question_review
+- id: q_norm_practice_anomaly_update
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: The same office phone number appears in every employee row in that office. An editor changes it in one employee
+    row but misses the others, creating inconsistent phone numbers for the same office. Which anomaly has occurred?
+  options:
+  - text: A deletion anomaly because an employee was deleted.
+    correct: false
+  - text: An insertion anomaly because an office cannot be created.
+    correct: false
+  - text: An update anomaly caused by storing one fact repeatedly.
+    correct: true
+  - text: A duplicate key error because both offices now have the same number.
+    correct: false
+  explanation: One fact is copied across employee rows. Changing only one copy creates conflicting values, the characteristic
+    failure of an update anomaly.
+  subtopic_id: normalization.normal_forms
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/03-normalization/normalization.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_normalization_question_review
+- id: q_norm_practice_full_dependency
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: SeatUse has the only candidate key (show_id, seat_number). A sold_price belongs to that particular show
+    and seat together. Neither show_id alone nor seat_number alone determines sold_price, and no set of non-key
+    attributes determines it. What describes its dependence on the key?
+  options:
+  - text: Full dependence on the two-column key.
+    correct: true
+  - text: Partial dependence on show_id.
+    correct: false
+  - text: Partial dependence on seat_number.
+    correct: false
+  - text: A transitive dependence through a non-key attribute.
+    correct: false
+  explanation: The whole key determines the price, but neither proper one-column subset does. The stem also rules
+    out a non-key path.
+  subtopic_id: normalization.normal_forms
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/03-normalization/normalization.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_normalization_question_review
+- id: q_norm_practice_calibration_confusion
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: Calibration has only candidate key (instrument_id, month). instrument_id alone determines lab_id. The entire
+    key determines procedure_id, procedure_id determines procedure_note, and neither single key column determines
+    procedure_id or procedure_note. The lab, procedure and note columns are non-key. Which classification of lab_id
+    and procedure_note explains their dependence on the key?
+  options:
+  - text: lab_id is transitive; procedure_note is partial.
+    correct: false
+    misconception_code: NORM-03
+  - text: Both are partial because the key is composite.
+    correct: false
+  - text: lab_id is partial; procedure_note is transitive through procedure_id.
+    correct: true
+  - text: Both are full and neither has a dependency through another attribute.
+    correct: false
+  explanation: The proper subset instrument_id already fixes lab_id. For procedure_note, the full key first determines
+    the non-key procedure_id, and that procedure determines the note. The stem rules out any proper-subset determinant
+    for the note.
+  subtopic_id: normalization.normal_forms
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/03-normalization/normalization.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_normalization_question_review
+- id: q_norm_practice_split_partial
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: medium
+  stem: In Hire(tool_id, week, daily_limit, days_used), the key is (tool_id, week) and each tool has one daily_limit
+    across all weeks. A redesign uses Hire(tool_id, week, days_used) and ToolLimit(tool_id, week, daily_limit),
+    with (tool_id, week) as the key of both. Assume it enforces only these keys. What problem does this leave when
+    the same tool is hired in several weeks?
+  options:
+  - text: ToolLimit can still store conflicting limits for the same tool in different weeks.
+    correct: true
+  - text: Hire cannot represent more than one week for a tool with its stated key.
+    correct: false
+  - text: ToolLimit forbids two tools from having the same daily_limit.
+    correct: false
+  - text: The split prevents Hire from storing a different days_used for each week.
+    correct: false
+  explanation: The new composite key permits each tool to have a different limit row per week. The rule fixes the
+    limit per tool, so ToolLimit should have one row per tool and omit week.
+  subtopic_id: normalization.normal_forms
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/03-normalization/normalization.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_normalization_question_review
+- id: q_norm_practice_split_transitive
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: medium
+  stem: With one row per alarm, Alarm(alarm_id, device_id, model_id, alert_tone) has only candidate key alarm_id
+    and dependencies alarm_id → device_id, device_id → model_id, and model_id → alert_tone. Which split keeps each
+    fact at its immediate determinant and can recover each alarm's alert tone?
+  options:
+  - text: Alarm(alarm_id, device_id, model_id) and Tone(model_id, alert_tone).
+    correct: false
+  - text: Alarm(alarm_id, device_id), Device(device_id, model_id), and Model(model_id, alert_tone).
+    correct: true
+  - text: Alarm(alarm_id, alert_tone), Device(device_id, model_id), and Model(model_id, alert_tone).
+    correct: false
+  - text: Alarm(alarm_id, device_id), Device(device_id, alert_tone), and Model(model_id, alert_tone).
+    correct: false
+  explanation: Each dependency has its own relation keyed by the determinant. Joining from alarm to device to model
+    recovers the tone, with no copy of model or tone per alarm.
+  subtopic_id: normalization.normal_forms
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/03-normalization/normalization.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_normalization_question_review
+- id: q_norm_practice_qualify_normal_form
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: medium
+  stem: A 1NF table Meter(meter_id, model, accuracy_class) has only candidate key meter_id. It has model → accuracy_class,
+    model is not a superkey, and accuracy_class is non-key. Other dependencies follow only from these facts. What
+    is its highest normal form among 1NF, 2NF, 3NF and BCNF?
+  options:
+  - text: 1NF, because any non-key column means a 2NF violation.
+    correct: false
+  - text: 3NF, because meter_id is already a key.
+    correct: false
+  - text: BCNF, because a single-column key determines the table.
+    correct: false
+  - text: 2NF, because there is no partial dependency, but model → accuracy_class violates 3NF.
+    correct: true
+  explanation: There is no partial dependency on the one-column key under the stated dependencies. The non-key determinant
+    model fixes another non-key attribute and is not a superkey, ruling out 3NF and BCNF.
+  subtopic_id: normalization.normal_forms
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/03-normalization/normalization.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_normalization_question_review
+- id: q_norm_practice_bcnf_counterexample
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: hard
+  stem: Training(trainee, lab, supervisor) is in 1NF. The only nontrivial dependencies that need to be assumed are
+    (trainee, lab) → supervisor and supervisor → lab, plus what they imply. Its candidate keys are (trainee, lab)
+    and (trainee, supervisor). Which statement holds?
+  options:
+  - text: It violates 2NF because supervisor is part of a candidate key.
+    correct: false
+  - text: It violates 3NF because supervisor is not a superkey and lab is non-prime.
+    correct: false
+  - text: It satisfies 3NF because lab is prime, but violates BCNF because supervisor is not a superkey.
+    correct: true
+  - text: It satisfies BCNF because lab appears in a candidate key.
+    correct: false
+  explanation: Lab belongs to a candidate key, so supervisor → lab meets 3NF's prime-attribute exception. BCNF requires
+    a superkey determinant for every nontrivial FD; supervisor cannot determine trainee.
+  subtopic_id: normalization.normal_forms
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/03-normalization/normalization.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_normalization_question_review
+- id: q_norm_practice_lossless_bcnf_choice
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: hard
+  stem: 'An equipment register has Device(D, M, R, P), where D is device ID, M model ID, R power rating and P purchase
+    date. It is in 1NF, with only these dependencies and their implications: D → M, M → R, D → P. Which split is
+    lossless, preserves all three stated dependencies without a join, and puts both relations in BCNF?'
+  options:
+  - text: (D, M, P) and (M, R).
+    correct: true
+  - text: (D, M, P) and (D, R).
+    correct: false
+  - text: (D, M, R) and (D, P).
+    correct: false
+  - text: (D, P) and (M, R).
+    correct: false
+  explanation: The shared M determines (M, R), so the join is lossless. D is the first relation's key and M the
+    second's, and every stated dependency appears in a component. The second option omits M → R from both components.
+    The third keeps a BCNF violation and the fourth has no shared attribute.
+  subtopic_id: normalization.normal_forms
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/03-normalization/normalization.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_normalization_question_review
+- id: q_progress_fds_combine_determinant
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: Assume (supplier, part) → unit_price. Two rows agree on supplier but have different part values and different
+    prices. Do those rows violate the stated dependency?
+  options:
+  - text: Yes, because supplier agrees.
+    correct: false
+  - text: No, because the two rows disagree on part, so their determinant pairs differ.
+    correct: true
+  - text: Yes, because price varies anywhere in the table.
+    correct: false
+  - text: No, because functional dependencies apply only to rows with identical prices.
+    correct: false
+  explanation: The dependency compares rows that agree on every attribute of the left-hand side. Sharing the supplier
+    alone does not require equal prices.
+  subtopic_id: normalization.fds
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/03-normalization/normalization.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_normalization_question_review
+- id: q_progress_fds_closure_missing
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: medium
+  stem: For R(A, B, C, D, E), assume A → B, B → C and (C, D) → E, plus their implications. What is the closure of
+    {A}?
+  options:
+  - text: '{A, B}'
+    correct: false
+  - text: '{A, B, C, E}'
+    correct: false
+  - text: '{A, B, C, D, E}'
+    correct: false
+  - text: '{A, B, C}'
+    correct: true
+  explanation: A adds B, which adds C. The final rule needs both C and D. Nothing derives D, so E is also outside
+    the closure.
+  subtopic_id: normalization.fds
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/03-normalization/normalization.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_normalization_question_review
+- id: q_progress_fds_alternate_keys
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: medium
+  stem: For R(A, B, C, D), assume A → B, B → A and (A, C) → D, plus their implications. Which list gives exactly
+    the candidate keys?
+  options:
+  - text: '{A, C} and {B, C}'
+    correct: true
+  - text: '{A} and {B}'
+    correct: false
+  - text: '{A, C} only'
+    correct: false
+  - text: '{A, B, C} and {A, B, D}'
+    correct: false
+  explanation: C cannot be derived and is needed in every key. Either A or B gives the other and then A together
+    with C gives D. Neither attribute of either two-column set can be removed.
+  subtopic_id: normalization.fds
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/03-normalization/normalization.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_normalization_question_review
+- id: q_progress_null_zero_or_missing
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: easy
+  stem: A SQLite table has voltage readings 0, 5, and NULL, each in a different row. Which predicate returns just
+    the missing reading?
+  options:
+  - text: voltage = 0
+    correct: false
+  - text: voltage = NULL
+    correct: false
+  - text: voltage IS NULL
+    correct: true
+  - text: voltage <> 5
+    correct: false
+  explanation: IS NULL tests for missing data. Zero is a stored number, and ordinary comparisons with NULL do not
+    evaluate to true.
+  subtopic_id: sql.null
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/03-expressions/expressions.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_sql_question_review
+- id: q_progress_null_or_unknown
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: medium
+  stem: 'SQLite has rows (id, status, hours): (1, ''open'', NULL), (2, ''closed'', NULL), (3, ''closed'', 7), (4,
+    ''closed'', 3). Which IDs survive WHERE status = ''open'' OR hours >= 6?'
+  options:
+  - text: 3 only.
+    correct: false
+  - text: 1 and 2 only.
+    correct: false
+  - text: 1 and 3 only.
+    correct: true
+  - text: 1, 2, and 3.
+    correct: false
+  explanation: Row 1 passes because true OR unknown is true. Row 2 is false OR unknown and is filtered out. Row
+    3 passes its hours check, while both tests are false for row 4.
+  subtopic_id: sql.null
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/03-expressions/expressions.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_sql_question_review
+- id: q_progress_select_boolean_groups
+  version: 1
+  type: mcq
+  pool: practice
+  difficulty: medium
+  stem: 'In SQLite, Tasks has (id, urgent, kind): (1,0,''fix''), (2,1,''fix''), (3,1,''plan''), (4,1,''print'').
+    Which filter returns exactly IDs 2 and 3?'
+  options:
+  - text: urgent = 1 OR kind IN ('fix', 'plan')
+    correct: false
+  - text: urgent = 1 AND (kind = 'fix' OR kind = 'plan')
+    correct: true
+  - text: urgent = 1 AND kind = 'plan'
+    correct: false
+  - text: kind = 'fix' OR (urgent = 1 AND kind = 'plan')
+    correct: false
+  explanation: The filter requires urgency and accepts either of the two listed kinds. A top-level OR also lets
+    in an unwanted non-urgent fix or urgent print task.
+  subtopic_id: sql.select
+  source:
+    kind: authored
+    factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/03-expressions/expressions.html
+  review_status: ai_verified
+  ai_assisted: true
+  author: Adaptive DBMS Tutor (AI-assisted)
+  verified_on: '2026-11-25'
+  second_review: false
+  ai_review:
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_sql_question_review

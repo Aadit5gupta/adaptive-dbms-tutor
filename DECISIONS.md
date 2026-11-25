@@ -61,6 +61,8 @@
 
 | D22 | 2026-11-25 | Adopt mastery v2 and adaptive policy v3 | Replays inflated scores and stale or mismatched recommendations could lead to exhausted work | Adding a second learner model or publishing unreviewed hard items | First unassisted logical answers update score and confidence. Tier and prerequisite gates use demonstrated evidence. Recompute current action from eligible content and preserve historical decisions. The bank remains sparse. |
 
+| D23 | 2026-11-25 | Expand three existing patterns with independently reviewed practice detectors and start lesson practice at the lowest available tier | Normal practice previously offered only one detector per pattern and opened mixed difficulties | Special detector weighting or altering assessment thresholds | The catalog supplies the starting tier, learners retain difficulty choice, and checkpoints remain reserved. |
+
 ## Deviations and blockers
 
 | Date | Stage/task | Problem / deviation | Impact | Fallback | Owner action required |

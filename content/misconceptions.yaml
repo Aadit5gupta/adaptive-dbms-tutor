@@ -8,6 +8,7 @@
   detector_question_refs:
   - q_keys_detector_tickets@1
   - q_keys_detector_members@1
+  - q_lean_keys_migrate_children@1
   checkpoint_question_refs:
   - q_keys_checkpoint_rooms@1
   - q_keys_checkpoint_badges@1
@@ -20,11 +21,11 @@
     kind: authored
     factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/07-constraints/constraints.html
   author: Adaptive DBMS Tutor (AI-assisted)
-  verified_on: '2026-11-23'
+  verified_on: '2026-11-25'
   second_review: false
   ai_review:
-    primary_reviewer: ai:codex_primary
-    independent_reviewer: ai:codex_separate_context
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_sql_question_review
 - code: SQL-JOIN-01
   enabled: true
   name: Assumes INNER JOIN preserves unmatched rows
@@ -35,6 +36,7 @@
   detector_question_refs:
   - q_join_detector_routes@1
   - q_join_detector_orders@1
+  - q_join_practice_preservation_claim@1
   checkpoint_question_refs:
   - q_join_checkpoint_households@1
   - q_join_checkpoint_teams@1
@@ -47,11 +49,11 @@
     kind: authored
     factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART1_SQL/04-multiple-tables/multiple-tables.html
   author: Adaptive DBMS Tutor (AI-assisted)
-  verified_on: '2026-11-23'
+  verified_on: '2026-11-25'
   second_review: false
   ai_review:
-    primary_reviewer: ai:codex_primary
-    independent_reviewer: ai:codex_separate_context
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_sql_question_review
 - code: NORM-03
   enabled: true
   name: Confuses partial and transitive dependencies
@@ -63,6 +65,7 @@
   detector_question_refs:
   - q_lean_norm_detector_registration@1
   - q_lean_norm_detector_branch@1
+  - q_norm_practice_calibration_confusion@1
   remediation_lesson_ref: lesson_dependency_chain@1
   checkpoint_question_refs:
   - q_lean_norm_checkpoint_order@1
@@ -75,8 +78,8 @@
     kind: authored
     factual_reference_url: https://runestone.academy/ns/books/published/practical_db/PART3_RELATIONAL_DATABASE_THEORY/03-normalization/normalization.html
   author: Adaptive DBMS Tutor (AI-assisted)
-  verified_on: '2026-11-23'
+  verified_on: '2026-11-25'
   second_review: false
   ai_review:
-    primary_reviewer: ai:codex_primary
-    independent_reviewer: ai:codex_separate_context
+    primary_reviewer: ai:codex_misconception_primary
+    independent_reviewer: ai:codex_normalization_question_review

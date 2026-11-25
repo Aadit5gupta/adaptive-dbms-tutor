@@ -29,6 +29,7 @@ export interface Topic {
   lessons: { ref: string; title: string }[]
   diagnostic: boolean
   practice: boolean
+  starting_practice_difficulty: string | null
 }
 
 export interface LessonDetail {

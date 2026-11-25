@@ -3,11 +3,12 @@
 from pathlib import Path
 
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db.models import Lesson, LessonVersion, Question, QuestionVersion, SQLExerciseVersion
 from app.services.assessment import AssessmentError
+from app.services.learning_state import TIERS
 from app.services.sql_grading import worker_supported
 from content.schemas.models import Source
 from scripts.validate_content import DOMAINS, PREREQUISITES, read_records
@@ -31,6 +32,7 @@ class TopicView(BaseModel):
     prerequisites: list[str]
     lessons: list[LessonLink]
     practice: bool
+    starting_practice_difficulty: str | None
     diagnostic: bool
 
 
@@ -69,14 +71,30 @@ def course(db: Session, root: Path) -> list[DomainView]:
             subtopic_lessons.setdefault(topic_id, []).append(
                 LessonLink(ref=version.id, title=version.title)
             )
+    latest = (
+        select(QuestionVersion.question_id, func.max(QuestionVersion.version).label("version"))
+        .group_by(QuestionVersion.question_id)
+        .subquery()
+    )
     available = set(
         db.execute(
-            select(Question.subtopic_id, QuestionVersion.pool)
+            select(Question.subtopic_id, QuestionVersion.pool, QuestionVersion.difficulty)
             .join(QuestionVersion, QuestionVersion.question_id == Question.id)
+            .join(
+                latest,
+                (QuestionVersion.question_id == latest.c.question_id)
+                & (QuestionVersion.version == latest.c.version),
+            )
             .where(Question.type == "mcq")
             .distinct()
         )
     )
+    introductory: dict[str, str] = {}
+    for tier in TIERS:
+        for topic, pool, difficulty in available:
+            if pool == "practice" and difficulty == tier:
+                introductory.setdefault(topic, tier)
+    diagnostic_topics = {topic for topic, pool, _ in available if pool == "diagnostic"}
     return [
         DomainView(
             id=domain.id,
@@ -89,8 +107,9 @@ def course(db: Session, root: Path) -> list[DomainView]:
                     prerequisites=[
                         edge.prerequisite_id for edge in prerequisites if edge.subtopic_id == topic
                     ],
-                    practice=(topic, "practice") in available,
-                    diagnostic=(topic, "diagnostic") in available,
+                    practice=topic in introductory,
+                    starting_practice_difficulty=introductory.get(topic),
+                    diagnostic=topic in diagnostic_topics,
                 )
                 for topic, title in domain.subtopics.items()
             ],
